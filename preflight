@@ -1,0 +1,95 @@
+#!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\n\t'
+shopt -s nullglob nocaseglob
+
+# modern bash version check
+! [ "${BASH_VERSINFO:-0}" -ge 4 ] && echo "This script requires bash v4 or later" && exit 1
+
+# path to self and parent dir
+SCRIPT=$(realpath $0)
+SCRIPTPATH=$(dirname $SCRIPT)
+
+# check platform
+if uname -a | grep -q Darwin; then
+  PLATFORM="macos"
+elif uname -a | grep -q Linux; then
+  PLATFORM="linux"
+else
+  echo "Unsupported platform"
+  exit 1
+fi
+
+# check architecture
+if uname -a | grep -q x86_64; then
+  ARCH="amd64"
+elif uname -a | grep -q 'arm64\|aarch64'; then
+  ARCH="arm64"
+else
+  echo "Unsupported architecture"
+fi
+
+# check for sudo and get sudo
+if (sudo -n true >/dev/null 2>&1); then
+  echo "No password for sudo needed..."
+else
+  sudo -p "Provide sudo password: " echo "Sudo password auto-refresh started..."
+  # background sudo revalidate until script ends
+  {
+    while /bin/sleep 290; do
+      sudo -v
+      echo -e "\nrefreshing sudo timeout"
+    done
+  } &
+  SUDO_PID=$!
+fi
+
+# kill all child proceses quietly
+kill_spawn() {
+  for SPAWN in $(pgrep -g $$); do
+    kill $SPAWN
+  done
+}
+
+# kill_spawn on exit and ctrl-c
+trap kill_spawn EXIT SIGINT
+
+# list of packages to install
+PACKAGES=(
+  "git"
+  "bash"
+  "wget"
+  "jq"
+)
+
+## setup macOS
+# test for macos platform
+if [[ $PLATFORM == "macos" ]]; then
+
+  # test for xcode command line tools
+  if ! xcode-select -p &>/dev/null; then
+    echo "Installing xcode command line tools..."
+    xcode-select --install
+    sudo xcode-select -s /Library/Developer/CommandLineTools
+  fi
+
+  # test for macports
+  if ! command -v port &>/dev/null; then
+    echo "Installing macports..."
+    MACPORTS_PKG="https://github.com/macports/macports-base/releases/download/v2.8.1/MacPorts-2.8.1-13-Ventura.pkg"
+    curl -L -o /tmp/macports.pkg $MACPORTS_PKG
+    sudo installer -pkg /tmp/macports.pkg -target /
+    rm /tmp/macports.pkg
+  fi
+
+  # install packages
+  for PACKAGE in "${PACKAGES[@]}"; do
+    if ! port installed $PACKAGE; then
+      echo "Installing $PACKAGE..."
+      sudo port install $PACKAGE
+    fi
+  done
+
+  # install macports
+
+fi
