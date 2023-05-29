@@ -83,13 +83,13 @@ APT_PACKAGES=(
   "powerline"
 )
 
-## setup a golang packages array
-#declare -A GO_PACKAGES
-#GO_PACKAGES["mc"]="github.com/minio/mc@latest"
-#GO_PACKAGES["duf"]="github.com/muesli/duf@latest"
-#GO_PACKAGES["fzf"]="github.com/junegunn/fzf@latest"
-#GO_PACKAGES["age"]="filippo.io/age/cmd/...@latest"
-#GO_PACKAGES["vault-token-helper"]="github.com/joemiller/vault-token-helper@latest"
+# setup a golang packages array
+typeset -A GO_PACKAGES
+GO_PACKAGES["mc"]="github.com/minio/mc@latest"
+GO_PACKAGES["duf"]="github.com/muesli/duf@latest"
+GO_PACKAGES["fzf"]="github.com/junegunn/fzf@latest"
+GO_PACKAGES["age"]="filippo.io/age/cmd/...@latest"
+GO_PACKAGES["vault-token-helper"]="github.com/joemiller/vault-token-helper@latest"
 
 ## do macOS specific stuff
 if [[ $PLATFORM == "macos" ]]; then
@@ -151,7 +151,7 @@ if [[ $PLATFORM == "linux" ]]; then
   fi
 
   # loop through the array and print the values
-  for key in "${!GO_PACKAGES[@]}"; do
+  for key in "${!GO_PACKAGES[*]}"; do
     #echo ${key} ${GO_PACKAGES[${key}]}
     # check to see if packages is installed and install if not
     if ! command -v ${key} &>/dev/null; then
