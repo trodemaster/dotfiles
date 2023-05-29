@@ -58,6 +58,8 @@ PACKAGES=(
   "python310"
   "py310-pip"
   "py310-powerline"
+  "py310-virtualenv"
+  "py310-powerline"
 )
 
 ## setup macOS
@@ -87,5 +89,10 @@ if [[ $PLATFORM == "macos" ]]; then
       sudo port -q install $PACKAGE
     fi
   done
+
+  # set bash 5 as default shell
+  if [[ -e /opt/local/bin/bash ]]; then
+    sudo chsh -s /opt/local/bin/bash $USER
+  fi
 
 fi
