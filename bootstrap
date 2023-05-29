@@ -73,10 +73,19 @@ if [[ $PLATFORM == "macos" ]]; then
     sudo xcode-select -s /Library/Developer/CommandLineTools
   fi
 
+  # get latest release version from github for macports
+  PORT_LATEST_RELEASE=$(curl -s https://api.github.com/repos/macports/macports-base/releases/latest | jq -r '.tag_name')
+  PORT_LATEST_RELEASE_NUMBER=${PORT_LATEST_RELEASE#v}
+
+  # get macOS operating system version long name including california parks using system_profiler
+  MACOS_VERSION=$(sw_vers --ProductVersion | cut -d . -f1)
+  MACOS_VERSION_NAME=$(awk '/SOFTWARE LICENSE AGREEMENT FOR macOS/' '/System/Library/CoreServices/Setup Assistant.app/Contents/Resources/en.lproj/OSXSoftwareLicense.rtf' | awk -F 'macOS ' '{print $NF}' | awk '{print substr($0, 0, length($0)-1)}')
+
   # test for macports
-  if ! command -v port &>/dev/null; then
+  if ! command -v /opt/local/bin/port &>/dev/null; then
     echo "Installing macports..."
-    MACPORTS_PKG="https://github.com/macports/macports-base/releases/download/v2.8.1/MacPorts-2.8.1-13-Ventura.pkg"
+    MACPORTS_PKG="https://github.com/macports/macports-base/releases/download/${PORT_LATEST_RELEASE}/MacPorts-${PORT_LATEST_RELEASE_NUMBER}-${MACOS_VERSION}-${MACOS_VERSION_NAME}.pkg"
+echo $MACPORTS_PKG
     curl -L -o /tmp/macports.pkg $MACPORTS_PKG
     sudo installer -pkg /tmp/macports.pkg -target /
     rm /tmp/macports.pkg
@@ -86,9 +95,11 @@ if [[ $PLATFORM == "macos" ]]; then
   for PACKAGE in "${PACKAGES[@]}"; do
     if port installed $PACKAGE | grep -q "None of the specified ports are installed"; then
       echo "Installing $PACKAGE..."
-      sudo port -q install $PACKAGE
+      sudo /opt/local/bin/port -q install $PACKAGE
     fi
   done
+
+  # setup dotfiles
 
   # set bash 5 as default shell
   if [[ -e /opt/local/bin/bash ]]; then
