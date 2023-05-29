@@ -77,19 +77,16 @@ APT_PACKAGES=(
   "bash"
   "wget"
   "jq"
-  "python3.10"
-  "python3.10-pip"
-  "python3.10-venv"
-  "powerline"
 )
 
 # setup a golang packages array
-typeset -A GO_PACKAGES
+typeset -a GO_PACKAGES
 GO_PACKAGES["mc"]="github.com/minio/mc@latest"
 GO_PACKAGES["duf"]="github.com/muesli/duf@latest"
 GO_PACKAGES["fzf"]="github.com/junegunn/fzf@latest"
 GO_PACKAGES["age"]="filippo.io/age/cmd/...@latest"
 GO_PACKAGES["vault-token-helper"]="github.com/joemiller/vault-token-helper@latest"
+GO_PACKAGES["chezmoi"]="github.com/twpayne/chezmoi@latest"
 
 ## do macOS specific stuff
 if [[ $PLATFORM == "macos" ]]; then
@@ -151,11 +148,12 @@ if [[ $PLATFORM == "linux" ]]; then
   fi
 
   # loop through the array and print the values
-  for key in "${!GO_PACKAGES[*]}"; do
-    #echo ${key} ${GO_PACKAGES[${key}]}
+  for key in ${!GO_PACKAGES[*]}; do
+    #echo "Key is ${key}"
+    #echo "package uri is ${GO_PACKAGES[${key}]}"
     # check to see if packages is installed and install if not
     if ! command -v ${key} &>/dev/null; then
-      echo "Installing ${key}..."
+      echo "Installing ${key} go package..."
       go install ${GO_PACKAGES[${key}]}
     fi
   done
@@ -170,13 +168,13 @@ if [[ $PLATFORM == "linux" ]]; then
   done
   rm ~/.pip3_list
 
-  # # loop over apt packages and install them
-  # for APT_PACKAGE in "${APT_PACKAGES[@]}"; do
-  #   if ! dpkg -l | grep -q $APT_PACKAGE; then
-  #     echo "Installing $APT_PACKAGE..."
-  #     sudo apt-get install -y $APT_PACKAGE
-  #   fi
-  # done
+  # loop over apt packages and install them
+  for APT_PACKAGE in "${APT_PACKAGES[@]}"; do
+    if ! command -v $APT_PACKAGE &>/dev/null; then
+      echo "Installing apt package $APT_PACKAGE..."
+      sudo apt-get install -y $APT_PACKAGE
+    fi
+  done
 
   # setup dotfiles
 
