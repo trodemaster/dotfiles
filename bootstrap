@@ -79,6 +79,14 @@ APT_PACKAGES=(
   "jq"
 )
 
+# Install go package if not installed
+install_go_package() {
+  if ! command -v "$1" &>/dev/null; then
+    echo "Installing $1 go package..."
+    go install "$2"
+  fi
+}
+
 ## do macOS specific stuff
 if [[ $PLATFORM == "macos" ]]; then
 
@@ -170,13 +178,10 @@ fi
 
 ## do common stuff
 
-# function taking two arguments to install go packages
-install_go_package() {
-  if ! command -v "$1" &>/dev/null; then
-    echo "Installing "$1" go package..."
-    go install "$2"
-  fi
-}
+echo "GOPATH is $GOPATH"
+echo "PATH is $PATH"
+ls /opt/loca/bin/go
+
 
 # Install golang packages using function
 install_go_package "mc" "github.com/minio/mc@latest"
