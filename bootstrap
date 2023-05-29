@@ -55,6 +55,9 @@ PACKAGES=(
   "bash"
   "wget"
   "jq"
+  "python310"
+  "py310-pip"
+  "py310-powerline"
 )
 
 ## setup macOS
