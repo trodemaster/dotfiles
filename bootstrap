@@ -114,7 +114,10 @@ if [[ $PLATFORM == "macos" ]]; then
       sudo /opt/local/bin/port -q install $PORT_PACKAGE
     fi
   done
-
+  # add go to the path
+  export GOPATH=${HOME}/code/go
+  export PATH=$PATH:/opt/local/go/bin
+  
   # setup dotfiles
 
   # set bash 5 as default shell
@@ -137,19 +140,6 @@ if [[ $PLATFORM == "linux" ]]; then
     rm go${GO_VERSION}.linux-${ARCH}.tar.gz
     export GOPATH=${HOME}/code/go
   fi
-
-# # loop through the array and print the values
-# for key in ${!GO_PACKAGES[*]}; do
-#   #echo "Key is ${key}"
-#   #echo "package uri is ${GO_PACKAGES[${key}]}"
-#   # check to see if packages is installed and install if not
-#   if ! command -v ${key} &>/dev/null; then
-#     echo "Installing ${key} go package..."
-#     go install ${GO_PACKAGES[${key}]}
-#   fi
-# done
-
-
 
   # loop over pip packages and install them
   pip3 list --format=columns >~/.pip3_list
