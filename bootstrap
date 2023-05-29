@@ -109,7 +109,7 @@ if [[ $PLATFORM == "macos" ]]; then
 
   # install packages
   for PORT_PACKAGE in "${PORT_PACKAGES[@]}"; do
-    if port installed $PORT_PACKAGE | grep -q "None of the specified ports are installed"; then
+    if /opt/local/bin/port installed $PORT_PACKAGE | grep -q "None of the specified ports are installed"; then
       echo "Installing $PORT_PACKAGE..."
       sudo /opt/local/bin/port -q install $PORT_PACKAGE
     fi
@@ -182,9 +182,9 @@ fi
 
 # function taking two arguments to install go packages
 install_go_package() {
-  if ! command -v $1 &>/dev/null; then
-    echo "Installing $1 go package..."
-    go install $2
+  if ! command -v "$1" &>/dev/null; then
+    echo "Installing "$1" go package..."
+    go install "$2"
   fi
 }
 
@@ -195,13 +195,6 @@ install_go_package "fzf" "github.com/junegunn/fzf@latest"
 install_go_package "age" "filippo.io/age/cmd/...@latest"
 install_go_package "vault-token-helper" "github.com/joemiller/vault-token-helper@latest"
 install_go_package "chezmoi" "github.com/twpayne/chezmoi@latest"
-
-
-# if .fzf_completion is not present, download it
-if [[ ! -e ${HOME}/.fzf_completion.bash ]]; then
-  wget -q -O ${HOME}/.fzf_completion.bash https://raw.githubusercontent.com/junegunn/fzf/master/shell/completion.bash
-  wget -q -O ${HOME}/.fzf_key-bindings.bash https://raw.githubusercontent.com/junegunn/fzf/master/shell/key-bindings.bash
-fi
 
 # check for vault-token-helper and enable it
 if command -v vault-token-helper &>/dev/null; then
