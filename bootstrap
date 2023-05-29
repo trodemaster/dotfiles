@@ -58,6 +58,7 @@ PORT_PACKAGES=(
   "bash"
   "wget"
   "jq"
+  "go"
   "python310"
   "py310-pip"
   "py310-powerline"
@@ -117,7 +118,7 @@ if [[ $PLATFORM == "macos" ]]; then
   # add go to the path
   export GOPATH=${HOME}/code/go
   export PATH=$PATH:/opt/local/go/bin
-  
+
   # setup dotfiles
 
   # set bash 5 as default shell
