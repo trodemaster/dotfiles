@@ -83,13 +83,13 @@ APT_PACKAGES=(
   "powerline"
 )
 
-# setup a golang packages array
-declare -A GO_PACKAGES
-GO_PACKAGES["mc"]="github.com/minio/mc@latest"
-GO_PACKAGES["duf"]="github.com/muesli/duf@latest"
-GO_PACKAGES["fzf"]="github.com/junegunn/fzf@latest"
-GO_PACKAGES["age"]="filippo.io/age/cmd/...@latest"
-GO_PACKAGES["vault-token-helper"]="github.com/joemiller/vault-token-helper@latest"
+## setup a golang packages array
+#declare -A GO_PACKAGES
+#GO_PACKAGES["mc"]="github.com/minio/mc@latest"
+#GO_PACKAGES["duf"]="github.com/muesli/duf@latest"
+#GO_PACKAGES["fzf"]="github.com/junegunn/fzf@latest"
+#GO_PACKAGES["age"]="filippo.io/age/cmd/...@latest"
+#GO_PACKAGES["vault-token-helper"]="github.com/joemiller/vault-token-helper@latest"
 
 ## do macOS specific stuff
 if [[ $PLATFORM == "macos" ]]; then
@@ -160,7 +160,7 @@ if [[ $PLATFORM == "linux" ]]; then
     fi
   done
 
-  # loop over pip packages and instal them
+  # loop over pip packages and install them
   pip3 list --format=columns >~/.pip3_list
   for PIP_PACKAGE in "${PIP_PACKAGES[@]}"; do
     if ! grep -q $PIP_PACKAGE ~/.pip3_list; then
@@ -170,7 +170,7 @@ if [[ $PLATFORM == "linux" ]]; then
   done
   rm ~/.pip3_list
 
-  # # loop over apt packages and instal them
+  # # loop over apt packages and install them
   # for APT_PACKAGE in "${APT_PACKAGES[@]}"; do
   #   if ! dpkg -l | grep -q $APT_PACKAGE; then
   #     echo "Installing $APT_PACKAGE..."
