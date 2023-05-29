@@ -87,6 +87,11 @@ install_go_package() {
   fi
 }
 
+# create ~/code directory if it doesn't exist
+if [[ ! -d ~/code ]]; then
+  mkdir ~/code
+fi
+
 ## do macOS specific stuff
 if [[ $PLATFORM == "macos" ]]; then
 
@@ -124,7 +129,7 @@ if [[ $PLATFORM == "macos" ]]; then
   done
   # add go to the path
   export GOPATH=${HOME}/code/go
-  export PATH=$PATH:/opt/local/go/bin
+  export PATH=$PATH:/opt/local/bin
 
   # setup dotfiles
 
@@ -180,7 +185,7 @@ fi
 
 echo "GOPATH is $GOPATH"
 echo "PATH is $PATH"
-ls /opt/loca/bin/go
+ls /opt/local/bin/go
 
 
 # Install golang packages using function
