@@ -83,7 +83,7 @@ if [[ $PLATFORM == "macos" ]]; then
   for PACKAGE in "${PACKAGES[@]}"; do
     if port installed $PACKAGE | grep -q "None of the specified ports are installed"; then
       echo "Installing $PACKAGE..."
-      sudo port -y install $PACKAGE
+      sudo port -q install $PACKAGE
     fi
   done
 
