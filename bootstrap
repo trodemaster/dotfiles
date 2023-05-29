@@ -27,9 +27,7 @@ else
 fi
 
 # check for sudo and get sudo
-if (sudo -n true >/dev/null 2>&1); then
-  echo "No password for sudo needed..."
-else
+if (sudo -n false >/dev/null 2>&1); then
   sudo -p "Provide sudo password: " echo "Sudo password auto-refresh started..."
   # background sudo revalidate until script ends
   {
