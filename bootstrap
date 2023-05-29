@@ -79,15 +79,6 @@ APT_PACKAGES=(
   "jq"
 )
 
-# setup a golang packages array
-typeset -a GO_PACKAGES
-GO_PACKAGES["mc"]="github.com/minio/mc@latest"
-GO_PACKAGES["duf"]="github.com/muesli/duf@latest"
-GO_PACKAGES["fzf"]="github.com/junegunn/fzf@latest"
-GO_PACKAGES["age"]="filippo.io/age/cmd/...@latest"
-GO_PACKAGES["vault-token-helper"]="github.com/joemiller/vault-token-helper@latest"
-GO_PACKAGES["chezmoi"]="github.com/twpayne/chezmoi@latest"
-
 ## do macOS specific stuff
 if [[ $PLATFORM == "macos" ]]; then
 
@@ -147,16 +138,18 @@ if [[ $PLATFORM == "linux" ]]; then
     export GOPATH=${HOME}/code/go
   fi
 
-  # loop through the array and print the values
-  for key in ${!GO_PACKAGES[*]}; do
-    #echo "Key is ${key}"
-    #echo "package uri is ${GO_PACKAGES[${key}]}"
-    # check to see if packages is installed and install if not
-    if ! command -v ${key} &>/dev/null; then
-      echo "Installing ${key} go package..."
-      go install ${GO_PACKAGES[${key}]}
-    fi
-  done
+# # loop through the array and print the values
+# for key in ${!GO_PACKAGES[*]}; do
+#   #echo "Key is ${key}"
+#   #echo "package uri is ${GO_PACKAGES[${key}]}"
+#   # check to see if packages is installed and install if not
+#   if ! command -v ${key} &>/dev/null; then
+#     echo "Installing ${key} go package..."
+#     go install ${GO_PACKAGES[${key}]}
+#   fi
+# done
+
+
 
   # loop over pip packages and install them
   pip3 list --format=columns >~/.pip3_list
@@ -186,6 +179,23 @@ if [[ $PLATFORM == "linux" ]]; then
 fi
 
 ## do common stuff
+
+# function taking two arguments to install go packages
+install_go_package() {
+  if ! command -v $1 &>/dev/null; then
+    echo "Installing $1 go package..."
+    go install $2
+  fi
+}
+
+# Install golang packages using function
+install_go_package "mc" "github.com/minio/mc@latest"
+install_go_package "duf" "github.com/muesli/duf@latest"
+install_go_package "fzf" "github.com/junegunn/fzf@latest"
+install_go_package "age" "filippo.io/age/cmd/...@latest"
+install_go_package "vault-token-helper" "github.com/joemiller/vault-token-helper@latest"
+install_go_package "chezmoi" "github.com/twpayne/chezmoi@latest"
+
 
 # if .fzf_completion is not present, download it
 if [[ ! -e ${HOME}/.fzf_completion.bash ]]; then
