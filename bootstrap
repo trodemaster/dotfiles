@@ -74,7 +74,7 @@ if [[ $PLATFORM == "macos" ]]; then
   fi
 
   # get latest release version from github for macports
-  PORT_LATEST_RELEASE=$(curl -s https://api.github.com/repos/macports/macports-base/releases/latest | jq -r '.tag_name')
+  PORT_LATEST_RELEASE=$(curl -s https://api.github.com/repos/macports/macports-base/releases/latest | grep tag_name | cut -d '"' -f 4)
   PORT_LATEST_RELEASE_NUMBER=${PORT_LATEST_RELEASE#v}
 
   # get macOS operating system version long name including california parks using system_profiler
