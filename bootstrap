@@ -160,21 +160,23 @@ if [[ $PLATFORM == "linux" ]]; then
     fi
   done
 
- # loop over pip packages and instal them
+  # loop over pip packages and instal them
+  pip3 list --format=columns >~/.pip3_list
   for PIP_PACKAGE in "${PIP_PACKAGES[@]}"; do
-    if ! pip3 list --format=columns | grep -q $PIP_PACKAGE; then
+    if ! grep -q $PIP_PACKAGE ~/.pip3_list; then
       echo "Installing $PIP_PACKAGE..."
       pip3 install --user $PIP_PACKAGE
     fi
   done
+  rm ~/.pip3_list
 
- # # loop over apt packages and instal them
- # for APT_PACKAGE in "${APT_PACKAGES[@]}"; do
- #   if ! dpkg -l | grep -q $APT_PACKAGE; then
- #     echo "Installing $APT_PACKAGE..."
- #     sudo apt-get install -y $APT_PACKAGE
- #   fi
- # done
+  # # loop over apt packages and instal them
+  # for APT_PACKAGE in "${APT_PACKAGES[@]}"; do
+  #   if ! dpkg -l | grep -q $APT_PACKAGE; then
+  #     echo "Installing $APT_PACKAGE..."
+  #     sudo apt-get install -y $APT_PACKAGE
+  #   fi
+  # done
 
   # setup dotfiles
 
@@ -184,8 +186,6 @@ if [[ $PLATFORM == "linux" ]]; then
   fi
 
 fi
-
-
 
 ## do common stuff
 
