@@ -63,7 +63,6 @@ PORT_PACKAGES=(
   "py310-pip"
   "py310-powerline"
   "py310-virtualenv"
-  "py310-powerline"
 )
 
 # list of pip packages to install
