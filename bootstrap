@@ -7,6 +7,9 @@ shopt -s nullglob nocaseglob
 SCRIPT=$(realpath $0)
 SCRIPTPATH=$(dirname $SCRIPT)
 
+# set go version
+GO_VERSION="1.19.9"
+
 # check platform
 if uname -a | grep -q Darwin; then
   PLATFORM="macos"
@@ -50,7 +53,7 @@ kill_spawn() {
 trap kill_spawn EXIT SIGINT
 
 # list of packages to install
-PACKAGES=(
+PORT_PACKAGES=(
   "git"
   "bash"
   "wget"
@@ -62,8 +65,33 @@ PACKAGES=(
   "py310-powerline"
 )
 
-## setup macOS
-# test for macos platform
+# list of pip packages to install
+PIP_PACKAGES=(
+  "powerline-status"
+  "virtualenv"
+)
+
+# list of apt packages to install
+APT_PACKAGES=(
+  "git"
+  "bash"
+  "wget"
+  "jq"
+  "python3.10"
+  "python3.10-pip"
+  "python3.10-venv"
+  "powerline"
+)
+
+# setup a golang packages array
+declare -A GO_PACKAGES
+GO_PACKAGES["mc"]="github.com/minio/mc@latest"
+GO_PACKAGES["duf"]="github.com/muesli/duf@latest"
+GO_PACKAGES["fzf"]="github.com/junegunn/fzf@latest"
+GO_PACKAGES["age"]="filippo.io/age/cmd/...@latest"
+GO_PACKAGES["vault-token-helper"]="github.com/joemiller/vault-token-helper@latest"
+
+## do macOS specific stuff
 if [[ $PLATFORM == "macos" ]]; then
 
   # test for xcode command line tools
@@ -85,17 +113,17 @@ if [[ $PLATFORM == "macos" ]]; then
   if ! command -v /opt/local/bin/port &>/dev/null; then
     echo "Installing macports..."
     MACPORTS_PKG="https://github.com/macports/macports-base/releases/download/${PORT_LATEST_RELEASE}/MacPorts-${PORT_LATEST_RELEASE_NUMBER}-${MACOS_VERSION}-${MACOS_VERSION_NAME}.pkg"
-echo $MACPORTS_PKG
+    echo $MACPORTS_PKG
     curl -L -o /tmp/macports.pkg $MACPORTS_PKG
     sudo installer -pkg /tmp/macports.pkg -target /
     rm /tmp/macports.pkg
   fi
 
   # install packages
-  for PACKAGE in "${PACKAGES[@]}"; do
-    if port installed $PACKAGE | grep -q "None of the specified ports are installed"; then
-      echo "Installing $PACKAGE..."
-      sudo /opt/local/bin/port -q install $PACKAGE
+  for PORT_PACKAGE in "${PORT_PACKAGES[@]}"; do
+    if port installed $PORT_PACKAGE | grep -q "None of the specified ports are installed"; then
+      echo "Installing $PORT_PACKAGE..."
+      sudo /opt/local/bin/port -q install $PORT_PACKAGE
     fi
   done
 
@@ -107,3 +135,69 @@ echo $MACPORTS_PKG
   fi
 
 fi
+
+## do linux specific stuff
+if [[ $PLATFORM == "linux" ]]; then
+  echo "Linux setup"
+  # check to see if golang is installed and install if not
+  if ! command -v go &>/dev/null; then
+    echo "Installing golang..."
+    wget -q -O go${GO_VERSION}.linux-${ARCH}.tar.gz https://golang.org/dl/go${GO_VERSION}.linux-${ARCH}.tar.gz
+    sudo tar -C /usr/local -xzf go${GO_VERSION}.linux-${ARCH}.tar.gz
+    PATH=$PATH:/usr/local/go/bin
+    go version
+    rm go${GO_VERSION}.linux-${ARCH}.tar.gz
+    export GOPATH=${HOME}/code/go
+  fi
+
+  # loop through the array and print the values
+  for key in "${!GO_PACKAGES[@]}"; do
+    #echo ${key} ${GO_PACKAGES[${key}]}
+    # check to see if packages is installed and install if not
+    if ! command -v ${key} &>/dev/null; then
+      echo "Installing ${key}..."
+      go install ${GO_PACKAGES[${key}]}
+    fi
+  done
+
+ # loop over pip packages and instal them
+  for PIP_PACKAGE in "${PIP_PACKAGES[@]}"; do
+    if ! pip3 list --format=columns | grep -q $PIP_PACKAGE; then
+      echo "Installing $PIP_PACKAGE..."
+      pip3 install --user $PIP_PACKAGE
+    fi
+  done
+
+ # # loop over apt packages and instal them
+ # for APT_PACKAGE in "${APT_PACKAGES[@]}"; do
+ #   if ! dpkg -l | grep -q $APT_PACKAGE; then
+ #     echo "Installing $APT_PACKAGE..."
+ #     sudo apt-get install -y $APT_PACKAGE
+ #   fi
+ # done
+
+  # setup dotfiles
+
+  # set bash 5 as default shell
+  if [[ -e /usr/bin/bash ]]; then
+    sudo chsh -s /usr/bin/bash $USER
+  fi
+
+fi
+
+
+
+## do common stuff
+
+# if .fzf_completion is not present, download it
+if [[ ! -e ${HOME}/.fzf_completion.bash ]]; then
+  wget -q -O ${HOME}/.fzf_completion.bash https://raw.githubusercontent.com/junegunn/fzf/master/shell/completion.bash
+  wget -q -O ${HOME}/.fzf_key-bindings.bash https://raw.githubusercontent.com/junegunn/fzf/master/shell/key-bindings.bash
+fi
+
+# check for vault-token-helper and enable it
+if command -v vault-token-helper &>/dev/null; then
+  vault-token-helper enable
+fi
+
+exit 0
