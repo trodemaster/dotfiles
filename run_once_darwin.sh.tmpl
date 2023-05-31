@@ -1,0 +1,5 @@
+{{- if eq .chezmoi.os "darwin" -}}
+#!/bin/bash
+
+touch ~/.run_once_darwin_ran
+{{ end -}}
