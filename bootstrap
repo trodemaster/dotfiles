@@ -127,6 +127,17 @@ if [[ $PLATFORM == "macos" ]]; then
       sudo /opt/local/bin/port -q install $PORT_PACKAGE
     fi
   done
+
+  # fixups after port installation
+  if [[ -e /opt/local/bin/python3.10 ]]; then
+    sudo /opt/local/bin/port select --set python python10 || true
+    sudo /opt/local/bin/port select --set python3 python10 || true
+    sudo /opt/local/bin/port select --set virtualenv virtualenv10 || true
+    sudo /opt/local/bin/port select --set pip pip10 || true
+    sudo /opt/local/bin/port select --set pip3 pip10 || true
+  fi
+
+
   # add go to the path
   export GOPATH=${HOME}/code/go
   export PATH=$PATH:/opt/local/bin
