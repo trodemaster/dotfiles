@@ -7,6 +7,9 @@ shopt -s nullglob nocaseglob
 SCRIPT=$(realpath $0)
 SCRIPTPATH=$(dirname $SCRIPT)
 
+# set go version
+GO_VERSION="1.19.9"
+
 # check platform
 if uname -a | grep -q Darwin; then
   PLATFORM="macos"
@@ -50,20 +53,46 @@ kill_spawn() {
 trap kill_spawn EXIT SIGINT
 
 # list of packages to install
-PACKAGES=(
+PORT_PACKAGES=(
   "git"
   "bash"
   "wget"
   "jq"
+  "go"
   "python310"
   "py310-pip"
   "py310-powerline"
   "py310-virtualenv"
-  "py310-powerline"
 )
 
-## setup macOS
-# test for macos platform
+# list of pip packages to install
+PIP_PACKAGES=(
+  "powerline-status"
+  "virtualenv"
+)
+
+# list of apt packages to install
+APT_PACKAGES=(
+  "git"
+  "bash"
+  "wget"
+  "jq"
+)
+
+# Install go package if not installed
+install_go_package() {
+  if ! command -v "$1" &>/dev/null; then
+    echo "Installing $1 go package..."
+    go install "$2"
+  fi
+}
+
+# create ~/code directory if it doesn't exist
+if [[ ! -d ~/code ]]; then
+  mkdir ~/code
+fi
+
+## do macOS specific stuff
 if [[ $PLATFORM == "macos" ]]; then
 
   # test for xcode command line tools
@@ -92,12 +121,15 @@ if [[ $PLATFORM == "macos" ]]; then
   fi
 
   # install packages
-  for PACKAGE in "${PACKAGES[@]}"; do
-    if port installed $PACKAGE | grep -q "None of the specified ports are installed"; then
-      echo "Installing $PACKAGE..."
-      sudo /opt/local/bin/port -q install $PACKAGE
+  for PORT_PACKAGE in "${PORT_PACKAGES[@]}"; do
+    if /opt/local/bin/port installed $PORT_PACKAGE | grep -q "None of the specified ports are installed"; then
+      echo "Installing $PORT_PACKAGE..."
+      sudo /opt/local/bin/port -q install $PORT_PACKAGE
     fi
   done
+  # add go to the path
+  export GOPATH=${HOME}/code/go
+  export PATH=$PATH:/opt/local/bin
 
   # setup dotfiles
 
@@ -107,3 +139,66 @@ if [[ $PLATFORM == "macos" ]]; then
   fi
 
 fi
+
+## do linux specific stuff
+if [[ $PLATFORM == "linux" ]]; then
+  echo "Linux setup"
+  # check to see if golang is installed and install if not
+  if ! command -v go &>/dev/null; then
+    echo "Installing golang..."
+    wget -q -O go${GO_VERSION}.linux-${ARCH}.tar.gz https://golang.org/dl/go${GO_VERSION}.linux-${ARCH}.tar.gz
+    sudo tar -C /usr/local -xzf go${GO_VERSION}.linux-${ARCH}.tar.gz
+    PATH=$PATH:/usr/local/go/bin
+    go version
+    rm go${GO_VERSION}.linux-${ARCH}.tar.gz
+    export GOPATH=${HOME}/code/go
+  fi
+
+  # loop over pip packages and install them
+  pip3 list --format=columns >~/.pip3_list
+  for PIP_PACKAGE in "${PIP_PACKAGES[@]}"; do
+    if ! grep -q $PIP_PACKAGE ~/.pip3_list; then
+      echo "Installing $PIP_PACKAGE..."
+      pip3 install --user $PIP_PACKAGE
+    fi
+  done
+  rm ~/.pip3_list
+
+  # loop over apt packages and install them
+  for APT_PACKAGE in "${APT_PACKAGES[@]}"; do
+    if ! command -v $APT_PACKAGE &>/dev/null; then
+      echo "Installing apt package $APT_PACKAGE..."
+      sudo apt-get install -y $APT_PACKAGE
+    fi
+  done
+
+  # setup dotfiles
+
+  # set bash 5 as default shell
+  if [[ -e /usr/bin/bash ]]; then
+    sudo chsh -s /usr/bin/bash $USER
+  fi
+
+fi
+
+## do common stuff
+
+echo "GOPATH is $GOPATH"
+echo "PATH is $PATH"
+ls /opt/local/bin/go
+
+
+# Install golang packages using function
+install_go_package "mc" "github.com/minio/mc@latest"
+install_go_package "duf" "github.com/muesli/duf@latest"
+install_go_package "fzf" "github.com/junegunn/fzf@latest"
+install_go_package "age" "filippo.io/age/cmd/...@latest"
+install_go_package "vault-token-helper" "github.com/joemiller/vault-token-helper@latest"
+install_go_package "chezmoi" "github.com/twpayne/chezmoi@latest"
+
+# check for vault-token-helper and enable it
+if command -v vault-token-helper &>/dev/null; then
+  vault-token-helper enable
+fi
+
+exit 0
