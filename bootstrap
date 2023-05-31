@@ -130,11 +130,11 @@ if [[ $PLATFORM == "macos" ]]; then
 
   # fixups after port installation
   if [[ -e /opt/local/bin/python3.10 ]]; then
-    sudo /opt/local/bin/port select --set python python10 || true
-    sudo /opt/local/bin/port select --set python3 python10 || true
-    sudo /opt/local/bin/port select --set virtualenv virtualenv10 || true
-    sudo /opt/local/bin/port select --set pip pip10 || true
-    sudo /opt/local/bin/port select --set pip3 pip10 || true
+    sudo /opt/local/bin/port select --set python python310 || true
+    sudo /opt/local/bin/port select --set python3 python310 || true
+    sudo /opt/local/bin/port select --set virtualenv virtualenv310 || true
+    sudo /opt/local/bin/port select --set pip pip310 || true
+    sudo /opt/local/bin/port select --set pip3 pip310 || true
   fi
 
 
