@@ -85,8 +85,8 @@ if [[ $PLATFORM == "macos" ]]; then
   if ! command -v /opt/local/bin/port &>/dev/null; then
     echo "Installing macports..."
     MACPORTS_PKG="https://github.com/macports/macports-base/releases/download/${PORT_LATEST_RELEASE}/MacPorts-${PORT_LATEST_RELEASE_NUMBER}-${MACOS_VERSION}-${MACOS_VERSION_NAME}.pkg"
-echo $MACPORTS_PKG
-    curl -L -o /tmp/macports.pkg $MACPORTS_PKG
+    echo $MACPORTS_PKG
+    curl -s -L -o /tmp/macports.pkg $MACPORTS_PKG
     sudo installer -pkg /tmp/macports.pkg -target /
     rm /tmp/macports.pkg
   fi
