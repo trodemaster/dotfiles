@@ -1,0 +1,4 @@
+{{ if eq .chezmoi.osRelease.id "ubuntu" }}
+sudo apt update
+sudo apt -y install virt-what jq neofetch glances git wget unzip tmux python3 python3-pip python-is-python3 tree acl apt-transport-https ca-certificates lsb-release
+{{ end }}

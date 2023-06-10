@@ -1,0 +1,4 @@
+alis code-insiders to code when shell starts inside of code insiders
+
+alias code=/usr/local/bin/code-insiders
+
