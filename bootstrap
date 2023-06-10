@@ -45,12 +45,18 @@ fi
 # kill all child proceses quietly
 kill_spawn() {
   for SPAWN in $(pgrep -g $$); do
-    kill $SPAWN
+    kill $SPAWN >/dev/null 2>&1
   done
 }
 
 # kill_spawn on exit and ctrl-c
 trap kill_spawn EXIT SIGINT
+
+
+
+exit 0
+
+
 
 # list of packages to install
 PORT_PACKAGES=(
