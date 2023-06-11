@@ -29,16 +29,20 @@ if ! command -v /opt/local/bin/port &>/dev/null; then
   rm /tmp/macports.pkg
 fi
 
+# set macports python version
+PYTHON3VERSION="311"
+
+# macports packages to install
 PORT_PACKAGES=(
   "git"
   "bash"
   "wget"
   "jq"
   "go"
-  "python310"
-  "py310-pip"
-  "py310-powerline"
-  "py310-virtualenv"
+  "python${PYTHON3VERSION}"
+  "py${PYTHON3VERSION}-pip"
+  "py${PYTHON3VERSION}-powerline"
+  "py${PYTHON3VERSION}-virtualenv"
 )
 
 # install packages
@@ -49,20 +53,13 @@ for PORT_PACKAGE in "${PORT_PACKAGES[@]}"; do
   fi
 done
 
-PYTHON3VERSION="NONE"
-# check if python3 is installed and get the version
-if command -v python3 &>/dev/null; then
-  PYTHON3VERSION=$(python3 --version | awk '{print $2}')
-  PYTHON3VERSION=$(echo "${PYTHON3VERSION}" | cut -d. -f1-2)
-fi
-
 # fixups after port installation
 if [[ -e /opt/local/bin/python3.10 ]]; then
-  sudo /opt/local/bin/port select --set python python310 || true
-  sudo /opt/local/bin/port select --set python3 python310 || true
-  sudo /opt/local/bin/port select --set virtualenv virtualenv310 || true
-  sudo /opt/local/bin/port select --set pip pip310 || true
-  sudo /opt/local/bin/port select --set pip3 pip310 || true
+  sudo /opt/local/bin/port select --set python python${PYTHON3VERSION} || true
+  sudo /opt/local/bin/port select --set python3 python${PYTHON3VERSION} || true
+  sudo /opt/local/bin/port select --set virtualenv virtualenv${PYTHON3VERSION} || true
+  sudo /opt/local/bin/port select --set pip pip${PYTHON3VERSION} || true
+  sudo /opt/local/bin/port select --set pip3 pip${PYTHON3VERSION} || true
 fi
 
 {{ end }}
