@@ -181,14 +181,6 @@ if [[ $PLATFORM == "linux" ]]; then
   done
   rm ~/.pip3_list
 
-  # loop over apt packages and install them
-  for APT_PACKAGE in "${APT_PACKAGES[@]}"; do
-    if ! command -v $APT_PACKAGE &>/dev/null; then
-      echo "Installing apt package $APT_PACKAGE..."
-      sudo apt-get install -y $APT_PACKAGE
-    fi
-  done
-
   # setup dotfiles
 
   # set bash 5 as default shell
