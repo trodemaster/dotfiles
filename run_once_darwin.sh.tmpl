@@ -62,6 +62,11 @@ if [[ -e /opt/local/bin/python3 ]]; then
   sudo /opt/local/bin/port select --set pip3 pip${PYTHON3VERSION} || true
 fi
 
+# update /etc/shells
+if ! grep -q "/opt/local/bin/bash" /etc/shells; then
+  sudo tee -a /etc/shells <<<"/opt/local/bin/bash"
+fi
+
 # set bash 5 as default shell
 if [[ -e /opt/local/bin/bash ]]; then
   sudo chsh -s /opt/local/bin/bash $USER
