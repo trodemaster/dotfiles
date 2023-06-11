@@ -1,12 +1,12 @@
 #!/bin/bash
 
 
-# {{- if eq .chezmoi.os "darwin" -}}
+{{ if eq .chezmoi.os "darwin" }}
 
 echo "Run once script for darwin"
 
 touch ~/.run_once_darwin_ran
 
-# {{ end -}}
+{{ end }}
 
 exit 0
