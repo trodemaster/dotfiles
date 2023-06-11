@@ -12,6 +12,18 @@ if ! [[ -f /etc/apt/sources.list.d/hashicorp.list ]]; then
   echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
 fi
 
+# install githubcli repo
+if ! [[ -f /usr/share/keyrings/githubcli-archive-keyring.gpg ]]; then
+  echo "Adding githubcli GPG key..."
+  wget -O- https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo gpg --dearmor -o /usr/share/keyrings/githubcli-archive-keyring.gpg
+  sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
+fi
+
+if ! [[ -f /etc/apt/sources.list.d/hashicorp.list ]]; then
+  echo "Adding Hashicorp repo..."
+  echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null 
+fi
+
 sudo apt update
 
 # list of apt packages to install
@@ -37,6 +49,8 @@ APT_PACKAGES=(
   "lsb-release"
   "vault"
   "chezmoi"
+  "curl"
+  "gh"
 )
 
 # loop over apt packages and install them
