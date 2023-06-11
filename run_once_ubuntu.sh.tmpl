@@ -6,7 +6,38 @@ wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/sha
 echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
 
 sudo apt update
-sudo apt -y install virt-what jq neofetch glances git wget unzip tmux python3 python3-pip python-is-python3 tree acl apt-transport-https ca-certificates lsb-release vault
-{{ end }}
 
+# list of apt packages to install
+APT_PACKAGES=(
+  "virt-what"
+  "jq"
+  "neofetch"
+  "glances"
+  "git"
+  "wget"
+  "unzip"
+  "tmux"
+  "python3"
+  "python3-pip"
+  "python-is-python3"
+  "python3-powerline"
+  "python3-powerline-gitstatus"
+  "python3-virtualenv"
+  "tree"
+  "acl"
+  "apt-transport-https"
+  "ca-certificates"
+  "lsb-release"
+  "vault"
+)
+
+# loop over apt packages and install them
+for APT_PACKAGE in "${APT_PACKAGES[@]}"; do
+  if ! command -v $APT_PACKAGE &>/dev/null; then
+    echo "Installing apt package $APT_PACKAGE..."
+    sudo apt-get install -y $APT_PACKAGE
+  fi
+done
+
+{{ end }}
 exit 0
