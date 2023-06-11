@@ -1,10 +1,12 @@
 #!/bin/bash
-echo "Run once for Ubuntu"
 {{ if eq .chezmoi.osRelease.id "ubuntu" }}
+echo "Run once for Ubuntu"
 
+wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
 
 sudo apt update
-sudo apt -y install virt-what jq neofetch glances git wget unzip tmux python3 python3-pip python-is-python3 tree acl apt-transport-https ca-certificates lsb-release
+sudo apt -y install virt-what jq neofetch glances git wget unzip tmux python3 python3-pip python-is-python3 tree acl apt-transport-https ca-certificates lsb-release vault
 {{ end }}
 
 exit 0
