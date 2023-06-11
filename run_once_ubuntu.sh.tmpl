@@ -2,7 +2,7 @@
 {{ if eq .chezmoi.osRelease.id "ubuntu" }}
 echo "Run once for Ubuntu"
 
-if ! [[ -f hashicorp-archive-keyring.gpg ]]; then
+if ! [[ -f /usr/share/keyrings/hashicorp-archive-keyring.gpg ]]; then
   echo "Adding Hashicorp GPG key..."
   wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
 fi
@@ -41,7 +41,7 @@ APT_PACKAGES=(
 
 # loop over apt packages and install them
 for APT_PACKAGE in "${APT_PACKAGES[@]}"; do
-  if ! command -v $APT_PACKAGE &>/dev/null; then
+  if ! dpkg -s $APT_PACKAGE &>/dev/null; then
     echo "Installing apt package $APT_PACKAGE..."
     sudo apt-get install -y $APT_PACKAGE
   fi
