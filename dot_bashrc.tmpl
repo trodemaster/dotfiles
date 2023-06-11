@@ -37,8 +37,9 @@ fi
 # bash completion for vault
 command -v vault &>/dev/null && complete -C vault vault
 
-### macOS specific stuff ###
 {{- if eq .chezmoi.os "darwin" -}}
+### macOS specific stuff ###
+
 # macOS aliases
 alias fullres="~/code/blakeconfig/fullres"
 alias preso="~/code/blakeconfig/preso"
@@ -109,8 +110,9 @@ fi
 
 {{ end -}}
 
-### Linux specific stuff ###
 {{- if eq .chezmoi.os "linux" -}}
+### Linux specific stuff ###
+
 export SYSTEMD_EDITOR="/usr/bin/vi"
 
 {{ end -}}
