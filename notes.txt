@@ -11,3 +11,7 @@ Codespaces
 container
 
 Machine specific configs
+
+Look at switching to powerline go and avoiding python dependancies
+
+install and upgrade chezmoi by downloading latest release from github
