@@ -1,0 +1,116 @@
+#!/bin/bash
+
+# common aliases
+alias vautenv="set | grep VAULT"
+alias lz="ls | fzf"
+alias ls="ls -1 -p"
+alias crtchk="openssl x509 -text -noout -dates -in"
+alias yolossh="ssh -o \"ControlPath ~/.ssh/controlmasters/%r@%h:%p\" -o \"ControlMaster auto\" -o \"ControlPersist 10m\" -o \"StrictHostKeyChecking no\" -o \"UserKnownHostsFile=/dev/null\""
+
+# common bash config
+export HISTCONTROL=ignoredups:erasedups # no duplicate entries
+export HISTSIZE=100000                  # big big history
+export HISTFILESIZE=100000              # big big history
+shopt -s histappend                     # append to history, don't overwrite it
+PROMPT_COMMAND="history -a;$PROMPT_COMMAND"
+
+# set shell type
+SHELL_TYPE="terminal"
+
+# prompt and friends
+export PS1="\[\e[;34m\]\u\[\e[1;37m\]@\h\[\e[;32m\]:\W$ \[\e[0m\]"
+export DISPLAY=:0
+declare -x CLICOLOR=1
+
+# common things
+PYTHON3VERSION="NONE"
+# check if python3 is installed and get the version
+if command -v python3 &>/dev/null; then
+  PYTHON3VERSION=$(python3 --version | awk '{print $2}')
+  PYTHON3VERSION=$(echo "${PYTHON3VERSION}" | cut -d. -f1-2)
+fi
+
+# source the fzf config
+[[ -f "${HOME}/.fzf_completion.bash" ]] && source "${HOME}/.fzf_completion.bash"
+[[ -f "${HOME}/.fzf_completion.bash" ]] && source "${HOME}/.fzf_key-bindings.bash"
+
+# bash completion for vault
+command -v vault &>/dev/null && complete -C vault vault
+
+### macOS specific stuff ###
+{{- if eq .chezmoi.os "darwin" -}}
+# macOS aliases
+alias fullres="~/code/blakeconfig/fullres"
+alias preso="~/code/blakeconfig/preso"
+alias remote="~/code/blakeconfig/mirrorscreen"
+alias encode="~/code/timelapse-tools/encode"
+alias wd="~/code/weatherdesktop/wd"
+alias lsusb="ioreg -p IOUSB"
+alias eaw="chmod +a \"user:$USER allow read,write,append,readattr,writeattr,readextattr,writeextattr,readsecurity\" "
+alias killssh="/opt/local/libexec/gnubin/sed -i "/$1/d" ~/.ssh/known_hosts"
+
+# bash version check
+if [[ $BASH != /opt/local/bin/bash ]]; then
+  echo "Bash Version $BASH_VERSION"
+fi
+
+# bash-completion
+if [ -f /opt/local/etc/profile.d/bash_completion.sh ]; then
+  source /opt/local/etc/profile.d/bash_completion.sh
+fi
+
+# add bash autocomplete for vault
+[ -f /opt/local/bin/vault ] && complete -C /opt/local/bin/vault vault
+
+# VMware tools
+if [[ -d Applications/VMware\ Fusion.app/Contents/Library ]]; then
+  alias vmrun="/Applications/VMware\ Fusion.app/Contents/Library/vmrun"
+  alias vmware-vdiskmanager="/Applications/VMware\ Fusion.app/Contents/Library/vmware-vdiskmanager"
+fi
+
+# macsl alias
+if [[ -f ${HOME}/code/macsl/macsl ]]; then
+  alias macsl=${HOME}/code/macsl/macsl
+fi
+
+# disable shell warning
+export BASH_SILENCE_DEPRECATION_WARNING=1
+export PATH="/opt/local/bin:/opt/local/sbin:/usr/local/bin:$PATH:/usr/local/go/bin:/$HOME/blakeconfig:/Applications/Visual Studio Code.app/Contents/Resources/app/bin:$HOME/Library/Python/${PYTHON3VERSION}/bin"
+
+# go vars
+export GOPATH=${HOME}/code/go
+export PATH=$PATH:${HOME}/code/go/bin
+
+# configure secretive ssh
+if [ -f ${HOME}/Library/Containers/com.maxgoedjen.Secretive.SecretAgent ]; then
+  export SSH_AUTH_SOCK=${HOME}/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/socket.ssh
+fi
+
+# configure shell if running in vscode
+if [[ ${GIT_ASKPASS} =~ "code-server" ]]; then
+  SHELL_TYPE="code-server"
+fi
+
+if [[ ${GIT_ASKPASS} =~ "Visual" ]]; then
+  SHELL_TYPE="vscode"
+fi
+
+# start powerline
+if [[ $SHELL_TYPE =~ (terminal|vscode|code-server) ]]; then
+  PYTHON3VERSION=$(python --version | /usr/bin/grep -oE "[1-9].*" | cut -d . -f -2)
+  if POWERLINE_DAEMON=$(ls -1 /opt/local/Library/Frameworks/Python.framework/Versions/${PYTHON3VERSION}/bin/powerline-daemon); then
+    export PATH="$PATH:/opt/local/Library/Frameworks/Python.framework/Versions/${PYTHON3VERSION}/bin"
+    powerline-daemon -q
+    export POWERLINE_BASH_CONTINUATION=1
+    export POWERLINE_BASH_SELECT=1
+    source /opt/local/Library/Frameworks/Python.framework/Versions/${PYTHON3VERSION}/lib/python${PYTHON3VERSION}/site-packages/powerline/bindings/bash/powerline.sh
+  fi
+fi
+
+{{ end -}}
+
+### Linux specific stuff ###
+{{- if eq .chezmoi.os "linux" -}}
+export SYSTEMD_EDITOR="/usr/bin/vi"
+
+{{ end -}}
