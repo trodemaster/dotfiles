@@ -2,8 +2,15 @@
 {{ if eq .chezmoi.osRelease.id "ubuntu" }}
 echo "Run once for Ubuntu"
 
-wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
-echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+if ! [[ -f hashicorp-archive-keyring.gpg ]]; then
+  echo "Adding Hashicorp GPG key..."
+  wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+fi
+
+if ! [[ -f /etc/apt/sources.list.d/hashicorp.list ]]; then
+  echo "Adding Hashicorp repo..."
+  echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+fi
 
 sudo apt update
 
@@ -29,6 +36,7 @@ APT_PACKAGES=(
   "ca-certificates"
   "lsb-release"
   "vault"
+  "chezmoi"
 )
 
 # loop over apt packages and install them
