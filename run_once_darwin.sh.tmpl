@@ -54,12 +54,17 @@ for PORT_PACKAGE in "${PORT_PACKAGES[@]}"; do
 done
 
 # fixups after port installation
-if [[ -e /opt/local/bin/python3.10 ]]; then
+if [[ -e /opt/local/bin/python3 ]]; then
   sudo /opt/local/bin/port select --set python python${PYTHON3VERSION} || true
   sudo /opt/local/bin/port select --set python3 python${PYTHON3VERSION} || true
   sudo /opt/local/bin/port select --set virtualenv virtualenv${PYTHON3VERSION} || true
   sudo /opt/local/bin/port select --set pip pip${PYTHON3VERSION} || true
   sudo /opt/local/bin/port select --set pip3 pip${PYTHON3VERSION} || true
+fi
+
+# set bash 5 as default shell
+if [[ -e /opt/local/bin/bash ]]; then
+  sudo chsh -s /opt/local/bin/bash $USER
 fi
 
 {{ end }}
