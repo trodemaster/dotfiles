@@ -1,4 +1,5 @@
 #!/bin/bash
+{{ if eq .chezmoi.os "linux" }}
 {{ if eq .chezmoi.osRelease.id "ubuntu" }}
 echo "Run once for Ubuntu"
 
@@ -61,5 +62,6 @@ for APT_PACKAGE in "${APT_PACKAGES[@]}"; do
   fi
 done
 
+{{ end }}
 {{ end }}
 exit 0
