@@ -42,7 +42,6 @@ fi
 #  sudo sed -i '' 's|rsync://rsync.macports.org/macports/release/tarballs/base.tar|rsync://aarnet.au.rsync.macports.org/macports/release/tarballs/base.tar|g' /opt/local/etc/macports/sources.conf
 #fi
 
-
 # set macports python version
 PYTHON3VERSION="311"
 
@@ -53,6 +52,7 @@ PORT_PACKAGES=(
   "wget"
   "jq"
   "go"
+  "fzf"
   "python${PYTHON3VERSION}"
   "py${PYTHON3VERSION}-pip"
   "py${PYTHON3VERSION}-powerline"
@@ -70,11 +70,19 @@ done
 
 # fixups after port installation
 if [[ -e /opt/local/bin/python3 ]]; then
-  sudo /opt/local/bin/port select --set python python${PYTHON3VERSION} > /dev/null
-  sudo /opt/local/bin/port select --set python3 python${PYTHON3VERSION} > /dev/null
-  sudo /opt/local/bin/port select --set virtualenv virtualenv${PYTHON3VERSION} > /dev/null
-  sudo /opt/local/bin/port select --set pip pip${PYTHON3VERSION} > /dev/null
-  sudo /opt/local/bin/port select --set pip3 pip${PYTHON3VERSION} > /dev/null
+  sudo /opt/local/bin/port select --set python python${PYTHON3VERSION} >/dev/null
+  sudo /opt/local/bin/port select --set python3 python${PYTHON3VERSION} >/dev/null
+  sudo /opt/local/bin/port select --set virtualenv virtualenv${PYTHON3VERSION} >/dev/null
+  sudo /opt/local/bin/port select --set pip pip${PYTHON3VERSION} >/dev/null
+  sudo /opt/local/bin/port select --set pip3 pip${PYTHON3VERSION} >/dev/null
+fi
+
+# Install source code pro font
+if [[ ! -f /Library/Fonts/SourceCodePro-Medium.otf ]]; then
+  echo "Installing source code pro font..."
+  /opt/local/bin/wget -q https://github.com/adobe-fonts/source-code-pro/releases/download/2.038R-ro%2F1.058R-it%2F1.018R-VAR/OTF-source-code-pro-2.038R-ro-1.058R-it.zip -O ${TMPDIR}OTF-source-code-pro.zip
+  unzip -o -d /Library/Fonts/ ${TMPDIR}OTF-source-code-pro.zip SourceCodePro-Medium.otf
+  rm ${TMPDIR}OTF-source-code-pro.zip
 fi
 
 # update /etc/shells
