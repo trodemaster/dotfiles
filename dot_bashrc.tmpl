@@ -25,7 +25,7 @@ declare -x CLICOLOR=1
 # common things
 PYTHON3VERSION="NONE"
 # check if python3 is installed and get the version
-if command -v python3 &>/dev/null; then
+if command -v /opt/local/bin/python3 &>/dev/null; then
   PYTHON3VERSION=$(python3 --version | awk '{print $2}')
   PYTHON3VERSION=$(echo "${PYTHON3VERSION}" | cut -d. -f1-2)
 fi

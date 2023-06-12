@@ -33,6 +33,7 @@ if ! command -v /opt/local/bin/port &>/dev/null; then
   curl -s -L -o /tmp/macports.pkg $MACPORTS_PKG
   sudo installer -pkg /tmp/macports.pkg -target /
   rm /tmp/macports.pkg
+  export PATH="/opt/local/bin:/opt/local/sbin:$PATH"
 fi
 
 # configure macports mirrors
@@ -53,6 +54,7 @@ PORT_PACKAGES=(
   "jq"
   "go"
   "fzf"
+  "duf"
   "python${PYTHON3VERSION}"
   "py${PYTHON3VERSION}-pip"
   "py${PYTHON3VERSION}-powerline"
