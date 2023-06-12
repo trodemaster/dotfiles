@@ -60,6 +60,7 @@ PORT_PACKAGES=(
 )
 
 # install packages
+sudo port selfupdate
 for PORT_PACKAGE in "${PORT_PACKAGES[@]}"; do
   if /opt/local/bin/port installed $PORT_PACKAGE | grep -q "None of the specified ports are installed"; then
     echo "Installing $PORT_PACKAGE..."
