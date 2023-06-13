@@ -53,7 +53,7 @@ kill_spawn() {
 trap kill_spawn EXIT SIGINT
 
 
-
+sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply trodemaster
 exit 0
 
 
