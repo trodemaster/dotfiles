@@ -59,7 +59,8 @@ fi
 #fi
 
 # set macports python version
-PYTHON3VERSION="311"
+PYTHON3VERSION="3.11"
+PYTHON3VERSION_MPORTS=$(tr -d '.' <<<$PYTHON3VERSION)
 
 # macports packages to install
 PORT_PACKAGES=(
@@ -71,10 +72,10 @@ PORT_PACKAGES=(
   "fzf"
   "duf"
   "chezmoi"
-  "python${PYTHON3VERSION}"
-  "py${PYTHON3VERSION}-pip"
-  "py${PYTHON3VERSION}-powerline"
-  "py${PYTHON3VERSION}-virtualenv"
+  "python${PYTHON3VERSION_MPORTS}"
+  "py${PYTHON3VERSION_MPORTS}-pip"
+  "py${PYTHON3VERSION_MPORTS}-powerline"
+  "py${PYTHON3VERSION_MPORTS}-virtualenv"
 )
 
 # install packages
@@ -88,12 +89,12 @@ for PORT_PACKAGE in "${PORT_PACKAGES[@]}"; do
 done
 
 # fixups after port installation
-if [[ -e /opt/local/bin/python3 ]]; then
-  sudo /opt/local/bin/port select --set python python${PYTHON3VERSION} >/dev/null
-  sudo /opt/local/bin/port select --set python3 python${PYTHON3VERSION} >/dev/null
-  sudo /opt/local/bin/port select --set virtualenv virtualenv${PYTHON3VERSION} >/dev/null
-  sudo /opt/local/bin/port select --set pip pip${PYTHON3VERSION} >/dev/null
-  sudo /opt/local/bin/port select --set pip3 pip${PYTHON3VERSION} >/dev/null
+if [[ -e /opt/local/bin/python${PYTHON3VERSION} ]]; then
+  sudo /opt/local/bin/port select --set python python${PYTHON3VERSION_MPORTS} >/dev/null
+  sudo /opt/local/bin/port select --set python3 python${PYTHON3VERSION_MPORTS} >/dev/null
+  sudo /opt/local/bin/port select --set virtualenv virtualenv${PYTHON3VERSION_MPORTS} >/dev/null
+  sudo /opt/local/bin/port select --set pip pip${PYTHON3VERSION_MPORTS} >/dev/null
+  sudo /opt/local/bin/port select --set pip3 pip${PYTHON3VERSION_MPORTS} >/dev/null
 fi
 
 # Install source code pro font
