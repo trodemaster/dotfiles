@@ -25,7 +25,7 @@ declare -x CLICOLOR=1
 # common things
 PYTHON3VERSION="NONE"
 # check if python3 is installed and get the version
-if command -v /opt/local/bin/python3 &>/dev/null; then
+if command -v python3 &>/dev/null; then
   PYTHON3VERSION=$(python3 --version | awk '{print $2}')
   PYTHON3VERSION=$(echo "${PYTHON3VERSION}" | cut -d. -f1-2)
 fi
@@ -98,7 +98,7 @@ fi
 
 # start powerline
 if [[ $SHELL_TYPE =~ (terminal|vscode|code-server) ]]; then
-  PYTHON3VERSION=$(python --version | /usr/bin/grep -oE "[1-9].*" | cut -d . -f -2)
+  # PYTHON3VERSION=$(python --version | /usr/bin/grep -oE "[1-9].*" | cut -d . -f -2)
   if POWERLINE_DAEMON=$(ls -1 /opt/local/Library/Frameworks/Python.framework/Versions/${PYTHON3VERSION}/bin/powerline-daemon); then
     export PATH="$PATH:/opt/local/Library/Frameworks/Python.framework/Versions/${PYTHON3VERSION}/bin"
     powerline-daemon -q
