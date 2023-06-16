@@ -33,7 +33,6 @@ if ! command -v /opt/local/bin/port &>/dev/null; then
   curl -s -L -o /tmp/macports.pkg $MACPORTS_PKG
   sudo installer -pkg /tmp/macports.pkg -target /
   rm /tmp/macports.pkg
-  export PATH="/opt/local/bin:/opt/local/sbin:$PATH"
 fi
 
 # configure macports mirrors
@@ -63,6 +62,7 @@ PORT_PACKAGES=(
 )
 
 # install packages
+export PATH="/opt/local/bin:/opt/local/sbin:$PATH"
 sudo port selfupdate
 for PORT_PACKAGE in "${PORT_PACKAGES[@]}"; do
   if /opt/local/bin/port installed $PORT_PACKAGE | grep -q "None of the specified ports are installed"; then
@@ -83,9 +83,9 @@ fi
 # Install source code pro font
 if [[ ! -f /Library/Fonts/SourceCodePro-Medium.otf ]]; then
   echo "Installing source code pro font..."
-  /opt/local/bin/wget -q https://github.com/adobe-fonts/source-code-pro/releases/download/2.038R-ro%2F1.058R-it%2F1.018R-VAR/OTF-source-code-pro-2.038R-ro-1.058R-it.zip -O ${TMPDIR}OTF-source-code-pro.zip
-  unzip -o -d /Library/Fonts/ ${TMPDIR}OTF-source-code-pro.zip SourceCodePro-Medium.otf
-  rm ${TMPDIR}OTF-source-code-pro.zip
+  /opt/local/bin/wget -q https://github.com/adobe-fonts/source-code-pro/releases/download/2.038R-ro%2F1.058R-it%2F1.018R-VAR/OTF-source-code-pro-2.038R-ro-1.058R-it.zip -O ~/OTF-source-code-pro.zip
+  unzip -o -d /Library/Fonts/ ~/OTF-source-code-pro.zip SourceCodePro-Medium.otf
+  rm ~/OTF-source-code-pro.zip
 fi
 
 # update /etc/shells
