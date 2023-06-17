@@ -21,7 +21,7 @@ if ! command -v chezmoi &>/dev/null; then
   echo "chezmoi is not installed. Installing latest version..."
   curl -LO https://github.com/twpayne/chezmoi/releases/download/v${CHEZMOI_LATEST_RELEASE_NUMBER}/chezmoi_${CHEZMOI_LATEST_RELEASE_NUMBER}_linux_${ARCH}.deb
   sudo dpkg -i chezmoi_${CHEZMOI_LATEST_RELEASE_NUMBER}_linux_${ARCH}.deb
-elif [ "$(chezmoi version | cut -d ' ' -f 2)" != "$CHEZMOI_LATEST_RELEASE_NUMBER" ]; then
+elif [ "$(chezmoi --version | awk '{gsub(/,/,"",$3); print $3}')" != "$CHEZMOI_LATEST_RELEASE" ]; then
   echo "chezmoi is not the latest version. Installing latest version..."
   curl -LO https://github.com/twpayne/chezmoi/releases/download/v${CHEZMOI_LATEST_RELEASE_NUMBER}/chezmoi_${CHEZMOI_LATEST_RELEASE_NUMBER}_linux_${ARCH}.deb
   sudo dpkg -i chezmoi_${CHEZMOI_LATEST_RELEASE_NUMBER}_linux_${ARCH}.deb
