@@ -42,6 +42,7 @@ if ! command -v /opt/local/bin/port &>/dev/null; then
     sudo make install
     cd
     rm -rf MacPorts-${PORT_LATEST_RELEASE_NUMBER}*
+    sudo /opt/local/bin/port selfupdate
   else
     MACPORTS_PKG="https://github.com/macports/macports-base/releases/download/${PORT_LATEST_RELEASE}/MacPorts-${PORT_LATEST_RELEASE_NUMBER}-${MACOS_VERSION}-${MACOS_VERSION_NAME}.pkg"
     echo $MACPORTS_PKG
