@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+
+{{ if eq .chezmoi.os "darwin" }}
+
+echo "packages script for darwin"
+
+# set macports python version
+PYTHON3VERSION="3.11"
+PYTHON3VERSION_MPORTS=$(tr -d '.' <<<$PYTHON3VERSION)
+
+# macports packages to install
+PORT_PACKAGES=(
+  "git"
+  "bash"
+  "wget"
+  "jq"
+  "go"
+  "fzf"
+  "duf"
+  "chezmoi"
+  "python${PYTHON3VERSION_MPORTS}"
+  "py${PYTHON3VERSION_MPORTS}-pip"
+  "py${PYTHON3VERSION_MPORTS}-powerline"
+  "py${PYTHON3VERSION_MPORTS}-virtualenv"
+)
+
+# install packages
+export PATH="/opt/local/bin:/opt/local/sbin:$PATH"
+# sudo port selfupdate
+for PORT_PACKAGE in "${PORT_PACKAGES[@]}"; do
+  if /opt/local/bin/port installed $PORT_PACKAGE | grep -q "None of the specified ports are installed"; then
+    echo "Installing $PORT_PACKAGE..."
+    sudo /opt/local/bin/port -q install $PORT_PACKAGE
+  fi
+done
+
+# fixups after port installation
+if [[ -e /opt/local/bin/python${PYTHON3VERSION} ]]; then
+  sudo /opt/local/bin/port select --set python python${PYTHON3VERSION_MPORTS} >/dev/null
+  sudo /opt/local/bin/port select --set python3 python${PYTHON3VERSION_MPORTS} >/dev/null
+  sudo /opt/local/bin/port select --set virtualenv virtualenv${PYTHON3VERSION_MPORTS} >/dev/null
+  sudo /opt/local/bin/port select --set pip pip${PYTHON3VERSION_MPORTS} >/dev/null
+  sudo /opt/local/bin/port select --set pip3 pip${PYTHON3VERSION_MPORTS} >/dev/null
+fi
+
+{{ end }}
+
+exit 0
