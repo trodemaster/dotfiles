@@ -27,43 +27,6 @@ fi
 
 sudo apt update
 
-# list of apt packages to install
-APT_PACKAGES=(
-  "virt-what"
-  "jq"
-  "neofetch"
-  "glances"
-  "git"
-  "wget"
-  "unzip"
-  "tmux"
-  "python3"
-  "python3-pip"
-  "python-is-python3"
-  "python3-powerline"
-  "python3-powerline-gitstatus"
-  "python3-virtualenv"
-  "tree"
-  "acl"
-  "apt-transport-https"
-  "ca-certificates"
-  "lsb-release"
-  "vault"
-  "chezmoi"
-  "curl"
-  "gh"
-  "fzf"
-  "shellcheck"
-)
-
-# loop over apt packages and install them
-for APT_PACKAGE in "${APT_PACKAGES[@]}"; do
-  if ! dpkg -s $APT_PACKAGE &>/dev/null; then
-    echo "Installing apt package $APT_PACKAGE..."
-    sudo apt-get install -y $APT_PACKAGE
-  fi
-done
-
 {{ end }}
 {{ end }}
 exit 0
