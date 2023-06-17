@@ -28,7 +28,7 @@ PORT_PACKAGES=(
 export PATH="/opt/local/bin:/opt/local/sbin:$PATH"
 # sudo port selfupdate
 for PORT_PACKAGE in "${PORT_PACKAGES[@]}"; do
-  if /opt/local/bin/port installed $PORT_PACKAGE | grep -q "None of the specified ports are installed"; then
+  if /opt/local/bin/port installed $PORT_PACKAGE | grep -q "port $PORT_PACKAGE is not installed"; then
     echo "Installing $PORT_PACKAGE..."
     sudo /opt/local/bin/port -q install $PORT_PACKAGE
   fi
