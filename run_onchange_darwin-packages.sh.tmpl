@@ -18,7 +18,6 @@ PORT_PACKAGES=(
   "fzf"
   "duf"
   "chezmoi"
-  "nrsc5"
   "python${PYTHON3VERSION_MPORTS}"
   "py${PYTHON3VERSION_MPORTS}-pip"
   "py${PYTHON3VERSION_MPORTS}-powerline"
@@ -42,6 +41,13 @@ if [[ -e /opt/local/bin/python${PYTHON3VERSION} ]]; then
   sudo /opt/local/bin/port select --set virtualenv virtualenv${PYTHON3VERSION_MPORTS} >/dev/null
   sudo /opt/local/bin/port select --set pip pip${PYTHON3VERSION_MPORTS} >/dev/null
   sudo /opt/local/bin/port select --set pip3 pip${PYTHON3VERSION_MPORTS} >/dev/null
+fi
+
+# use macports chezmoi if it exists
+if [[ -e /opt/local/bin/chezmoi ]]; then
+  if [[ -e ~/bin/chezmoi ]]; then
+    rm -r ~/bin
+  fi
 fi
 
 {{ end }}
