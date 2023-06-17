@@ -29,6 +29,13 @@ else
   echo "chezmoi is already the latest version"
 fi
 
+# use the package install of chezmoi
+if [ -f /usr/bin/chezmoi ]; then
+  if [ -f ~/bin/chezmoi ]; then
+    rm -f ~/bin/chezmoi
+  fi
+fi
+
 # refresh app cache
 sudo apt update
 
