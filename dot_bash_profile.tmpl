@@ -117,7 +117,16 @@ fi
 
 # get python3 version
 
-
 export SYSTEMD_EDITOR="/usr/bin/vi"
+
+# setup powerline
+if [[ $SHELL_TYPE =~ (terminal|vscode|code-server) ]]; then
+  if POWERLINE_DAEMON=$(ls -1 /usr/bin/powerline-daemon); then
+    powerline-daemon -q
+    export POWERLINE_BASH_CONTINUATION=1
+    export POWERLINE_BASH_SELECT=1
+    source /usr/share/powerline/bindings/bash/powerline.sh
+  fi
+fi
 
 {{ end -}}

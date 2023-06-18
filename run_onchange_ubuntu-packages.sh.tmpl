@@ -9,7 +9,7 @@ if uname -a | grep -q x86_64; then
 elif uname -a | grep -q 'arm64\|aarch64'; then
   ARCH="arm64"
 else
-  echo "Unsupported architecture"
+  echo "Unsupported architecture: $(uname -a)"
 fi
 
 # get latest release version from github for chezmoi
@@ -24,9 +24,14 @@ if ! command -v chezmoi &>/dev/null; then
 elif [ "$(chezmoi --version | awk '{gsub(/,/,"",$3); print $3}')" != "$CHEZMOI_LATEST_RELEASE" ]; then
   echo "chezmoi is not the latest version. Installing latest version..."
   curl -LO https://github.com/twpayne/chezmoi/releases/download/v${CHEZMOI_LATEST_RELEASE_NUMBER}/chezmoi_${CHEZMOI_LATEST_RELEASE_NUMBER}_linux_${ARCH}.deb
-  sudo dpkg -i chezmoi_${CHEZMOI_LATEST_RELEASE_NUMBER}_linux_${ARCH}.deb
+  sudo dpkg -i 
 else
   echo "chezmoi is already the latest version"
+fi
+
+# cleanup chezmoi deb file
+if [ -f chezmoi_*.deb ]; then
+  rm -f chezmoi_*.deb
 fi
 
 # use the package install of chezmoi
@@ -52,8 +57,7 @@ APT_PACKAGES=(
   "python3"
   "python3-pip"
   "python-is-python3"
-  "python3-powerline"
-  "python3-powerline-gitstatus"
+  "powerline"
   "python3-virtualenv"
   "tree"
   "acl"
@@ -61,7 +65,6 @@ APT_PACKAGES=(
   "ca-certificates"
   "lsb-release"
   "vault"
-  "chezmoi"
   "curl"
   "gh"
   "fzf"
