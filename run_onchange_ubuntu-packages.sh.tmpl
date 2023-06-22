@@ -83,9 +83,9 @@ done
 GO_VERSION="1.20.5"
 if ! command -v go &>/dev/null; then
   echo "Installing golang..."
-  wget -O go${GO_VERSION}.linux-${ARCH}.tar.gz https://golang.org/dl/go${GO_VERSION}.linux-${ARCH}.tar.gz
+  wget -O go${GO_VERSION}.linux-${ARCH}.tar.gz https://go.dev/dl/go${GO_VERSION}.darwin-${ARCH}.tar.gz
   # if archive exists then extract it
-  if [ -f go${GO_VERSION}.linux-${ARCH}.tar.gz ]; then
+  if [[ -f go${GO_VERSION}.linux-${ARCH}.tar.gz ]]; then
     sudo tar -C /usr/local -xzf go${GO_VERSION}.linux-${ARCH}.tar.gz
     PATH=$PATH:/usr/local/go/bin
     go version
