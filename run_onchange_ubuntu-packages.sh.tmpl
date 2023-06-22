@@ -84,10 +84,14 @@ GO_VERSION="1.20.5"
 if ! command -v go &>/dev/null; then
   echo "Installing golang..."
   wget -q -O go${GO_VERSION}.linux-${LINUX_ARCH}.tar.gz https://golang.org/dl/go${GO_VERSION}.linux-${LINUX_ARCH}.tar.gz
-  sudo tar -C /usr/local -xzf go${GO_VERSION}.linux-${LINUX_ARCH}.tar.gz
-  PATH=$PATH:/usr/local/go/bin
-  go version
-  rm go${GO_VERSION}.linux-${LINUX_ARCH}.tar.gz
+  # if archive exists then extract it
+  if [ -f go${GO_VERSION}.linux-${LINUX_ARCH}.tar.gz ]; then
+    sudo tar -C /usr/local -xzf go${GO_VERSION}.linux-${LINUX_ARCH}.tar.gz
+    PATH=$PATH:/usr/local/go/bin
+    go version
+    rm go${GO_VERSION}.linux-${LINUX_ARCH}.tar.gz
+  fi
+
   export GOPATH=${HOME}/code/go
   export GOBIN="/usr/local/bin"
 
@@ -99,18 +103,18 @@ if ! command -v go &>/dev/null; then
   # go install filippo.io/age/cmd/...@latest
   # go install github.com/joemiller/vault-token-helper@latest
   # cleanup
-  cd /usr/local/go/src
-  sudo /usr/local/go/bin/go clean -i std
-  sudo /usr/local/go/bin/go tool dist clean
-  sudo /usr/local/go/bin/go clean -modcache
-  /usr/local/go/bin/go clean -i std
-  /usr/local/go/bin/go tool dist clean
-  /usr/local/go/bin/go clean -modcache
-  sudo setfacl -b /usr/local/bin
-  sudo chown root:root /usr/local/bin/*
-  sudo chmod 755 /usr/local/bin/*
-  which go
-  go version
+  # cd /usr/local/go/src
+  # sudo /usr/local/go/bin/go clean -i std
+  # sudo /usr/local/go/bin/go tool dist clean
+  # sudo /usr/local/go/bin/go clean -modcache
+  # /usr/local/go/bin/go clean -i std
+  # /usr/local/go/bin/go tool dist clean
+  # /usr/local/go/bin/go clean -modcache
+  # sudo setfacl -b /usr/local/bin
+  # sudo chown root:root /usr/local/bin/*
+  # sudo chmod 755 /usr/local/bin/*
+  # which go
+  # go version
 fi
 
 
