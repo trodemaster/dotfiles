@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\n\t'
+shopt -s nullglob nocaseglob
+
+# exit if os is not linux
+if ! uname -a | grep -q Linux; then
+  echo "This script is for Linux only"
+  exit 1
+fi
+
+# modern bash version check
+! [ "${BASH_VERSINFO:-0}" -ge 4 ] && echo "This script requires bash v4 or later" && exit 1
+
+# path to self and parent dir
+SCRIPT=$(realpath $0)
+SCRIPTPATH=$(dirname $SCRIPT)
+
+# update the apt cache
+sudo apt update
+
+# Install zeroconf packages
+sudo apt install -y avahi-daemon avahi-utils libnss-mdns
+
+# enable and start zeroconf
+sudo systemctl enable avahi-daemon
+sudo systemctl start avahi-daemon
+
+exit 0
