@@ -79,6 +79,45 @@ for APT_PACKAGE in "${APT_PACKAGES[@]}"; do
   fi
 done
 
+# install golang if it's not installed
+GO_VERSION="1.20.5"
+if ! command -v go &>/dev/null; then
+  echo "Installing golang..."
+  wget -O go${GO_VERSION}.linux-${ARCH}.tar.gz https://go.dev/dl/go${GO_VERSION}.darwin-${ARCH}.tar.gz
+  # if archive exists then extract it
+  if [[ -f go${GO_VERSION}.linux-${ARCH}.tar.gz ]]; then
+    sudo tar -C /usr/local -xzf go${GO_VERSION}.linux-${ARCH}.tar.gz
+    PATH=$PATH:/usr/local/go/bin
+    go version
+    rm go${GO_VERSION}.linux-${ARCH}.tar.gz
+  fi
+
+  export GOPATH=${HOME}/code/go
+  export GOBIN="/usr/local/bin"
+
+  # install packages using go get
+  # sudo setfacl -m u:${USER}:rwx /usr/local/bin
+  # go install github.com/minio/mc@latest
+  # go install github.com/muesli/duf@latest
+  # go install github.com/junegunn/fzf@latest
+  # go install filippo.io/age/cmd/...@latest
+  # go install github.com/joemiller/vault-token-helper@latest
+  # cleanup
+  # cd /usr/local/go/src
+  # sudo /usr/local/go/bin/go clean -i std
+  # sudo /usr/local/go/bin/go tool dist clean
+  # sudo /usr/local/go/bin/go clean -modcache
+  # /usr/local/go/bin/go clean -i std
+  # /usr/local/go/bin/go tool dist clean
+  # /usr/local/go/bin/go clean -modcache
+  # sudo setfacl -b /usr/local/bin
+  # sudo chown root:root /usr/local/bin/*
+  # sudo chmod 755 /usr/local/bin/*
+  # which go
+  # go version
+fi
+
+
 {{ end }}
 {{ end }}
 
