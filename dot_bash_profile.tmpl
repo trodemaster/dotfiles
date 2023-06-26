@@ -64,11 +64,6 @@ if [[ -d Applications/VMware\ Fusion.app/Contents/Library ]]; then
   alias vmware-vdiskmanager="/Applications/VMware\ Fusion.app/Contents/Library/vmware-vdiskmanager"
 fi
 
-# macsl alias
-if [[ -f ${HOME}/code/macsl/macsl ]]; then
-  alias macsl=${HOME}/code/macsl/macsl
-fi
-
 # disable shell warning
 export BASH_SILENCE_DEPRECATION_WARNING=1
 export PATH="/opt/local/bin:/opt/local/sbin:/usr/local/bin:$PATH:/usr/local/go/bin:/Applications/Visual Studio Code.app/Contents/Resources/app/bin:$HOME/Library/Python/${PYTHON3VERSION}/bin:$HOME/.local/share/chezmoi/script"
