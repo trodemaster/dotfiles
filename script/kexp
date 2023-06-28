@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\n\t'
+shopt -s nullglob nocaseglob
+
+# modern bash version check
+! [ "${BASH_VERSINFO:-0}" -ge 4 ] && echo "This script requires bash v4 or later" && exit 1
+
+# path to self and parent dir
+SCRIPT=$(realpath $0)
+SCRIPTPATH=$(dirname $SCRIPT)
+
+if (pgrep nrsc5); then
+  pkill -15 nrsc5
+else
+  nrsc5 90.3 0 | tee /dev/stderr | grep -m 2 "Title\|Artist" | cut -d ' ' -f 2-30
+  # nrsc5 -H tc.jibb.tv:9030 -g 6 90.3 0 | stdbuf -oL grep "Title\|Artist" | cut -d ' ' -f 2-30 2>&1 > /Users/blake/Library/Logs/kexp.log
+fi
+
+
+# nrsc5 -o - 90.3 0 | ffmpeg -i - -acodec aac -ab 128k -ac 2 -ar 44100 -f adts - | ffplay -
+
+# take output from ncrs5 and convert to aac stream with ffmpeg
+# ffmpeg -i - -acodec aac -ab 128k -ac 2 -ar 44100 -f adts - | ffplay -
+
+# broadcast to icecast server
+
+# serve up a url that can be used to stream the audio on mac/ipad
+#nrsc5 -o - 90.3 0 | ffmpeg -i - -acodec aac -ab 128k -ac 2 -ar 44100 -f adts - | mediamtx
+#nrsc5 -o - 90.3 0 | ffmpeg -re -stream_loop -1 -i - -c copy -f rtsp rtsp://localhost:8554/kexp
+
+# ffmmpeg output to file and stream at the same time
+
+
+
+
+
+#http://trac.ffmpeg.org/wiki/Creating%20multiple%20outputs#Teepseudo-muxer
