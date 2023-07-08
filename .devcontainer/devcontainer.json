@@ -6,5 +6,16 @@
 	"features": {
 		"ghcr.io/rio/features/chezmoi:1": {},
 		"ghcr.io/tailscale/codespace/tailscale": {}
+	},
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"GitHub.copilot",
+				"GitHub.copilot-chat",
+				"timonwong.shellcheck",
+				"hashicorp.hcl",
+				"hashicorp.terraform"
+			]
+		}
 	}
 }
