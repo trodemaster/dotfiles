@@ -4,13 +4,12 @@
 {{ if eq .chezmoi.osRelease.id "ubuntu" }}
 
 # test for running in codespaces by checking $CODESPACES
-echo $CODESPACES
 if [[ "${CODESPACES}" == "true" ]]; then
-  echo "Not running in codespaces, exiting..."
+  echo "Not Running run_once_ubuntu.sh in codespaces"
   exit 0
+else
+  echo "Running run_once_ubuntu.sh"
 fi
-
-echo "Run once for Ubuntu"
 
 if ! [[ -f /usr/share/keyrings/hashicorp-archive-keyring.gpg ]]; then
   echo "Adding Hashicorp GPG key..."

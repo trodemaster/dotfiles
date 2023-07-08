@@ -4,15 +4,12 @@
 {{ if eq .chezmoi.osRelease.id "ubuntu" }}
 
 # test for running in codespaces by checking $CODESPACES
-echo $CODESPACES
 if [[ "${CODESPACES}" == "true" ]]; then
   echo "Running run_once_codespace.sh"
 else
   echo "Not Running run_once_codespace.sh"
   exit 0
 fi
-
-
 
 # check if source-code-pro font is already installed
 if ! [[ -f /fonts/SourceCodePro-Medium.otf ]]; then
