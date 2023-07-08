@@ -4,7 +4,7 @@
 {{ if eq .chezmoi.osRelease.id "ubuntu" }}
 
 # test for running in codespaces by checking $CODESPACES
-if ! [[ "${CODESPACES}" == "true" ]]; then
+if [[ "${CODESPACES}" == "true" ]]; then
   echo "Running in codespaces, exiting..."
   exit 0
 fi
