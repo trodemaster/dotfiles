@@ -16,5 +16,6 @@ git config --global pull.rebase false
 git config --global user.name "Blake Garner"
 git config --global user.email blake@netjibbing.com
 git config --global alias.change-commits '!'"f() { VAR=\$1; OLD=\$2; NEW=\$3; shift 3; git filter-branch --env-filter \"if [[ \\\"\$\`echo \$VAR\`\\\" = '\$OLD' ]]; then export \$VAR='\$NEW'; fi\" \$@; }; f"
+git config --unset commit.gpgsign
 
 exit 0
