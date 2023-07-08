@@ -1,6 +1,14 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
 {{ if eq .chezmoi.os "linux" }}
 {{ if eq .chezmoi.osRelease.id "ubuntu" }}
+
+# test for running in codespaces by checking $CODESPACES
+if [[ "${CODESPACES}" == "true" ]]; then
+  echo "Not running in codespaces, exiting..."
+  exit 0
+fi
+
 echo "Run once for Ubuntu"
 
 if ! [[ -f /usr/share/keyrings/hashicorp-archive-keyring.gpg ]]; then
