@@ -14,7 +14,8 @@
 				"GitHub.copilot-chat",
 				"timonwong.shellcheck",
 				"hashicorp.hcl",
-				"hashicorp.terraform"
+				"hashicorp.terraform",
+				"foxundermoon.shell-format"
 			]
 		}
 	}
