@@ -70,7 +70,10 @@ export PATH="/opt/local/bin:/opt/local/sbin:/usr/local/bin:$PATH:/usr/local/go/b
 
 # go vars
 export GOPATH=${HOME}/code/go
-export PATH=$PATH:${HOME}/code/go/bin
+export PATH=$
+
+
+:${HOME}/code/go/bin
 
 # configure secretive ssh
 if [ -f ${HOME}/Library/Containers/com.maxgoedjen.Secretive.SecretAgent ]; then
@@ -123,5 +126,17 @@ if [[ $SHELL_TYPE =~ (terminal|vscode|code-server) ]]; then
     source /usr/share/powerline/bindings/bash/powerline.sh
   fi
 fi
+
+# do $CODESPACES or ubuntu specific things
+if [[ "${CODESPACES}" == "true" ]]; then
+  # set code alias to use the codespaces remote cli
+  if [[ -n "${VSCODE_GIT_ASKPASS_NODE}" ]]; then
+    alias code="${VSCODE_GIT_ASKPASS_NODE::-5}/bin/remote-cli/code"
+  fi 
+else
+  echo "Not Running run_once_codespace.sh"
+fi
+
+
 
 {{ end -}}
