@@ -1,26 +1,33 @@
 #!/usr/bin/env bash
-
 {{ if eq .chezmoi.os "linux" }}
 {{ if eq .chezmoi.osRelease.id "ubuntu" }}
 
-# test for running in codespaces by checking $CODESPACES
-if [[ "${CODESPACES}" == "true" ]]; then
-  echo "Not Running run_once_ubuntu.sh in codespaces"
-  exit 0
-else
-  echo "Running run_once_ubuntu.sh"
-fi
-# install githubcli repo
-if ! [[ -f /usr/share/keyrings/githubcli-archive-keyring.gpg ]]; then
-  echo "Adding githubcli GPG key..."
-  wget -O- https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo gpg --dearmor -o /usr/share/keyrings/githubcli-archive-keyring.gpg
-  sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
+
+if ! [[ -f /usr/share/keyrings/hashicorp-archive-keyring.gpg ]]; then
+  echo "Adding Hashicorp GPG key..."
+  wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
 fi
 
 if ! [[ -f /etc/apt/sources.list.d/hashicorp.list ]]; then
   echo "Adding Hashicorp repo..."
-  echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list >/dev/null
+  echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
 fi
+
+sudo apt update
+
+# check if source-code-pro font is already installed
+if ! [[ -f ${HOME}/.fonts/SourceCodePro-Medium.otf ]]; then
+  echo "Installing Source Code Pro font..."
+  wget https://github.com/adobe-fonts/source-code-pro/releases/download/2.038R-ro%2F1.058R-it%2F1.018R-VAR/OTF-source-code-pro-2.038R-ro-1.058R-it.zip
+  if ! [[ -d ${HOME}/.fonts ]]; then
+    mkdir ${HOME}/.fonts
+  fi
+
+  unzip -o -d ${HOME}/.fonts ${HOME}/OTF-source-code-pro*.zip SourceCodePro-Medium.otf
+  rm ${HOME}/OTF-source-code-pro*.zip
+fi
+
 {{ end }}
 {{ end }}
+
 exit 0
