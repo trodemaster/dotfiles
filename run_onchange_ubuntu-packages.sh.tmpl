@@ -100,8 +100,8 @@ if ! command -v /usr/local/go/bin/go &>/dev/null; then
     rm go${GO_VERSION}.linux-${ARCH}.tar.gz
   fi
 
-  export GOPATH=${HOME}/code/go
-  export GOBIN="/usr/local/bin"
+#  export GOPATH=${HOME}/code/go
+#  export GOBIN="/usr/local/bin"
 
   # install packages using go get
   # sudo setfacl -m u:${USER}:rwx /usr/local/bin
