@@ -75,6 +75,7 @@ APT_PACKAGES=(
   "curl"
   "gh"
   "fzf"
+  "duf"
   "shellcheck"
 )
 
@@ -88,7 +89,7 @@ done
 
 # install golang if it's not installed
 GO_VERSION="1.20.5"
-if ! command -v go &>/dev/null; then
+if ! command -v /usr/local/go/bin/go &>/dev/null; then
   echo "Installing golang from https://go.dev/dl/go${GO_VERSION}.linux-${ARCH}.tar.gz"
   wget -O go${GO_VERSION}.linux-${ARCH}.tar.gz https://go.dev/dl/go${GO_VERSION}.linux-${ARCH}.tar.gz
   # if archive exists then extract it
@@ -104,10 +105,6 @@ if ! command -v go &>/dev/null; then
 
   # install packages using go get
   # sudo setfacl -m u:${USER}:rwx /usr/local/bin
-  # go install github.com/minio/mc@latest
-  # go install github.com/muesli/duf@latest
-  # go install github.com/junegunn/fzf@latest
-  # go install filippo.io/age/cmd/...@latest
   # go install github.com/joemiller/vault-token-helper@latest
   # cleanup
   # cd /usr/local/go/src

@@ -133,7 +133,7 @@ if [[ "${CODESPACES}" == "true" ]]; then
   fi
 else
   # set path for ubuntu VM
-  export PATH=$PATH:/usr/local/go/bin:$HOME/.local/share/chezmoi/script
+  export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin:$HOME/.local/share/chezmoi/script
 fi
 
 {{ end -}}
