@@ -105,7 +105,11 @@ if ! command -v /usr/local/go/bin/go &>/dev/null; then
 
   # install packages using go get
   # sudo setfacl -m u:${USER}:rwx /usr/local/bin
-  # go install github.com/joemiller/vault-token-helper@latest
+  # if vault-token-helper is not installed then install it
+  if ! command -v $HOME/go/bin/vault-token-helper/vault-token-helper &>/dev/null; then
+    echo "Installing vault-token-helper..."
+    sudo /usr/local/go/bin/go install github.com/joemiller/vault-token-helper@latest
+  fi
   # cleanup
   # cd /usr/local/go/src
   # sudo /usr/local/go/bin/go clean -i std
