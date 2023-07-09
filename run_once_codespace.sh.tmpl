@@ -11,18 +11,6 @@ else
   exit 0
 fi
 
-# check if source-code-pro font is already installed
-if ! [[ -f /fonts/SourceCodePro-Medium.otf ]]; then
-  echo "Installing Source Code Pro font..."
-  wget https://github.com/adobe-fonts/source-code-pro/releases/download/2.038R-ro%2F1.058R-it%2F1.018R-VAR/OTF-source-code-pro-2.038R-ro-1.058R-it.zip -O OTF-source-code-pro-2.zip
-  if ! [[ -d /fonts ]]; then
-    sudo mkdir /fonts
-  fi
-
-  sudo unzip -o -d /fonts OTF-source-code-pro-2.zip SourceCodePro-Medium.otf
-  rm OTF-source-code-pro-2.zip
-fi
-
 {{ end }}
 {{ end }}
 
