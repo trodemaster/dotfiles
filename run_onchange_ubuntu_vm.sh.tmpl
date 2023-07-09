@@ -12,13 +12,7 @@ else
 fi
 
 # check architecture
-if uname -a | grep -q x86_64; then
-  ARCH="amd64"
-elif uname -a | grep -q 'arm64\|aarch64'; then
-  ARCH="arm64"
-else
-  echo "Unsupported architecture: $(uname -a)"
-fi
+ARCH=$(dpkg --print-architecture)
 
 # install githubcli repo
 if ! [[ -f /usr/share/keyrings/githubcli-archive-keyring.gpg ]]; then
