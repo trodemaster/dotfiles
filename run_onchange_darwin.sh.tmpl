@@ -57,7 +57,6 @@ fi
 #  sudo sed -i '' 's|rsync://rsync.macports.org/macports/release/tarballs/base.tar|rsync://aarnet.au.rsync.macports.org/macports/release/tarballs/base.tar|g' /opt/local/etc/macports/sources.conf
 #fi
 
-
 # Install source code pro font
 if [[ ! -f /Library/Fonts/SourceCodePro-Medium.otf ]]; then
   echo "Installing source code pro font..."
@@ -92,6 +91,7 @@ PORT_PACKAGES=(
   "chezmoi"
   "skhdrc"
   "cliclick"
+  "vault"
   "python${PYTHON3VERSION_MPORTS}"
   "py${PYTHON3VERSION_MPORTS}-pip"
   "py${PYTHON3VERSION_MPORTS}-powerline"
@@ -122,6 +122,12 @@ if [[ -e /opt/local/bin/chezmoi ]]; then
   if [[ -e ~/bin/chezmoi ]]; then
     rm -r ~/bin
   fi
+fi
+
+# if vault-token-helper is not installed then install it
+if ! command -v $HOME/code/go/bin/vault-token-helper &>/dev/null; then
+  echo "Installing vault-token-helper..."
+  sudo /opt/local/bin/go install github.com/joemiller/vault-token-helper@latest
 fi
 
 {{ end }}
