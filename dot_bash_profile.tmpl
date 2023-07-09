@@ -24,7 +24,6 @@ declare -x CLICOLOR=1
 
 # common things
 
-
 # source the fzf config
 [[ -f "${HOME}/.fzf_completion.bash" ]] && source "${HOME}/.fzf_completion.bash"
 [[ -f "${HOME}/.fzf_completion.bash" ]] && source "${HOME}/.fzf_key-bindings.bash"
@@ -71,7 +70,6 @@ export PATH="/opt/local/bin:/opt/local/sbin:/usr/local/bin:$PATH:/usr/local/go/b
 # go vars
 export GOPATH=${HOME}/code/go
 export PATH=$
-
 
 :${HOME}/code/go/bin
 
@@ -132,11 +130,10 @@ if [[ "${CODESPACES}" == "true" ]]; then
   # set code alias to use the codespaces remote cli
   if [[ -n "${VSCODE_GIT_ASKPASS_NODE}" ]]; then
     alias code="${VSCODE_GIT_ASKPASS_NODE::-5}/bin/remote-cli/code"
-  fi 
-# else
-#  echo "Not Running run_once_codespace.sh"
+  fi
+else
+  # set path for ubuntu VM
+  export PATH=$PATH:/usr/local/go/bin:$HOME/.local/share/chezmoi/script
 fi
-
-
 
 {{ end -}}
