@@ -81,7 +81,6 @@ for APT_PACKAGE in "${APT_PACKAGES[@]}"; do
   fi
 done
 
-
 if ! [[ -f /usr/share/keyrings/hashicorp-archive-keyring.gpg ]]; then
   echo "Adding Hashicorp GPG key..."
   wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
