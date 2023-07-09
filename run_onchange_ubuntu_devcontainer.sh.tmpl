@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+{{ if eq .chezmoi.os "linux" }}
+{{ if eq .chezmoi.osRelease.id "ubuntu" }}
+
+# test for running in codespaces by checking $CODESPACES
+if [[ "${CODESPACES}" == "true" ]]; then
+  echo "Running run_onchange_ubuntu_devcontainer.sh"
+else
+  echo "Not Running run_onchange_ubuntu_devcontainer.sh"
+  exit 0
+fi
+
+{{ end }}
+{{ end }}
+
+exit 0

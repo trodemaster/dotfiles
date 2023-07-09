@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+
+{{ if eq .chezmoi.os "linux" }}
+{{ if eq .chezmoi.osRelease.id "ubuntu" }}
+
+# test for running in codespaces by checking $CODESPACES
+if [[ "${CODESPACES}" == "true" ]]; then
+  echo "Not Running run_onchange_ubuntu_vm.sh in codespaces"
+  exit 0
+else
+  echo "Running run_onchange_ubuntu_vm.sh"
+fi
+
+# install githubcli repo
+if ! [[ -f /usr/share/keyrings/githubcli-archive-keyring.gpg ]]; then
+  echo "Adding githubcli GPG key..."
+  wget -O- https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo gpg --dearmor -o /usr/share/keyrings/githubcli-archive-keyring.gpg
+  sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
+fi
+
+if ! [[ -f /etc/apt/sources.list.d/hashicorp.list ]]; then
+  echo "Adding Hashicorp repo..."
+  echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list >/dev/null
+fi
+
+# install golang if it's not installed
+GO_VERSION="1.20.5"
+if ! command -v /usr/local/go/bin/go &>/dev/null; then
+  echo "Installing golang from https://go.dev/dl/go${GO_VERSION}.linux-${ARCH}.tar.gz"
+  wget -O go${GO_VERSION}.linux-${ARCH}.tar.gz https://go.dev/dl/go${GO_VERSION}.linux-${ARCH}.tar.gz
+  # if archive exists then extract it
+  if [[ -f go${GO_VERSION}.linux-${ARCH}.tar.gz ]]; then
+    sudo tar -C /usr/local -xzf go${GO_VERSION}.linux-${ARCH}.tar.gz
+    PATH=$PATH:/usr/local/go/bin
+    go version
+    rm go${GO_VERSION}.linux-${ARCH}.tar.gz
+  fi
+
+  #  export GOPATH=${HOME}/code/go
+  #  export GOBIN="/usr/local/bin"
+
+  # install packages using go get
+  # sudo setfacl -m u:${USER}:rwx /usr/local/bin
+  # if vault-token-helper is not installed then install it
+  if ! command -v $HOME/go/bin/vault-token-helper/vault-token-helper &>/dev/null; then
+    echo "Installing vault-token-helper..."
+    sudo /usr/local/go/bin/go install github.com/joemiller/vault-token-helper@latest
+  fi
+  # cleanup
+  # cd /usr/local/go/src
+  # sudo /usr/local/go/bin/go clean -i std
+  # sudo /usr/local/go/bin/go tool dist clean
+  # sudo /usr/local/go/bin/go clean -modcache
+  # /usr/local/go/bin/go clean -i std
+  # /usr/local/go/bin/go tool dist clean
+  # /usr/local/go/bin/go clean -modcache
+  # sudo setfacl -b /usr/local/bin
+  # sudo chown root:root /usr/local/bin/*
+  # sudo chmod 755 /usr/local/bin/*
+  # which go
+  # go version
+fi
+
+{{ end }}
+{{ end }}
+
+exit 0
