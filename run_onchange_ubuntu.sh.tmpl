@@ -1,16 +1,11 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
 {{ if eq .chezmoi.os "linux" }}
 {{ if eq .chezmoi.osRelease.id "ubuntu" }}
-echo "package script for Ubuntu"
+
 
 # check architecture
-if uname -a | grep -q x86_64; then
-  ARCH="amd64"
-elif uname -a | grep -q 'arm64\|aarch64'; then
-  ARCH="arm64"
-else
-  echo "Unsupported architecture: $(uname -a)"
-fi
+ARCH=$(dpkg --print-architecture)
 
 # get latest release version from github for chezmoi
 CHEZMOI_LATEST_RELEASE=$(curl -s https://api.github.com/repos/twpayne/chezmoi/releases/latest | grep tag_name | cut -d '"' -f 4)
@@ -41,8 +36,20 @@ if [ -f /usr/bin/chezmoi ]; then
   fi
 fi
 
-# refresh app cache
-sudo apt update
+# add hashicorp gpg key
+if ! [[ -f /usr/share/keyrings/hashicorp-archive-keyring.gpg ]]; then
+  echo "Adding Hashicorp GPG key..."
+  wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+fi
+
+# add hashicorp repo
+if ! [[ -f /etc/apt/sources.list.d/hashicorp.list ]]; then
+  echo "Adding Hashicorp repo..."
+  echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+fi
+
+echo "Updating apt cache..."
+sudo apt update > /dev/null
 
 # list of apt packages to install
 APT_PACKAGES=(
@@ -68,6 +75,7 @@ APT_PACKAGES=(
   "curl"
   "gh"
   "fzf"
+  "duf"
   "shellcheck"
 )
 
@@ -79,42 +87,18 @@ for APT_PACKAGE in "${APT_PACKAGES[@]}"; do
   fi
 done
 
-# install golang if it's not installed
-GO_VERSION="1.20.5"
-if ! command -v go &>/dev/null; then
-  echo "Installing golang..."
-  wget -O go${GO_VERSION}.linux-${ARCH}.tar.gz https://go.dev/dl/go${GO_VERSION}.darwin-${ARCH}.tar.gz
-  # if archive exists then extract it
-  if [[ -f go${GO_VERSION}.linux-${ARCH}.tar.gz ]]; then
-    sudo tar -C /usr/local -xzf go${GO_VERSION}.linux-${ARCH}.tar.gz
-    PATH=$PATH:/usr/local/go/bin
-    go version
-    rm go${GO_VERSION}.linux-${ARCH}.tar.gz
+sudo apt update
+
+# check if source-code-pro font is already installed
+if ! [[ -f ${HOME}/.fonts/SourceCodePro-Medium.otf ]]; then
+  echo "Installing Source Code Pro font..."
+  wget https://github.com/adobe-fonts/source-code-pro/releases/download/2.038R-ro%2F1.058R-it%2F1.018R-VAR/OTF-source-code-pro-2.038R-ro-1.058R-it.zip
+  if ! [[ -d ${HOME}/.fonts ]]; then
+    mkdir ${HOME}/.fonts
   fi
 
-  export GOPATH=${HOME}/code/go
-  export GOBIN="/usr/local/bin"
-
-  # install packages using go get
-  # sudo setfacl -m u:${USER}:rwx /usr/local/bin
-  # go install github.com/minio/mc@latest
-  # go install github.com/muesli/duf@latest
-  # go install github.com/junegunn/fzf@latest
-  # go install filippo.io/age/cmd/...@latest
-  # go install github.com/joemiller/vault-token-helper@latest
-  # cleanup
-  # cd /usr/local/go/src
-  # sudo /usr/local/go/bin/go clean -i std
-  # sudo /usr/local/go/bin/go tool dist clean
-  # sudo /usr/local/go/bin/go clean -modcache
-  # /usr/local/go/bin/go clean -i std
-  # /usr/local/go/bin/go tool dist clean
-  # /usr/local/go/bin/go clean -modcache
-  # sudo setfacl -b /usr/local/bin
-  # sudo chown root:root /usr/local/bin/*
-  # sudo chmod 755 /usr/local/bin/*
-  # which go
-  # go version
+  unzip -o -d ${HOME}/.fonts ${HOME}/OTF-source-code-pro*.zip SourceCodePro-Medium.otf
+  rm ${HOME}/OTF-source-code-pro*.zip
 fi
 
 

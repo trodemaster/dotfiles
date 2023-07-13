@@ -24,7 +24,6 @@ declare -x CLICOLOR=1
 
 # common things
 
-
 # source the fzf config
 [[ -f "${HOME}/.fzf_completion.bash" ]] && source "${HOME}/.fzf_completion.bash"
 [[ -f "${HOME}/.fzf_completion.bash" ]] && source "${HOME}/.fzf_key-bindings.bash"
@@ -42,7 +41,7 @@ alias remote="~/code/blakeconfig/mirrorscreen"
 alias encode="~/code/timelapse-tools/encode"
 alias wd="~/code/weatherdesktop/wd"
 alias lsusb="ioreg -p IOUSB"
-alias eaw="chmod +a \"user:$USER allow read,write,append,readattr,writeattr,readextattr,writeextattr,readsecurity\" "
+alias eaw="/bin/chmod +a \"user:$USER allow read,write,append,readattr,writeattr,readextattr,writeextattr,readsecurity\" "
 alias killssh="/opt/local/libexec/gnubin/sed -i "/$1/d" ~/.ssh/known_hosts"
 
 # bash version check
@@ -64,14 +63,9 @@ if [[ -d Applications/VMware\ Fusion.app/Contents/Library ]]; then
   alias vmware-vdiskmanager="/Applications/VMware\ Fusion.app/Contents/Library/vmware-vdiskmanager"
 fi
 
-# macsl alias
-if [[ -f ${HOME}/code/macsl/macsl ]]; then
-  alias macsl=${HOME}/code/macsl/macsl
-fi
-
 # disable shell warning
 export BASH_SILENCE_DEPRECATION_WARNING=1
-export PATH="/opt/local/bin:/opt/local/sbin:/usr/local/bin:$PATH:/usr/local/go/bin:/$HOME/blakeconfig:/Applications/Visual Studio Code.app/Contents/Resources/app/bin:$HOME/Library/Python/${PYTHON3VERSION}/bin"
+export PATH="/opt/local/bin:/opt/local/sbin:/usr/local/bin:$PATH:/usr/local/go/bin:/Applications/Visual Studio Code.app/Contents/Resources/app/bin:$HOME/Library/Python/${PYTHON3VERSION}/bin:$HOME/.local/share/chezmoi/script"
 
 # go vars
 export GOPATH=${HOME}/code/go
@@ -127,6 +121,17 @@ if [[ $SHELL_TYPE =~ (terminal|vscode|code-server) ]]; then
     export POWERLINE_BASH_SELECT=1
     source /usr/share/powerline/bindings/bash/powerline.sh
   fi
+fi
+
+# do $CODESPACES or ubuntu specific things
+if [[ "${CODESPACES}" == "true" ]]; then
+  # set code alias to use the codespaces remote cli
+  if [[ -n "${VSCODE_GIT_ASKPASS_NODE}" ]]; then
+    alias code="${VSCODE_GIT_ASKPASS_NODE::-5}/bin/remote-cli/code"
+  fi
+else
+  # set path for ubuntu VM
+  export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin:$HOME/.local/share/chezmoi/script
 fi
 
 {{ end -}}
