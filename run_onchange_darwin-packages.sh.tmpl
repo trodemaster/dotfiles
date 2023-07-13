@@ -32,7 +32,9 @@ export PATH="/opt/local/bin:/opt/local/sbin:$PATH"
 for PORT_PACKAGE in "${PORT_PACKAGES[@]}"; do
   if /opt/local/bin/port installed $PORT_PACKAGE | grep -q "None of the specified ports are installed"; then
     echo "Installing $PORT_PACKAGE..."
-    sudo /opt/local/bin/port -q install $PORT_PACKAGE
+    sudo /opt/local/bin/port -q install $PORT_PACKAGE 
+    # mute the output string 'Warning: port definitions are more than two weeks old, consider updating them by running 'port selfupdate'.'
+
   fi
 done
 
