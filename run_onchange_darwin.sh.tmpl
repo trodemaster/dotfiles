@@ -11,9 +11,9 @@ fi
 # test for xcode command line tools
 if ! xcode-select -p &>/dev/null; then
   echo "Installing xcode command line tools..."
-  echo "you may need to check the GUI to approve the installation"
-  xcode-select --install
-  sudo xcode-select -s /Library/Developer/CommandLineTools
+  touch /tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress
+  CMDLINE_TOOLS=$(softwareupdate -l | grep "\*.*Command Line" | tail -n 1 | sed 's/^[^C]* //')
+  softwareupdate -i "$CMDLINE_TOOLS" --verbose
 fi
 
 # get latest release version from github for macports
