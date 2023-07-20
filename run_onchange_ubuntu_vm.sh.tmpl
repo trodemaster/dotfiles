@@ -28,7 +28,9 @@ fi
 
 # install golang if it's not installed
 GO_VERSION="1.20.5"
-if ! command -v /usr/local/go/bin/go &>/dev/null; then
+
+# install go function
+install_go() {
   echo "Installing golang from https://go.dev/dl/go${GO_VERSION}.linux-${ARCH}.tar.gz"
   wget -O go${GO_VERSION}.linux-${ARCH}.tar.gz https://go.dev/dl/go${GO_VERSION}.linux-${ARCH}.tar.gz
   # if archive exists then extract it
@@ -38,30 +40,51 @@ if ! command -v /usr/local/go/bin/go &>/dev/null; then
     go version
     rm go${GO_VERSION}.linux-${ARCH}.tar.gz
   fi
+}
 
-  #  export GOPATH=${HOME}/code/go
-  #  export GOBIN="/usr/local/bin"
+# check go version and install if necessary
+if command -v go &> /dev/null; then
+  GO_VERSION_INSTALLED=$(go version | awk '{print $3}' | sed 's/go//')
+  echo "go is installed, version: $GO_VERSION"
+  if command -v go &> /dev/null; then
+    GO_VERSION_INSTALLED=$(go version | awk '{print $3}' | sed 's/go//')
+    echo "go is installed, version: $GO_VERSION_INSTALLED"
+    if [[ "$(printf '%s\n' "$GO_VERSION_INSTALLED" "$GO_VERSION" | sort -V | head -n1)" == "$GO_VERSION" ]]; then
+      echo "go version $GO_VERSION is already installed"
+    else
+      install_go
+    fi
+  fi
+else
+  install_go
+fi
 
-  # install packages using go get
-  # sudo setfacl -m u:${USER}:rwx /usr/local/bin
-  # if vault-token-helper is not installed then install it
+# install vault-token-helper
+if  command -v /usr/local/go/bin/go &>/dev/null; then
   if ! command -v $HOME/go/bin/vault-token-helper/vault-token-helper &>/dev/null; then
     echo "Installing vault-token-helper..."
     sudo /usr/local/go/bin/go install github.com/joemiller/vault-token-helper@latest
   fi
-  # cleanup
-  # cd /usr/local/go/src
-  # sudo /usr/local/go/bin/go clean -i std
-  # sudo /usr/local/go/bin/go tool dist clean
-  # sudo /usr/local/go/bin/go clean -modcache
-  # /usr/local/go/bin/go clean -i std
-  # /usr/local/go/bin/go tool dist clean
-  # /usr/local/go/bin/go clean -modcache
-  # sudo setfacl -b /usr/local/bin
-  # sudo chown root:root /usr/local/bin/*
-  # sudo chmod 755 /usr/local/bin/*
-  # which go
-  # go version
+fi
+
+# config git
+if [ "$(git config --global push.default)" != "current" ]; then
+    git config --global push.default current
+fi
+if [ "$(git config --global pull.rebase)" != "false" ]; then
+    git config --global pull.rebase false
+fi
+if [ -z "$(git config --global user.name)" ]; then
+    git config --global user.name "Blake Garner"
+fi
+if [ -z "$(git config --global user.email)" ]; then
+    git config --global user.email blake@netjibbing.com
+fi
+if [ -z "$(git config --global alias.change-commits)" ]; then
+    git config --global alias.change-commits '!'"f() { VAR=\$1; OLD=\$2; NEW=\$3; shift 3; git filter-branch --env-filter \"if [[ \\\"\$\`echo \$VAR\`\\\" = '\$OLD' ]]; then export \$VAR='\$NEW'; fi\" \$@; }; f"
+fi
+if [ "$(git config --global commit.gpgsign)" != "false" ]; then
+    git config --global commit.gpgsign false
 fi
 
 {{ end }}
