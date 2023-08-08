@@ -109,7 +109,10 @@ fi
 
 ### Linux specific stuff ###
 
-# get python3 version
+# aliases
+alias eaw="/bin/chmod +a \"user:$USER allow read,write,append,readattr,writeattr,readextattr,writeextattr,readsecurity\" "
+alias killssh="sed -i "/$1/d" ~/.ssh/known_hosts"
+alias eaw="sudo setfacl -m u:${USER}:rw" 
 
 export SYSTEMD_EDITOR="/usr/bin/vi"
 
