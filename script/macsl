@@ -165,22 +165,22 @@ launchd_mode() {
 
 vm_boot() {
   echo "VM BOOT"
-  if [[ $VM_HYPERVISOR == "qemu" ]]; then
-
-    # tmux new session called macsl to host the qemu session
-    if ! (tmux has-session -t macsl 2>/dev/null); then
-      tmux new-session -d -s macsl -n macsl
-    fi
-
-    # check if existing qemu is running in the macsl session
-    # only start a if one isn't already running. 
-
-    # start qemu in a tmux session
-    tmux respawn-window -t macsl -c "$VM_PATH" -k "$QEMU_CMD"
-
-  elif [[ $VM_HYPERVISOR == "vmware" ]]; then
+#  if [[ $VM_HYPERVISOR == "qemu" ]]; then
+#
+#    # tmux new session called macsl to host the qemu session
+#    if ! (tmux has-session -t macsl 2>/dev/null); then
+#      tmux new-session -d -s macsl -n macsl
+#    fi
+#
+#    # check if existing qemu is running in the macsl session
+#    # only start a if one isn't already running. 
+#
+#    # start qemu in a tmux session
+#    tmux respawn-window -t macsl -c "$VM_PATH" -k "$QEMU_CMD"
+#
+#  elif [[ $VM_HYPERVISOR == "vmware" ]]; then
     vmrun start "$VM_PATH" nogui
-  fi
+#  fi
 }
 
 vm_reboot() {
@@ -195,12 +195,12 @@ vm_reboot() {
 
 vm_shutdown() {
   echo "VM SHUTDOWN"
-    if [[ $VM_HYPERVISOR == "qemu" ]]; then
-    tmux send-keys -t macsl system_powerdown Enter
-  fi
-  if [[ $VM_HYPERVISOR == "vmware" ]]; then
+#    if [[ $VM_HYPERVISOR == "qemu" ]]; then
+#    tmux send-keys -t macsl system_powerdown Enter
+#  fi
+#  if [[ $VM_HYPERVISOR == "vmware" ]]; then
     vmrun stop "$VM_PATH" hard
-  fi
+#  fi
 }
 
 vm_path() {
