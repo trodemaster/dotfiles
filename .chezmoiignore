@@ -1,0 +1,11 @@
+
+
+# ignore these files on liux
+{{ if eq .chezmoi.os "linux" }}
+ private_Library/*
+{{ end }}
+
+# ignore these files on mac
+{{ if eq .chezmoi.os "darwin" }}
+
+{{ end }}
