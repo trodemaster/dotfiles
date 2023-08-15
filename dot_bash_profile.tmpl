@@ -12,7 +12,7 @@ export HISTCONTROL=ignoredups:erasedups # no duplicate entries
 export HISTSIZE=100000                  # big big history
 export HISTFILESIZE=100000              # big big history
 shopt -s histappend                     # append to history, don't overwrite it
-PROMPT_COMMAND="history -a;$PROMPT_COMMAND"
+export PROMPT_COMMAND="history -a"             # update history after every command"
 
 # set shell type
 SHELL_TYPE="terminal"
@@ -21,6 +21,7 @@ SHELL_TYPE="terminal"
 export PS1="\[\e[;34m\]\u\[\e[1;37m\]@\h\[\e[;32m\]:\W$ \[\e[0m\]"
 export DISPLAY=:0
 declare -x CLICOLOR=1
+export HISTIGNORE='vault login*':'*secret_id*':'*ghp_*'
 
 # common things
 
@@ -109,7 +110,10 @@ fi
 
 ### Linux specific stuff ###
 
-# get python3 version
+# aliases
+alias eaw="/bin/chmod +a \"user:$USER allow read,write,append,readattr,writeattr,readextattr,writeextattr,readsecurity\" "
+alias killssh="sed -i "/$1/d" ~/.ssh/known_hosts"
+alias eaw="sudo setfacl -m u:${USER}:rw" 
 
 export SYSTEMD_EDITOR="/usr/bin/vi"
 
