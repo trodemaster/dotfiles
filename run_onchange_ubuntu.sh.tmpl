@@ -7,28 +7,6 @@ echo running onchange_ubuntu.sh
 # check architecture
 ARCH=$(dpkg --print-architecture)
 
-# get latest release version from github for chezmoi
-CHEZMOI_LATEST_RELEASE=$(curl -s https://api.github.com/repos/twpayne/chezmoi/releases/latest | grep tag_name | cut -d '"' -f 4)
-CHEZMOI_LATEST_RELEASE_NUMBER=${CHEZMOI_LATEST_RELEASE#v}
-
-# check if chezmoi is installed and if it's the latest version
-if ! command -v chezmoi &>/dev/null; then
-  echo "chezmoi is not installed. Installing latest version..."
-  curl -LO https://github.com/twpayne/chezmoi/releases/download/v${CHEZMOI_LATEST_RELEASE_NUMBER}/chezmoi_${CHEZMOI_LATEST_RELEASE_NUMBER}_linux_${ARCH}.deb
-  sudo dpkg -i chezmoi_${CHEZMOI_LATEST_RELEASE_NUMBER}_linux_${ARCH}.deb
-elif [ "$(chezmoi --version | awk '{gsub(/,/,"",$3); print $3}')" != "$CHEZMOI_LATEST_RELEASE" ]; then
-  echo "chezmoi is not the latest version. Installing latest version..."
-  curl -LO https://github.com/twpayne/chezmoi/releases/download/v${CHEZMOI_LATEST_RELEASE_NUMBER}/chezmoi_${CHEZMOI_LATEST_RELEASE_NUMBER}_linux_${ARCH}.deb
-  sudo dpkg -i 
-else
-  echo "chezmoi is already the latest version"
-fi
-
-# cleanup chezmoi deb file
-if [ -f chezmoi_*.deb ]; then
-  rm -f chezmoi_*.deb
-fi
-
 # use the package install of chezmoi
 if [ -f /usr/bin/chezmoi ]; then
   if [ -f ~/bin ]; then
@@ -77,6 +55,7 @@ APT_PACKAGES=(
   "fzf"
   "duf"
   "shellcheck"
+  "chezmoi"
 )
 
 # loop over apt packages and install them
