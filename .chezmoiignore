@@ -2,8 +2,7 @@ README.md
 
 # ignore these files on linux
 {{- if eq .chezmoi.os "linux" }}
-private_Library/
-Library/
+private_Library/**
 dot_input-leap.conf
 {{ end }}
 
