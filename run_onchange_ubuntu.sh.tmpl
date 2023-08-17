@@ -2,7 +2,7 @@
 
 {{ if eq .chezmoi.os "linux" }}
 {{ if eq .chezmoi.osRelease.id "ubuntu" }}
-
+echo running onchange_ubuntu.sh
 
 # check architecture
 ARCH=$(dpkg --print-architecture)
