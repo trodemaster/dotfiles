@@ -1,6 +1,6 @@
 README.md
-# private_Library/
-Library/
+private_Library/
+#Library/
 
 # ignore these files on linux
 {{- if eq .chezmoi.os "linux" }}
