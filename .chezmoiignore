@@ -1,6 +1,5 @@
 README.md
-
-#Library/
+notes.txt
 
 # ignore these files on linux
 {{- if eq .chezmoi.os "linux" }}
