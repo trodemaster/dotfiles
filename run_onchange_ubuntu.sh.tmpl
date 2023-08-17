@@ -7,6 +7,28 @@ echo running onchange_ubuntu.sh
 # check architecture
 ARCH=$(dpkg --print-architecture)
 
+get latest release version from github for chezmoi
+CHEZMOI_LATEST_RELEASE=$(curl -s https://api.github.com/repos/twpayne/chezmoi/releases/latest | grep tag_name | cut -d '"' -f 4)
+CHEZMOI_LATEST_RELEASE_NUMBER=${CHEZMOI_LATEST_RELEASE#v}
+
+# check if chezmoi is installed and if it's the latest version
+if ! command -v chezmoi &>/dev/null; then
+  echo "chezmoi is not installed. Installing latest version..."
+  curl -LO https://github.com/twpayne/chezmoi/releases/download/v${CHEZMOI_LATEST_RELEASE_NUMBER}/chezmoi_${CHEZMOI_LATEST_RELEASE_NUMBER}_linux_${ARCH}.deb
+  sudo dpkg -i chezmoi_${CHEZMOI_LATEST_RELEASE_NUMBER}_linux_${ARCH}.deb
+elif [ "$(chezmoi --version | awk '{gsub(/,/,"",$3); print $3}')" != "$CHEZMOI_LATEST_RELEASE" ]; then
+  echo "chezmoi is not the latest version. Installing latest version..."
+  curl -LO https://github.com/twpayne/chezmoi/releases/download/v${CHEZMOI_LATEST_RELEASE_NUMBER}/chezmoi_${CHEZMOI_LATEST_RELEASE_NUMBER}_linux_${ARCH}.deb
+  sudo dpkg -i
+else
+  echo "chezmoi is already the latest version"
+fi
+
+# cleanup chezmoi deb file
+if [ -f chezmoi_*.deb ]; then
+  rm -f chezmoi_*.deb
+fi
+
 # add hashicorp gpg key
 if ! [[ -f /usr/share/keyrings/hashicorp-archive-keyring.gpg ]]; then
   echo "Adding Hashicorp GPG key..."
@@ -20,7 +42,7 @@ if ! [[ -f /etc/apt/sources.list.d/hashicorp.list ]]; then
 fi
 
 echo "Updating apt cache..."
-sudo apt update > /dev/null
+sudo apt update >/dev/null
 
 # list of apt packages to install
 APT_PACKAGES=(
@@ -48,7 +70,6 @@ APT_PACKAGES=(
   "fzf"
   "duf"
   "shellcheck"
-  "chezmoi"
 )
 
 # loop over apt packages and install them
@@ -72,7 +93,6 @@ if ! [[ -f ${HOME}/.fonts/SourceCodePro-Medium.otf ]]; then
   unzip -o -d ${HOME}/.fonts ${HOME}/OTF-source-code-pro*.zip SourceCodePro-Medium.otf
   rm ${HOME}/OTF-source-code-pro*.zip
 fi
-
 
 {{ end }}
 {{ end }}
