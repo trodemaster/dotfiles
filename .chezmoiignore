@@ -5,7 +5,7 @@ README.md
 # ignore these files on linux
 {{- if eq .chezmoi.os "linux" }}
 Library/
-dot_input-leap.conf
+.input-leap.conf
 {{ end }}
 
 # ignore these files on mac
