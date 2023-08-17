@@ -2,9 +2,9 @@
 
 # ignore these files on linux
 {{- if eq .chezmoi.os "linux" }}
- private_Library/
- Library/
- dot_input-leap.conf
+private_Library/
+Library/
+dot_input-leap.conf
 {{ end }}
 
 # ignore these files on mac
