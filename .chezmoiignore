@@ -1,12 +1,12 @@
 
 
 # ignore these files on linux
-{{ if eq .chezmoi.os "linux" }}
+{{- if eq .chezmoi.os "linux" }}
  private_Library/
  dot_input-leap.conf
 {{ end }}
 
 # ignore these files on mac
-{{ if eq .chezmoi.os "darwin" }}
+{{- if eq .chezmoi.os "darwin" }}
 
 {{ end }}
