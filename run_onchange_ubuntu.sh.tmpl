@@ -7,13 +7,6 @@ echo running onchange_ubuntu.sh
 # check architecture
 ARCH=$(dpkg --print-architecture)
 
-# use the package install of chezmoi
-if [ -f /usr/bin/chezmoi ]; then
-  if [ -d ~/bin ]; then
-    rm -r ~/bin
-  fi
-fi
-
 # add hashicorp gpg key
 if ! [[ -f /usr/share/keyrings/hashicorp-archive-keyring.gpg ]]; then
   echo "Adding Hashicorp GPG key..."
