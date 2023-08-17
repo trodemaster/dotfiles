@@ -1,4 +1,5 @@
 README.md
+private_Library/
 
 # ignore these files on linux
 {{- if eq .chezmoi.os "linux" }}
