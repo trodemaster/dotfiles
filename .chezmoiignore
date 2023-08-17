@@ -1,8 +1,8 @@
 
 
-# ignore these files on liux
+# ignore these files on linux
 {{ if eq .chezmoi.os "linux" }}
- private_Library/*
+ private_Library/
  dot_input-leap.conf
 {{ end }}
 
