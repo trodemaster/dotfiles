@@ -9,8 +9,8 @@ ARCH=$(dpkg --print-architecture)
 
 # use the package install of chezmoi
 if [ -f /usr/bin/chezmoi ]; then
-  if [ -f ~/bin ]; then
-    rm -f ~/bin
+  if [ -d ~/bin ]; then
+    rm -r ~/bin
   fi
 fi
 
