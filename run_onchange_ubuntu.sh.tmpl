@@ -7,7 +7,7 @@ echo running onchange_ubuntu.sh
 # check architecture
 ARCH=$(dpkg --print-architecture)
 
-get latest release version from github for chezmoi
+# get latest release version from github for chezmoi
 CHEZMOI_LATEST_RELEASE=$(curl -s https://api.github.com/repos/twpayne/chezmoi/releases/latest | grep tag_name | cut -d '"' -f 4)
 CHEZMOI_LATEST_RELEASE_NUMBER=${CHEZMOI_LATEST_RELEASE#v}
 
@@ -43,6 +43,9 @@ fi
 
 echo "Updating apt cache..."
 sudo apt update >/dev/null
+
+# set service restart to automatic
+sed -i "/#\$nrconf{restart} = 'i';/s/.*/\$nrconf{restart} = 'a';/" /etc/needrestart/needrestart.conf
 
 # list of apt packages to install
 APT_PACKAGES=(
