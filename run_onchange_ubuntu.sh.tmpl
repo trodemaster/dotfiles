@@ -14,6 +14,7 @@ CHEZMOI_LATEST_RELEASE_NUMBER=${CHEZMOI_LATEST_RELEASE#v}
 # check if chezmoi is installed and if it's the latest version
 if ! command -v chezmoi &>/dev/null; then
   echo "chezmoi is not installed. Installing latest version..."
+  echo "Downloading: https://github.com/twpayne/chezmoi/releases/download/v${CHEZMOI_LATEST_RELEASE_NUMBER}/chezmoi_${CHEZMOI_LATEST_RELEASE_NUMBER}_linux_${ARCH}.deb"
   curl -LO https://github.com/twpayne/chezmoi/releases/download/v${CHEZMOI_LATEST_RELEASE_NUMBER}/chezmoi_${CHEZMOI_LATEST_RELEASE_NUMBER}_linux_${ARCH}.deb
   sudo dpkg -i chezmoi_${CHEZMOI_LATEST_RELEASE_NUMBER}_linux_${ARCH}.deb
 elif [ "$(chezmoi --version | awk '{gsub(/,/,"",$3); print $3}')" != "$CHEZMOI_LATEST_RELEASE" ]; then
