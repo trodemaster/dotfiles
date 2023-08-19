@@ -7,23 +7,6 @@ echo running onchange_ubuntu.sh
 # check architecture
 ARCH=$(dpkg --print-architecture)
 
-# get latest release version from github for chezmoi
-CHEZMOI_LATEST_RELEASE=$(curl -s https://api.github.com/repos/twpayne/chezmoi/releases/latest | grep tag_name | cut -d '"' -f 4)
-CHEZMOI_LATEST_RELEASE_NUMBER=${CHEZMOI_LATEST_RELEASE#v}
-CHEZMOI_LATEST_FILENAME="chezmoi_${CHEZMOI_LATEST_RELEASE_NUMBER}_linux_${ARCH}.deb"
-CHEZMOI_LATEST_URL="https://github.com/twpayne/chezmoi/releases/download/v${CHEZMOI_LATEST_RELEASE_NUMBER}/chezmoi_${CHEZMOI_LATEST_RELEASE_NUMBER}_linux_${ARCH}.deb"
-# check if chezmoi is installed and if it's the latest version
-if ! [[ -f /usr/bin/chezmoi ]]; then
-  echo "chezmoi is not installed. Installing latest version..."
-  echo " Installing $CHEZMOI_LATEST_URL"
-  curl -L -o "/tmp/$CHEZMOI_LATEST_FILENAME" "$CHEZMOI_LATEST_URL"
-  sudo dpkg -i "/tmp/$CHEZMOI_LATEST_FILENAME"
-  rm "/tmp/$CHEZMOI_LATEST_FILENAME"
-  if [[ -e ~/bin/chezmoi ]]; then
-    rm -r ~/bin
-  fi
-fi
-
 # add hashicorp gpg key
 if ! [[ -f /usr/share/keyrings/hashicorp-archive-keyring.gpg ]]; then
   echo "Adding Hashicorp GPG key..."
