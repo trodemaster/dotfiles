@@ -41,7 +41,7 @@ echo "Updating apt cache..."
 sudo apt update >/dev/null
 
 # set service restart to automatic
-sed -i "/#\$nrconf{restart} = 'i';/s/.*/\$nrconf{restart} = 'a';/" /etc/needrestart/needrestart.conf
+sudo sed -i "/#\$nrconf{restart} = 'i';/s/.*/\$nrconf{restart} = 'a';/" /etc/needrestart/needrestart.conf
 
 # list of apt packages to install
 APT_PACKAGES=(
