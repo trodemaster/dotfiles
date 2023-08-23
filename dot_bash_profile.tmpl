@@ -7,6 +7,11 @@ alias ls="ls -1 -p"
 alias crtchk="openssl x509 -text -noout -dates -in"
 alias yolossh="ssh -o \"ControlPath ~/.ssh/controlmasters/%r@%h:%p\" -o \"ControlMaster auto\" -o \"ControlPersist 10m\" -o \"StrictHostKeyChecking no\" -o \"UserKnownHostsFile=/dev/null\""
 
+# common functions
+exitssh () {
+  ssh -O exit "$@"
+}
+
 # common bash config
 export HISTCONTROL=ignoredups:erasedups # no duplicate entries
 export HISTSIZE=100000                  # big big history
@@ -45,7 +50,7 @@ alias lsusb="ioreg -p IOUSB"
 alias eaw="/bin/chmod +a \"user:$USER allow read,write,append,readattr,writeattr,readextattr,writeextattr,readsecurity\" "
 
 # macos functions
-killssh() {
+killsshhost() {
   /usr/bin/sed -i '' "/$1/d" ~/.ssh/known_hosts
 }
 
@@ -113,13 +118,17 @@ fi
 {{- if eq .chezmoi.os "linux" -}}
 
 ### Linux specific stuff ###
+export SYSTEMD_EDITOR="/usr/bin/vi"
 
 # aliases
 alias eaw="/bin/chmod +a \"user:$USER allow read,write,append,readattr,writeattr,readextattr,writeextattr,readsecurity\" "
 alias killssh="sed -i "/$1/d" ~/.ssh/known_hosts"
 alias eaw="sudo setfacl -m u:${USER}:rw" 
 
-export SYSTEMD_EDITOR="/usr/bin/vi"
+# linux functions
+killsshhost() {
+  /usr/bin/sed -i "/$1/d" ~/.ssh/known_hosts
+}
 
 # setup powerline
 if [[ $SHELL_TYPE =~ (terminal|vscode|code-server) ]]; then
