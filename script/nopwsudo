@@ -1,4 +1,4 @@
-#/bin/env bash
+#!/bin/env bash
 
 if ! command -v tee &>/dev/null; then
   echo "tee binary not found in path, exiting..."

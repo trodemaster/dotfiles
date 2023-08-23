@@ -1,0 +1,28 @@
+#!/bin/env bash
+
+# check for tee
+if ! command -v tee &>/dev/null; then
+  echo "tee binary not found in path, exiting..."
+  exit 1
+fi
+
+echo "Disabling ssh password auth..."
+
+# disable ssh password auth in sshd_config
+if [[ "$(uname)" == "Linux" ]]; then
+  sudo tee /etc/ssh/sshd_config.d/206-lockdown.conf >/dev/null <<-EOF
+PermitRootLogin no
+ChallengeResponseAuthentication no
+PasswordAuthentication no
+UsePAM no
+EOF
+fi
+
+# disable ssh password auth in sshd_config
+if [[ "$(uname)" == "Linux" ]]; then
+  sudo tee /etc/ssh/sshd_config.d/206-lockdown.conf >/dev/null <<-EOF
+PermitRootLogin no
+ChallengeResponseAuthentication no
+PasswordAuthentication no
+EOF
+fi
