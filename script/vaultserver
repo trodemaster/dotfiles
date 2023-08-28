@@ -1,0 +1,35 @@
+#!/bin/env bash
+
+# write vault server config file if it deos not exist
+
+# test if /etc/vault.d/vault.hcl exists and contains the string "blake codespace vault server config file"
+if [ ! -f /etc/vault.d/vault.hcl ] || ! grep -q "blake codespace vault server config file" /etc/vault.d/vault.hcl; then
+  # if not, write the file
+  echo "writing vault server config file"
+  sudo tee /etc/vault.d/vault.hcl >/dev/null <<EOF
+
+# blake codespace vault server config file
+
+# Full configuration options can be found at https://www.vaultproject.io/docs/configuration
+
+ui = true
+
+#mlock = true
+disable_mlock = true
+
+storage "file" {
+  path = "/opt/vault/data"
+}
+
+# HTTP listener
+listener "tcp" {
+  address = "127.0.0.1:8200"
+  tls_disable = 1
+}
+sudo chown vault:vault /etc/vault.d/vault.hcl
+sudo chmod 640 /etc/vault.d/vault.hcl
+
+EOF
+fi
+
+exit 0
