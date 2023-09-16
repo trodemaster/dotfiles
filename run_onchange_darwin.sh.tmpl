@@ -151,7 +151,7 @@ if ! command -v /usr/local/bin/vault-token-helper &>/dev/null; then
   # download latest version of vault-token-helper
   VAULT_TOKEN_HELPER_URL="https://github.com/joemiller/vault-token-helper/releases/latest/download/vault-token-helper_${ARCH}_darwin"
   echo "Downloading latest version of vault-token-helper for $CPU_ARCH..."
-  sudo curl -s -L -o /usr/local/bin/vault-token-helper $VAULT_TOKEN_HELPER_URL
+  sudo curl -L -o /usr/local/bin/vault-token-helper $VAULT_TOKEN_HELPER_URL
   sudo chmod +x /usr/local/bin/vault-token-helper
   echo "Installed vault-token-helper version $(/usr/local/bin/vault-token-helper --version)"
   /usr/local/bin/vault-token-helper enable
