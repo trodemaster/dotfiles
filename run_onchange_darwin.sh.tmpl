@@ -16,6 +16,17 @@ if ! [[ -d /Library/Developer/CommandLineTools ]]; then
   softwareupdate -i "$CMDLINE_TOOLS" --verbose
 fi
 
+# determine CPU architecture
+CPU_ARCH=$(uname -m)
+if [[ "$CPU_ARCH" == "x86_64" ]]; then
+  ARCH="amd64"
+elif [[ "$CPU_ARCH" == "arm64" ]]; then
+  ARCH="arm64"
+else
+  echo "Unsupported CPU architecture: $CPU_ARCH"
+  exit 1
+fi
+
 # get latest release version from github for macports
 PORT_LATEST_RELEASE=$(curl -s https://api.github.com/repos/macports/macports-base/releases/latest | grep tag_name | cut -d '"' -f 4)
 PORT_LATEST_RELEASE_NUMBER=${PORT_LATEST_RELEASE#v}
@@ -124,11 +135,23 @@ if [[ -e /opt/local/bin/chezmoi ]]; then
   fi
 fi
 
-# if vault-token-helper is not installed then install it
-if ! command -v $HOME/code/go/bin/vault-token-helper &>/dev/null; then
-  echo "Installing vault-token-helper..."
-  sudo /opt/local/bin/go install github.com/joemiller/vault-token-helper@latest
+## if vault-token-helper is not installed then install it
+#if ! command -v $HOME/code/go/bin/vault-token-helper &>/dev/null; then
+#  echo "Installing vault-token-helper..."
+#  sudo /opt/local/bin/go install github.com/joemiller/vault-token-helper@latest
+#fi
+
+# create /usr/local/bin if it doesn't exist
+if [ ! -d "/usr/local/bin" ]; then
+  sudo mkdir -p /usr/local/bin
 fi
+
+# download latest version of vault-token-helper
+VAULT_TOKEN_HELPER_URL="https://github.com/joemiller/vault-token-helper/releases/latest/download/vault-token-helper_${ARCH}_darwin"
+echo "Downloading latest version of vault-token-helper for $CPU_ARCH..."
+curl -s -L -o /usr/local/bin/vault-token-helper $VAULT_TOKEN_HELPER_URL
+chmod +x /usr/local/bin/vault-token-helper
+echo "Installed vault-token-helper version $(vault-token-helper --version)"
 
 {{ end }}
 
