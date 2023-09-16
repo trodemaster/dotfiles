@@ -151,7 +151,7 @@ if ! command -v /usr/local/bin/vault-token-helper &>/dev/null; then
   VAULT_TOKEN_HELPER_RELEASE=$(curl -s https://api.github.com/repos/joemiller/vault-token-helper/releases/latest | grep tag_name | cut -d '"' -f 4)
   VAULT_TOKEN_HELPER_RELEASE_NUMBER=${VAULT_TOKEN_HELPER_RELEASE#v}
   VAULT_TOKEN_HELPER_URL="https://github.com/joemiller/vault-token-helper/releases/download/v${VAULT_TOKEN_HELPER_RELEASE_NUMBER}/vault-token-helper_${VAULT_TOKEN_HELPER_RELEASE_NUMBER}_darwin_${ARCH}.tar.gz"
-  echo "Downloading latest version of vault-token-helper for $CPU_ARCH..."
+  echo "Downloading latest version of vault-token-helper ${VAULT_TOKEN_HELPER_URL}..."
   sudo curl -L -o ${TMPDIR}vault-token-helper $VAULT_TOKEN_HELPER_URL
   sudo tar -C /usr/local/bin -xzf ${TMPDIR}vault-token-helper
   sudo chmod +x /usr/local/bin/vault-token-helper
