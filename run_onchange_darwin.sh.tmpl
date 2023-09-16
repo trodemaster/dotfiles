@@ -101,13 +101,13 @@ PORT_PACKAGES=(
   "duf"
   "chezmoi"
   "skhd"
-  "cliclick"
   "vault"
   "python${PYTHON3VERSION_MPORTS}"
   "py${PYTHON3VERSION_MPORTS}-pip"
   "py${PYTHON3VERSION_MPORTS}-powerline"
   "py${PYTHON3VERSION_MPORTS}-virtualenv"
 )
+#   "cliclick" removed due to full xcode install requirement
 
 # install packages
 export PATH="/opt/local/bin:/opt/local/sbin:$PATH"
