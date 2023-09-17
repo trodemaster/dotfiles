@@ -62,11 +62,13 @@ if ! command -v /opt/local/bin/port &>/dev/null; then
 fi
 
 # configure macports mirrors
-#if ! grep -q "rsync://rsync.macports.org/macports/release/tarballs/ports.tar" /opt/local/etc/macports/sources.conf; then
-#  echo "Configuring macports mirrors..."
-#  sudo sed -i '' 's|rsync://rsync.macports.org/macports/release/tarballs/ports.tar|rsync://aarnet.au.rsync.macports.org/macports/release/tarballs/ports.tar|g' /opt/local/etc/macports/sources.conf
-#  sudo sed -i '' 's|rsync://rsync.macports.org/macports/release/tarballs/base.tar|rsync://aarnet.au.rsync.macports.org/macports/release/tarballs/base.tar|g' /opt/local/etc/macports/sources.conf
-#fi
+if ! grep -q "blakeports" /opt/local/etc/macports/sources.conf; then
+  echo "Configuring macports mirrors..."
+  sudo tee /opt/local/etc/macports/sources.conf <<EOF
+file:///opt/mports/blakeports [default]
+rsync://ywg.ca.rsync.macports.org/macports/release/tarballs/ports.tar
+EOF
+fi
 
 # Install source code pro font
 if [[ ! -f /Library/Fonts/SourceCodePro-Medium.otf ]]; then
@@ -107,7 +109,7 @@ PORT_PACKAGES=(
   "py${PYTHON3VERSION_MPORTS}-powerline"
   "py${PYTHON3VERSION_MPORTS}-virtualenv"
 )
-#   "cliclick" removed due to full xcode install requirement
+#   "cliclick" removed due to full xcode install requirement Install directly from github release instead
 
 # install packages
 export PATH="/opt/local/bin:/opt/local/sbin:$PATH"
@@ -162,4 +164,3 @@ fi
 {{ end }}
 
 exit 0
-
