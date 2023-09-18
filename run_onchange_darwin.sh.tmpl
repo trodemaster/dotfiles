@@ -126,7 +126,6 @@ PORT_PACKAGES=(
   "py${PYTHON3VERSION_MPORTS}-powerline"
   "py${PYTHON3VERSION_MPORTS}-virtualenv"
 )
-#   "cliclick" removed due to full xcode install requirement Install directly from github release instead
 
 # install packages
 export PATH="/opt/local/bin:/opt/local/sbin:$PATH"
@@ -154,11 +153,16 @@ if [[ -e /opt/local/bin/chezmoi ]]; then
   fi
 fi
 
-## if vault-token-helper is not installed then install it
-#if ! command -v $HOME/code/go/bin/vault-token-helper &>/dev/null; then
-#  echo "Installing vault-token-helper..."
-#  sudo /opt/local/bin/go install github.com/joemiller/vault-token-helper@latest
-#fi
+# install cliclick from github
+if ! [[ -f /usr/local/bin/cliclick ]]; then
+  echo "Installing cliclick..."
+  CLICLICK_RELEASE=$(curl -s https://api.github.com/repos/BlueM/cliclick/releases/latest | grep tag_name | cut -d '"' -f 4)
+  CLICLICK_RELEASE_NUMBER=${CLICLICK_RELEASE#v}
+  CLICLICK_URL="https://github.com/BlueM/cliclick/releases/download/${CLICLICK_RELEASE_NUMBER}/cliclick.zip"
+  echo "Downloading latest version of cliclick ${CLICLICK_URL}..."
+  sudo curl -L -o ${TMPDIR}cliclick.zip $CLICLICK_URL
+  sudo unzip -d /usr/local/bin ${TMPDIR}cliclick.zip
+fi
 
 # create /usr/local/bin if it doesn't exist
 if [ ! -d "/usr/local/bin" ]; then
