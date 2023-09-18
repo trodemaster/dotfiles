@@ -161,7 +161,9 @@ if ! [[ -f /usr/local/bin/cliclick ]]; then
   CLICLICK_URL="https://github.com/BlueM/cliclick/releases/download/${CLICLICK_RELEASE_NUMBER}/cliclick.zip"
   echo "Downloading latest version of cliclick ${CLICLICK_URL}..."
   sudo curl -L -o ${TMPDIR}cliclick.zip $CLICLICK_URL
-  sudo unzip -d /usr/local/bin ${TMPDIR}cliclick.zip
+  sudo unzip -p ${TMPDIR}cliclick.zip -d /usr/local/bin cliclick
+  sudo chmod +x /usr/local/bin/cliclick
+  rm ${TMPDIR}cliclick.zip 
 fi
 
 # create /usr/local/bin if it doesn't exist
