@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\n\t'
+shopt -s nullglob nocaseglob
+
+# modern bash version check
+! [ "${BASH_VERSINFO:-0}" -ge 4 ] && echo "This script requires bash v4 or later" && exit 1
+
+# path to self and parent dir
+SCRIPT=$(realpath $0)
+SCRIPTPATH=$(dirname $SCRIPT)
+MACHINE="personal"
+
+# handle flags for -w work and -p personal machines
+while getopts ":wp" opt; do
+  case ${opt} in
+    w ) # work machine
+      MACHINE="work"
+      ;;
+    p ) # personal machine
+      MACHINE="personal"
+      ;;
+    \? ) echo "Usage: cmd [-w] [-p]"
+      ;;
+  esac
+done
+
+# clone the repo from ghithib.com using the gh command line tool
+if [[ $MACHINE == "personal" ]] ; then
+  gh auth login https://github.com
+  git clone https://github.com/trodemaster/machine-cfg.git ~/code/machine-cfg
+elif [[ $MACHINE == "work" ]] ; then
+  gh auth login https://github.com
+  git clone
+fi
+
+
+exit 0
