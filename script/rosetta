@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\n\t'
+shopt -s nullglob nocaseglob
+
+# check that this is running on ubuntu on arm64 architecture and exit if not
+if ! [[ "$(uname -m)" == "aarch64" ]]; then
+  echo "This script is only for ubuntu on arm64 architecture"
+  exit 1
+fi
+
+# check for multiarch-support and install it if it's not installed
+if ! dpkg -s multiarch-support >/dev/null 2>&1; then
+  sudo apt install multiarch-support
+fi
+
+# install packages if they are not installed
+if ! dpkg -s binfmt-support >/dev/null 2>&1; then
+  sudo apt install binfmt-support
+fi
+
+# create rosseta mount point if it doesn't exist
+if [[ ! -d /media/rosetta ]]; then
+  sudo mkdir /media/rosetta
+fi
+
+# check id dpkg --add-architecture amd64 is already configured and if not then configure it
+if ! dpkg --print-foreign-architectures | grep -q "amd64"; then
+  sudo dpkg --add-architecture amd64
+fi
+
+# add rosetta mount point to /etc/fstab if it doesn't already exist
+if ! grep -q "rosetta" /etc/fstab; then
+  echo "rosetta	/media/rosetta	virtiofs	ro,nofail	0	0" | sudo tee -a /etc/fstab
+fi
+
+# mount rosetta if it's not already mounted
+if ! mountpoint -q /media/rosetta; then
+  sudo mount -t virtiofs rosetta /media/rosetta
+fi
+
+# check if rosetta is already configured and if not then configure it
+if ! /usr/sbin/update-binfmts --display rosetta >/dev/null 2>&1; then
+  sudo /usr/sbin/update-binfmts --install rosetta /media/rosetta/rosetta --magic "\x7fELF\x02\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\x3e\x00" --mask "\xff\xff\xff\xff\xff\xfe\xfe\x00\xff\xff\xff\xff\xff\xff\xff\xff\xfe\xff\xff\xff" --credentials yes --preserve no --fix-binary yes
+fi
+
+# get status of rosetta
+/usr/sbin/update-binfmts --display rosettax
+
+exit 0
