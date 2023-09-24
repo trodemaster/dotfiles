@@ -28,7 +28,7 @@ done
 # clone the repo from ghithib.com using the gh command line tool
 if [[ $MACHINE == "personal" ]] ; then
   gh auth login https://github.com
-  git clone https://github.com/trodemaster/machine-cfg.git ~/code/machine-cfg
+  gh clone trodemaster/machine-cfg ~/code/machine-cfg
 elif [[ $MACHINE == "work" ]] ; then
   gh auth login https://github.com
   git clone

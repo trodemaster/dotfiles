@@ -1,0 +1,82 @@
+#!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\n\t'
+shopt -s nullglob nocaseglob
+
+# modern bash version check
+! [ "${BASH_VERSINFO:-0}" -ge 4 ] && echo "This script requires bash v4 or later" && exit 1
+
+# path to self and parent dir
+SCRIPT=$(realpath $0)
+SCRIPTPATH=$(dirname $SCRIPT)
+
+# check for utmctl binary
+if ! command -v /Applications/UTM.app/Contents/MacOS/utmctl &>/dev/null; then
+  echo "utmctl binary not found, exiting..."
+  exit 1
+fi
+
+alias utmctl="/Applications/UTM.app/Contents/MacOS/utmctl"
+
+
+
+# get uuid from list
+pickfromlist() {
+  /Applications/UTM.app/Contents/MacOS/utmctl list | fzf | awk '{print $1}'
+}
+
+getmacsl() {
+  MACSL_UUID=$(/Applications/UTM.app/Contents/MacOS/utmctl list | grep -E "macsl$" | awk '{print $1}')
+}
+
+
+# handle arguments
+if [[ "$#" -eq 0 ]]; then
+  echo "Usage: $0 [start|stop|ip-address|list|-p] <vm-id>"
+  exit 1
+fi
+
+case "$1" in
+start)
+  if [[ "$#" -eq 1 ]]; then
+    getmacsl
+    vm_id="$MACSL_UUID"
+  elif [[ "$2" == "-p" ]]; then
+    vm_id=$(pickfromlist)
+  else
+    vm_id="${@: -1}"
+  fi
+  /Applications/UTM.app/Contents/MacOS/utmctl start "$vm_id"
+  ;;
+stop)
+  if [[ "$#" -eq 1 ]]; then
+    getmacsl
+    vm_id="$MACSL_UUID"
+  elif [[ "$2" == "-p" ]]; then
+    vm_id=$(pickfromlist)
+  else
+    vm_id="${@: -1}"
+  fi
+  /Applications/UTM.app/Contents/MacOS/utmctl stop "$vm_id"
+  ;;
+ip)
+  if [[ "$2" == "-p" ]]; then
+    vm_id=$(pickfromlist)
+  else
+    vm_id="${@: -1}"
+  fi
+  /Applications/UTM.app/Contents/MacOS/utmctl ip "$vm_id"
+  ;;
+list)
+  /Applications/UTM.app/Contents/MacOS/utmctl list
+  ;;
+-p)
+  pickfromlist
+  ;;
+*)
+  echo "Usage: $0 [start|stop|ip-address|list|-p] <vm-id>"
+  exit 1
+  ;;
+esac
+
+exit 0
