@@ -9,9 +9,9 @@ if ! [[ "$(uname -m)" == "aarch64" ]]; then
   exit 1
 fi
 
-# check for multiarch-support and install it if it's not installed
-if ! dpkg -s multiarch-support >/dev/null 2>&1; then
-  sudo apt install multiarch-support
+# check for binutils-multiarch and install it if it's not installed
+if ! dpkg -s binutils-multiarch >/dev/null 2>&1; then
+  sudo apt install binutils-multiarch
 fi
 
 # install packages if they are not installed
