@@ -46,7 +46,7 @@ start)
   else
     vm_id="${@: -1}"
   fi
-  /Applications/UTM.app/Contents/MacOS/utmctl start --hide "$vm_id"
+  /Applications/UTM.app/Contents/MacOS/utmctl --hide start "$vm_id"
   ;;
 stop)
   if [[ "$#" -eq 1 ]]; then
@@ -57,7 +57,7 @@ stop)
   else
     vm_id="${@: -1}"
   fi
-  /Applications/UTM.app/Contents/MacOS/utmctl stop --hide "$vm_id"
+  /Applications/UTM.app/Contents/MacOS/utmctl --hide stop "$vm_id"
   ;;
 ip)
   if [[ "$2" == "-p" ]]; then
