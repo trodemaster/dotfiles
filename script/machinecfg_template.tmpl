@@ -3,6 +3,8 @@ set -euo pipefail
 IFS=$'\n\t'
 shopt -s nullglob nocaseglob
 
+{{ $email := promptStringOnce . "email" "What is your email address" }}
+
 # modern bash version check
 ! [ "${BASH_VERSINFO:-0}" -ge 4 ] && echo "This script requires bash v4 or later" && exit 1
 
