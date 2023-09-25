@@ -3,6 +3,9 @@ alis code-insiders to code when shell starts inside of code insiders
 alias code=/usr/local/bin/code-insiders
 
 Seperate work vs personal configs?
+work specific aliases
+works specific sshd config
+
 
 platform specific 
 darwin
