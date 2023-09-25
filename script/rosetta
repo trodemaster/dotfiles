@@ -23,8 +23,8 @@ fi
 if [[ ! -f /etc/apt/sources.list.d/rosetta.list ]]; then
 
 # update existing sources.list to explicly call out arm64 architecture
-sed -i 's/deb http/deb [arch=arm64] http/' /etc/apt/sources.list
-sed -i 's/deb-src http/deb [arch=arm64] http/' /etc/apt/sources.list
+sudo sed -i 's/deb http/deb [arch=arm64] http/' /etc/apt/sources.list
+sudo sed -i 's/deb-src http/deb [arch=arm64] http/' /etc/apt/sources.list
 
 cat <<EOF | sudo tee /etc/apt/sources.list.d/rosetta.list >/dev/null
 # See http://help.ubuntu.com/community/UpgradeNotes for how to upgrade to
