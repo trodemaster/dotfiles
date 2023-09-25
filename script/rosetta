@@ -88,6 +88,7 @@ if ! update-binfmts --display rosetta >/dev/null 2>&1; then
   add_rosetta_binfmt
 fi
 
+# likely redundant but will enable rosetta if it's not enabled and still installed
 ROSETTA_STATUS=$(update-binfmts --display rosetta)
 if ! [[ $ROSETTA_STATUS =~ "rosetta (enabled)" ]]; then
   add_rosetta_binfmt
