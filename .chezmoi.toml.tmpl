@@ -1,4 +1,4 @@
 {{- $machineconfig := promptStringOnce . "personal" "Machine config, personal or work" -}}
 
-[data]
-    machineconfig = {{ $machineconfig | quote }}
+[scriptEnv]
+    MACHINECFG = {{ $machineconfig | quote }}
