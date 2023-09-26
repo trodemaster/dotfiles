@@ -3,16 +3,27 @@ set -euo pipefail
 IFS=$'\n\t'
 shopt -s nullglob nocaseglob
 
-if [[ "$(uname)" == "Darwin" ]]; then
-  echo "This script is only for linux"
+if [[ "$(uname)" != "Linux" ]]; then
+  echo "This script is only for Linux"
+  exit 1
 fi
+
+if ! command -v lsb_release >/dev/null; then
+  sudo apt -y install lsb-release
+fi
+
+if [[ "$(lsb_release -si)" != "Ubuntu" ]]; then
+  echo "This script is only for Ubuntu"
+  exit 1
+fi
+
 
 curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/jammy.noarmor.gpg | sudo tee /usr/share/keyrings/tailscale-archive-keyring.gpg >/dev/null
 curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/jammy.tailscale-keyring.list | sudo tee /etc/apt/sources.list.d/tailscale.list
 
 sudo apt update
 
-sudo apt install tailscale
+sudo apt -y install tailscale
 
 sudo tailscale up
 
