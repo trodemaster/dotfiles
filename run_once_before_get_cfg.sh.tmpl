@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
 echo "What is your email address?"
-{{ $email := promptString . "email" "What is your email address" }}
-
+{{ $email := promptString "email" -}}
 exit 0
