@@ -12,6 +12,7 @@ if [[ $MACHINECFG == "personal" ]]; then
     echo "machine-cfg repo already exists"
     git -C ~/code/machine-cfg pull
   else
+    gh auth login
     git clone https://github.com/trodemaster/machine-cfg.git ~/code/machine-cfg
   fi
 fi
