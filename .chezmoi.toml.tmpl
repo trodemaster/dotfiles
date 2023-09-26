@@ -1,4 +1,6 @@
 {{- $email := promptStringOnce . "nachos" "Email address" -}}
+{{- $environment := promptStringOnce . "personal" "environment, personal or work" -}}
 
 [data]
     email = {{ $email | quote }}
+    environment = {{ $environment | quote }}
