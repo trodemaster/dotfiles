@@ -3,28 +3,12 @@ set -euo pipefail
 IFS=$'\n\t'
 shopt -s nullglob nocaseglob
 
-# modern bash version check
-! [ "${BASH_VERSINFO:-0}" -ge 4 ] && echo "This script requires bash v4 or later" && exit 1
+# use chezmoi template to populate the MACHINE variable
+{{- $MACHINE := .machineconfig }}
 
-# path to self and parent dir
-SCRIPT=$(realpath $0)
-SCRIPTPATH=$(dirname $SCRIPT)
-MACHINE="personal"
+echo "machineconfig from chezmoi data is $MACHINE"
 
-# handle flags for -w work and -p personal machines
-while getopts ":wp" opt; do
-  case ${opt} in
-  w) # work machine
-    MACHINE="work"
-    ;;
-  p) # personal machine
-    MACHINE="personal"
-    ;;
-  \?)
-    echo "Usage: cmd [-w] [-p]"
-    ;;
-  esac
-done
+exit 0
 
 # clone the repo from ghithib.com using the gh command line tool
 if [[ $MACHINE == "personal" ]]; then
