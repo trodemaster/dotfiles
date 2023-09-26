@@ -119,7 +119,8 @@ fi
 {{- if eq .chezmoi.os "linux" -}}
 
 ### Linux specific stuff ###
-export SYSTEMD_EDITOR="/usr/bin/vi"
+SYSTEMD_EDITOR="/usr/bin/vi"
+BROWSER=false
 
 # aliases
 alias eaw="/bin/chmod +a \"user:$USER allow read,write,append,readattr,writeattr,readextattr,writeextattr,readsecurity\" "
