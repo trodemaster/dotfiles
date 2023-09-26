@@ -5,6 +5,12 @@ shopt -s nullglob nocaseglob
 
 echo "machineconfig from chezmoi data is $MACHINECFG"
 
+# if running on linux set BROWSER env var to false
+if [[ $(uname) == "Linux" ]]; then
+  echo "setting BROWSER env var to false"
+  export BROWSER=false
+fi
+
 # clone the repo from github.com using the gh command line tool
 if [[ $MACHINECFG == "personal" ]]; then
   echo "cloning personal machine-cfg repo..."
