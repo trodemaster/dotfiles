@@ -3,10 +3,7 @@
 # IFS=$'\n\t'
 # shopt -s nullglob nocaseglob
 
-# use chezmoi template to populate the MACHINE variable
-{{- $MACHINE := .machineconfig }}
-
-echo "machineconfig from chezmoi data is $MACHINE"
+echo "machineconfig from chezmoi data is $MACHINECFG"
 
 exit 0
 
