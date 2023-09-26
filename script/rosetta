@@ -22,6 +22,10 @@ fi
 # check if file exists and create it from heredoc if it doesn't
 if [[ ! -f /etc/apt/sources.list.d/rosetta.list ]]; then
 
+# update existing sources.list to explicly call out arm64 architecture
+sudo sed -i 's/deb http/deb [arch=arm64] http/' /etc/apt/sources.list
+sudo sed -i 's/deb-src http/deb [arch=arm64] http/' /etc/apt/sources.list
+
 cat <<EOF | sudo tee /etc/apt/sources.list.d/rosetta.list >/dev/null
 # See http://help.ubuntu.com/community/UpgradeNotes for how to upgrade to
 # newer versions of the distribution.
@@ -79,10 +83,19 @@ if ! mountpoint -q /media/rosetta; then
   sudo mount -t virtiofs rosetta /media/rosetta
 fi
 
+
 # check if rosetta is already configured and if not then configure it
+add_rosetta_binfmt() {
+  sudo update-binfmts --install rosetta /media/rosetta/rosetta --magic "\x7fELF\x02\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\x3e\x00" --mask "\xff\xff\xff\xff\xff\xfe\xfe\x00\xff\xff\xff\xff\xff\xff\xff\xff\xfe\xff\xff\xff" --credentials yes --preserve no --fix-binary yes
+}
+if ! update-binfmts --display rosetta >/dev/null 2>&1; then
+  add_rosetta_binfmt
+fi
+
+# likely redundant but will enable rosetta if it's not enabled and still installed
 ROSETTA_STATUS=$(update-binfmts --display rosetta)
 if ! [[ $ROSETTA_STATUS =~ "rosetta (enabled)" ]]; then
-  sudo update-binfmts --install rosetta /media/rosetta/rosetta --magic "\x7fELF\x02\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\x3e\x00" --mask "\xff\xff\xff\xff\xff\xfe\xfe\x00\xff\xff\xff\xff\xff\xff\xff\xff\xfe\xff\xff\xff" --credentials yes --preserve no --fix-binary yes
+  add_rosetta_binfmt
 fi
 
 # get status of rosetta
