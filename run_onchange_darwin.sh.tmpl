@@ -51,7 +51,6 @@ if ! command -v /opt/local/bin/port &>/dev/null; then
     sudo make install
     cd
     rm -rf MacPorts-${PORT_LATEST_RELEASE_NUMBER}*
-    sudo /opt/local/bin/port selfupdate
   else
     MACPORTS_PKG="https://github.com/macports/macports-base/releases/download/${PORT_LATEST_RELEASE}/MacPorts-${PORT_LATEST_RELEASE_NUMBER}-${MACOS_VERSION}-${MACOS_VERSION_NAME}.pkg"
     echo $MACPORTS_PKG
@@ -95,22 +94,9 @@ urls                https://mirror.fcix.net/macports/packages/
 EOF
 fi
 
-# Install source code pro font
-if [[ ! -f /Library/Fonts/SourceCodePro-Medium.otf ]]; then
-  echo "Installing source code pro font..."
-  /opt/local/bin/wget -q https://github.com/adobe-fonts/source-code-pro/releases/download/2.038R-ro%2F1.058R-it%2F1.018R-VAR/OTF-source-code-pro-2.038R-ro-1.058R-it.zip -O ~/OTF-source-code-pro.zip
-  unzip -o -d /Library/Fonts/ ~/OTF-source-code-pro.zip SourceCodePro-Medium.otf
-  rm ~/OTF-source-code-pro.zip
-fi
-
-# update /etc/shells
-if ! grep -q "/opt/local/bin/bash" /etc/shells; then
-  sudo tee -a /etc/shells <<<"/opt/local/bin/bash"
-fi
-
-# set bash 5 as default shell
-if [[ -e /opt/local/bin/bash ]]; then
-  sudo chsh -s /opt/local/bin/bash $USER
+# macports selfupdate after config
+if [[ -e /opt/local/bin/port ]]; then
+  sudo /opt/local/bin/port selfupdate
 fi
 
 # set macports python version
@@ -152,6 +138,24 @@ if [[ -e /opt/local/bin/python${PYTHON3VERSION} ]]; then
   sudo /opt/local/bin/port select --set virtualenv virtualenv${PYTHON3VERSION_MPORTS} >/dev/null
   sudo /opt/local/bin/port select --set pip pip${PYTHON3VERSION_MPORTS} >/dev/null
   sudo /opt/local/bin/port select --set pip3 pip${PYTHON3VERSION_MPORTS} >/dev/null
+fi
+
+# Install source code pro font
+if [[ ! -f /Library/Fonts/SourceCodePro-Medium.otf ]]; then
+  echo "Installing source code pro font..."
+  /opt/local/bin/wget -q https://github.com/adobe-fonts/source-code-pro/releases/download/2.038R-ro%2F1.058R-it%2F1.018R-VAR/OTF-source-code-pro-2.038R-ro-1.058R-it.zip -O ~/OTF-source-code-pro.zip
+  unzip -o -d /Library/Fonts/ ~/OTF-source-code-pro.zip SourceCodePro-Medium.otf
+  rm ~/OTF-source-code-pro.zip
+fi
+
+# update /etc/shells
+if ! grep -q "/opt/local/bin/bash" /etc/shells; then
+  sudo tee -a /etc/shells <<<"/opt/local/bin/bash"
+fi
+
+# set bash 5 as default shell
+if [[ -e /opt/local/bin/bash ]]; then
+  sudo chsh -s /opt/local/bin/bash $USER
 fi
 
 # use macports chezmoi if it exists
