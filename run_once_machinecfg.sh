@@ -7,7 +7,6 @@ echo "machineconfig from chezmoi data is $MACHINECFG"
 
 # if running on linux set BROWSER env var to false
 if [[ $(uname) == "Linux" ]]; then
-  echo "setting BROWSER env var to false"
   export BROWSER=false
 fi
 
