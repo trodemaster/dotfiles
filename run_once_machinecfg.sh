@@ -24,7 +24,7 @@ if [[ $MACHINECFG == "personal" ]]; then
     git -C ~/code/machine-cfg pull
   else
     gh auth login
-    git clone https://github.com/trodemaster/machine-cfg.git ~/code/machine-cfg
+    gh repo clone trodemaster/machine-cfg ~/code/machine-cfg
   fi
 fi
 
