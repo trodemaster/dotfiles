@@ -12,9 +12,9 @@ if ! command -v gh &>/dev/null; then
 fi
 
 # if running on linux set BROWSER env var to false
-if [[ $(uname) == "Linux" ]]; then
+#if [[ $(uname) == "Linux" ]]; then
   export BROWSER=false
-fi
+#fi
 
 # clone the repo from github.com using the gh command line tool
 if [[ $MACHINECFG == "personal" ]]; then
