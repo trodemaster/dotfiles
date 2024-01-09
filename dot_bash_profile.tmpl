@@ -1,4 +1,4 @@
-#!/bin/bash
+g#!/bin/bash
 
 # common aliases
 alias vautenv="set | grep VAULT"
@@ -26,7 +26,7 @@ SHELL_TYPE="terminal"
 export PS1="\[\e[;34m\]\u\[\e[1;37m\]@\h\[\e[;32m\]:\W$ \[\e[0m\]"
 export DISPLAY=:0
 declare -x CLICOLOR=1
-export HISTIGNORE='vault login*':'*secret_id*':'*ghp_*'
+export HISTIGNORE='*VAULT_TOKEN*':'*secret_id*':'*ghp_*':'hvs.*'
 
 # common things
 
