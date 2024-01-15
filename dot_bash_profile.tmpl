@@ -49,6 +49,9 @@ export HISTIGNORE='*VAULT_TOKEN*':'*secret_id*':'*ghp_*':'hvs.*':'*token*':'*pas
 # bash completion for vault
 command -v vault &>/dev/null && complete -C vault vault
 
+# bash completion for 1password cli
+command -v op &>/dev/null && source <(op completion bash)
+
 {{- if eq .chezmoi.os "darwin" -}}
 ### macOS specific stuff ###
 
