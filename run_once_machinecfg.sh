@@ -3,8 +3,6 @@ set -euo pipefail
 IFS=$'\n\t'
 shopt -s nullglob nocaseglob
 
-echo "machineconfig from chezmoi data is $MACHINECFG"
-
 # check for gh cli tool
 if ! command -v gh &>/dev/null; then
   echo "gh command line not installed skipping machine-cfg repo clone"
