@@ -141,7 +141,7 @@ BROWSER=false
 # aliases
 alias eaw="/bin/chmod +a \"user:$USER allow read,write,append,readattr,writeattr,readextattr,writeextattr,readsecurity\" "
 alias killssh="sed -i "/$1/d" ~/.ssh/known_hosts"
-alias eaw="sudo setfacl -m u:${USER}:rw" 
+alias eaw="sudo setfacl -m u:${USER}:rwx" 
 
 # linux functions
 killsshhost() {

@@ -15,6 +15,12 @@ container
 
 Machine specific configs
 
+use ~/code/machine-cfg for work vs personal configs
+use ~/code/machine-cfg/$hostname for machine specific configs
+
+use run once scripts to ln -s /outside/of/home/config.file ~/code/machine-cfg/$hostname/config.file
+
+
 Look at switching to powerline go and avoiding python dependancies
 
 install and upgrade chezmoi by downloading latest release from github
