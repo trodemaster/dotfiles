@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\n\t'
+shopt -s nullglob nocaseglob
+
+# modern bash version check
+! [ "${BASH_VERSINFO:-0}" -ge 4 ] && echo "This script requires bash v4 or later" && exit 1
+
+# check if the OS is linux and exit if so
+if [[ "$OSTYPE" == "linux-gnu" ]]; then
+  echo "This script is not intended for use on Linux"
+  exit 1
+fi
+
+# macports clean inactive ports
+sudo port -v uninstall inactive
+
+# macports clean distfiles
+sudo port clean --all all
+
+# macports clean logs
+sudo port clean --logs all
+
+# macports clean work
+sudo port clean --work all
+
+# macports selfupdate
+sudo port selfupdate
+
+exit 0
