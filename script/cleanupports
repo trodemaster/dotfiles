@@ -13,7 +13,9 @@ if [[ "$OSTYPE" == "linux-gnu" ]]; then
 fi
 
 # macports clean inactive ports
-sudo port -v uninstall inactive
+if [[ $(port -qv installed inactive) ]]; then
+  sudo port -v uninstall inactive
+fi
 
 # macports clean distfiles
 sudo port clean --all all
