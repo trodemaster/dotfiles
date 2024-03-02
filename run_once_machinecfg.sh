@@ -14,17 +14,5 @@ fi
   export BROWSER=false
 #fi
 
-# clone the repo from github.com using the gh command line tool
-if [[ $MACHINECFG == "personal" ]]; then
-  echo "cloning personal machine-cfg repo..."
-  if [[ -d ~/code/machine-cfg ]]; then
-    echo "machine-cfg repo already exists"
-    git -C ~/code/machine-cfg pull
-  else
-    gh auth login
-    gh auth setup-git
-    gh repo clone trodemaster/machine-cfg ~/code/machine-cfg
-  fi
-fi
 
 exit 0
