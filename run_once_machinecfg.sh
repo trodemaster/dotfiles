@@ -28,10 +28,3 @@ if [[ $MACHINECFG == "personal" ]]; then
 fi
 
 exit 0
-
-if [[ $MACHINE == "work" ]]; then
-  echo "cloning work machine-cfg repo..."
-  gh auth login https://github.com/adobe/blake-machine-cfg ~/code/machine-cfg
-fi
-
-exit 0
