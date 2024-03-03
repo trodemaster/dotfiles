@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+# check os and make sure its darwin
+if [[ "$OSTYPE" != "darwin"* ]]; then
+  echo "This script is only for macOS"
+  exit 1
+fi
+
+# Create a new docker context for lima
+docker context create lima-macsl --docker "host=unix://{{.Dir}}/sock/docker.sock"
+docker context use lima-macsl
+
+exit 0
