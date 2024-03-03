@@ -92,7 +92,7 @@ fi
 
 # disable shell warning
 export BASH_SILENCE_DEPRECATION_WARNING=1
-export PATH="/opt/local/bin:/opt/local/sbin:/usr/local/bin:$PATH:/usr/local/go/bin:/Applications/Visual Studio Code.app/Contents/Resources/app/bin:$HOME/Library/Python/${PYTHON3VERSION}/bin:$HOME/.local/share/chezmoi/script"
+export PATH="/opt/local/bin:/opt/local/sbin:/usr/local/bin:$PATH:/usr/local/go/bin:/Applications/Visual Studio Code.app/Contents/Resources/app/bin:$HOME/Library/Python/${PYTHON3VERSION}/bin:$HOME/script"
 
 # go vars
 export GOPATH=${HOME}/code/go
@@ -166,7 +166,7 @@ if [[ "${CODESPACES}" == "true" ]]; then
   fi
 else
   # set path for ubuntu VM
-  export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin:$HOME/.local/share/chezmoi/script
+  export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin:$HOME/script
 fi
 
 {{ end -}}
