@@ -4,7 +4,7 @@ notes.txt
 # ignore these files on linux
 {{- if eq .chezmoi.os "linux" }}
 Library/
-.input-leap.conf
+.skhdrc
 {{ end }}
 
 # ignore these files on mac
