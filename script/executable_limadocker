@@ -7,7 +7,7 @@ if [[ "$OSTYPE" != "darwin"* ]]; then
 fi
 
 # Create a new docker context for lima
-docker context create lima-macsl --docker "host=unix://{{.Dir}}/sock/docker.sock"
+docker context create lima-macsl --docker "host=unix://Users/blake/.lima/macsl/sock/docker.sock"
 docker context use lima-macsl
 
 exit 0
