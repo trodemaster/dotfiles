@@ -19,7 +19,7 @@ exitssh () {
 # run the vault login command and then source the env vars
 vl() {
   RETURN_DIR="$(PWD)"
-  cd ~/code/vaultlogin/vl
+  cd ~/code/vaultlogin
   go run main.go $@
   source ~/.vaultenv &>/dev/null || true
   cd "$RETURN_DIR"
