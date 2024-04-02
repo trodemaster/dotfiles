@@ -1,0 +1,37 @@
+#!/opt/local/bin/bash
+
+set -euo pipefail
+IFS=$'\n\t'
+shopt -s nullglob nocaseglob
+
+# modern bash version check
+! [ "${BASH_VERSINFO:-0}" -ge 4 ] && echo "This script requires bash v4 or later" && exit 1
+
+## path to self and parent dir
+#SCRIPT=$(realpath $0)
+#SCRIPTPATH=$(dirname $SCRIPT)
+#
+## Variables with default values
+#VAULT_ADDR="${VAULT_ADDR:-https://vault.example.com:8200}"
+#VAULT_AGENT_ROLEID="${VAULT_AGENT_ROLEID:-}"
+#VAULT_AGENT_SECRETID="${VAULT_AGENT_SECRETID:-}"
+
+# Check if the launchd job is running
+if [[ $(launchctl print system/com.hashicorp.vault | grep state) == *"running"* ]]; then
+echo "The launchd job system/com.hashicorp.vault is running."
+  sudo launchctl bootout system/com.hashicorp.vault
+  sleep 2
+else
+  echo "The launchd job 'system/com.hashicorp.vault' is not running."
+fi
+
+# check that the vault launchd service file exists
+if [[ ! -f /Library/LaunchAgents/com.hashicorp.vault.plist ]]; then
+  echo "file /Library/LaunchAgents/com.hashicorp.vault.plist does not exist"
+  exit 1
+fi
+
+echo "starting vault service $(date)"
+sudo launchctl bootstrap system /Library/LaunchAgents/com.hashicorp.vault.plist
+
+exit 0

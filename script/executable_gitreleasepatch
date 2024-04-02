@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# Get the remote URL of the git repository
+echo "Getting the remote URL of the git repository"
+git remote get-url origin
+
+# get the repository name from the current directory
+repository=$(basename $(git rev-parse --show-toplevel))
+
+# Get the current version
+current_version=$(gh release view --json tagName --jq '.tagName')
+
+# Increment the patch by 1
+patch_version=$(echo $current_version | awk -F. '{$NF = $NF + 1;} 1' | sed 's/ /./g')
+
+# Create a new tag
+echo "Creating a new tag: $patch_version"
+git tag $patch_version
+
+# push the tag to the remote
+git push origin $patch_version
+
+# Push the new version to git
+gh release create $patch_version
+
+exit 0
