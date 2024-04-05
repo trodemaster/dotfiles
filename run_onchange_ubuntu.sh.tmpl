@@ -11,6 +11,7 @@ ARCH=$(dpkg --print-architecture)
 if ! [[ -f /usr/share/keyrings/hashicorp-archive-keyring.gpg ]]; then
   echo "Adding Hashicorp GPG key..."
   wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+  sudo chmod 644 /usr/share/keyrings/hashicorp-archive-keyring.gpg
 fi
 
 # add hashicorp repo
@@ -50,6 +51,7 @@ APT_PACKAGES=(
   "gh"
   "duf"
   "shellcheck"
+  "build-essential"
 )
 
 # loop over apt packages and install them
