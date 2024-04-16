@@ -81,17 +81,18 @@ fi
 # install latest fzf binary from github release
 if ! [[ -f /usr/local/bin/fzf ]]; then
   echo "Installing fzf..."
+  if [[ -x /usr/bin/fzf ]]; then
+    echo "Uninstalling system fzf..."
+    sudo apt remove -y fzf
+  fi
   FZF_VERSION=$(curl -s https://api.github.com/repos/junegunn/fzf/releases/latest | grep -oP '"tag_name": "\K(.*)(?=")')
   FZF_FILENAME="fzf-${FZF_VERSION}-linux_${ARCH}.tar.gz"
   FZF_DOWNLOAD_URL="https://github.com/junegunn/fzf/releases/download/${FZF_VERSION}/${FZF_FILENAME}"
   wget ${FZF_DOWNLOAD_URL}
   tar xzf ${FZF_FILENAME}
-  sudo mv fzf-${FZF_VERSION}-${FZF_ARCH}/fzf /usr/local/bin/fzf
-  rm fzf-${FZF_VERSION}-${FZF_ARCH}.tar.gz
-  rm -rf fzf-${FZF_VERSION}-${FZF_ARCH}
+  sudo mv fzf /usr/local/bin/fzf
+  rm ${FZF_FILENAME}
 fi
-
-  wget
 
 {{ end }}
 {{ end }}
