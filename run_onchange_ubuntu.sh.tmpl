@@ -12,6 +12,8 @@ if ! [[ -f /usr/share/keyrings/hashicorp-archive-keyring.gpg ]]; then
   echo "Adding Hashicorp GPG key..."
   wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
   sudo chmod 644 /usr/share/keyrings/hashicorp-archive-keyring.gpg
+else
+  sudo chmod 644 /usr/share/keyrings/hashicorp-archive-keyring.gpg
 fi
 
 # add hashicorp repo
@@ -75,6 +77,21 @@ if ! [[ -f ${HOME}/.fonts/SourceCodePro-Medium.otf ]]; then
   unzip -o -d ${HOME}/.fonts ${HOME}/OTF-source-code-pro*.zip SourceCodePro-Medium.otf
   rm ${HOME}/OTF-source-code-pro*.zip
 fi
+
+# install latest fzf binary from github release
+if ! [[ -f /usr/local/bin/fzf ]]; then
+  echo "Installing fzf..."
+  FZF_VERSION=$(curl -s https://api.github.com/repos/junegunn/fzf/releases/latest | grep -oP '"tag_name": "\K(.*)(?=")')
+  FZF_FILENAME="fzf-${FZF_VERSION}-linux_${ARCH}.tar.gz"
+  FZF_DOWNLOAD_URL="https://github.com/junegunn/fzf/releases/download/${FZF_VERSION}/${FZF_FILENAME}"
+  wget ${FZF_DOWNLOAD_URL}
+  tar xzf ${FZF_FILENAME}
+  sudo mv fzf-${FZF_VERSION}-${FZF_ARCH}/fzf /usr/local/bin/fzf
+  rm fzf-${FZF_VERSION}-${FZF_ARCH}.tar.gz
+  rm -rf fzf-${FZF_VERSION}-${FZF_ARCH}
+fi
+
+  wget
 
 {{ end }}
 {{ end }}

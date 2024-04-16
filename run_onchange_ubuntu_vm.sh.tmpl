@@ -84,14 +84,6 @@ if  command -v /usr/local/go/bin/go &>/dev/null; then
   fi
 fi
 
-# install vault-token-helper
-if  command -v /usr/local/go/bin/go &>/dev/null; then
-  if ! command -v $HOME/go/bin/fzf &>/dev/null; then
-    echo "Installing fzf..."
-    sudo /usr/local/go/bin/go install github.com/junegunn/fzf@latest
-  fi
-fi
-
 # config git
 if [ "$(git config --global push.default)" != "current" ]; then
     git config --global push.default current
