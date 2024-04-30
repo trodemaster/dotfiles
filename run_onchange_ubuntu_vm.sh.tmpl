@@ -76,13 +76,13 @@ else
   install_go
 fi
 
-# install vault-token-helper
-if  command -v /usr/local/go/bin/go &>/dev/null; then
-  if ! command -v $HOME/go/bin/vault-token-helper/vault-token-helper &>/dev/null; then
-    echo "Installing vault-token-helper..."
-    sudo /usr/local/go/bin/go install github.com/joemiller/vault-token-helper@latest
-  fi
-fi
+## install vault-token-helper
+#if  command -v /usr/local/go/bin/go &>/dev/null; then
+#  if ! command -v $HOME/go/bin/vault-token-helper/vault-token-helper &>/dev/null; then
+#    echo "Installing vault-token-helper..."
+#    sudo /usr/local/go/bin/go install github.com/joemiller/vault-token-helper@latest
+#  fi
+#fi
 
 # config git
 if [ "$(git config --global push.default)" != "current" ]; then
