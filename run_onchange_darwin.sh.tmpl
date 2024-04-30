@@ -316,7 +316,7 @@ PORT_PACKAGES=(
   "jq"
   "go"
   "fzf"
-  "neofetch"
+  "fastfetch"
   "duf"
   "chezmoi"
   "skhd"
@@ -376,19 +376,6 @@ fi
 # create /usr/local/bin if it doesn't exist
 if [ ! -d "/usr/local/bin" ]; then
   sudo mkdir -p /usr/local/bin
-fi
-
-## if vault-token-helper is not installed then install it
-if ! command -v /usr/local/bin/vault-token-helper &>/dev/null; then
-  VAULT_TOKEN_HELPER_RELEASE=$(curl -s https://api.github.com/repos/joemiller/vault-token-helper/releases/latest | grep tag_name | cut -d '"' -f 4)
-  VAULT_TOKEN_HELPER_RELEASE_NUMBER=${VAULT_TOKEN_HELPER_RELEASE#v}
-  VAULT_TOKEN_HELPER_URL="https://github.com/joemiller/vault-token-helper/releases/download/v${VAULT_TOKEN_HELPER_RELEASE_NUMBER}/vault-token-helper_${VAULT_TOKEN_HELPER_RELEASE_NUMBER}_darwin_${ARCH}.tar.gz"
-  echo "Downloading latest version of vault-token-helper ${VAULT_TOKEN_HELPER_URL}..."
-  curl -L -o ${TMPDIR}vault-token-helper $VAULT_TOKEN_HELPER_URL
-  sudo tar -C /usr/local/bin -xzf ${TMPDIR}vault-token-helper
-  sudo chmod +x /usr/local/bin/vault-token-helper
-  echo "Installed vault-token-helper version $(/usr/local/bin/vault-token-helper version)"
-  /usr/local/bin/vault-token-helper enable
 fi
 
 # check for powerline-go

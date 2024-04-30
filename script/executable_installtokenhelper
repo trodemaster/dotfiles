@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\n\t'
+shopt -s nullglob nocaseglob
+
+# modern bash version check
+! [ "${BASH_VERSINFO:-0}" -ge 4 ] && echo "This script requires bash v4 or later" && exit 1
+
+# Variables with default values
+TMPDIR="${TMPDIR:-/var/tmp/}"
+
+# Determine the operating system and architecture
+OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+ARCH=$(uname -m)
+ARCH=${ARCH/x86_64/amd64}
+ARCH=${ARCH/aarch64/arm64}
+
+## if vault-token-helper is not installed then install it
+if ! command -v /usr/local/bin/vault-token-helper &>/dev/null; then
+  echo "Installing vault-token-helper..."
+  VAULT_TOKEN_HELPER_URL=$(wget -O - https://api.github.com/repos/joemiller/vault-token-helper/releases/latest | jq -r ".assets[] | select(.name | contains(\"${OS}_${ARCH}.tar.gz\")).browser_download_url")
+  if [ -z "$VAULT_TOKEN_HELPER_URL" ]; then
+    echo "Failed to determine the download URL for vault-token-helper"
+    exit 1
+  fi
+  echo "Downloading latest version of vault-token-helper ${VAULT_TOKEN_HELPER_URL}..."
+  wget -q -O "${TMPDIR}vault-token-helper.tar.gz" $VAULT_TOKEN_HELPER_URL
+  sudo tar -C /usr/local/bin -xzf "${TMPDIR}vault-token-helper.tar.gz"
+  sudo chmod +x /usr/local/bin/vault-token-helper
+  echo "Installed vault-token-helper version $(/usr/local/bin/vault-token-helper version)"
+  /usr/local/bin/vault-token-helper enable
+fi
+
+exit 0
