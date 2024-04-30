@@ -306,7 +306,6 @@ if [[ -e /opt/local/bin/port ]]; then
   sudo /opt/local/bin/port selfupdate
 fi
 
-
 # macports packages to install
 PORT_PACKAGES=(
   "git"
@@ -332,7 +331,6 @@ for PORT_PACKAGE in "${PORT_PACKAGES[@]}"; do
     sudo /opt/local/bin/port -q install $PORT_PACKAGE
   fi
 done
-
 
 # Install source code pro font
 if [[ ! -f /Library/Fonts/SourceCodePro-Medium.otf ]]; then
@@ -381,7 +379,11 @@ fi
 # check for powerline-go
 if ! [[ -f /usr/local/bin/powerline-go ]]; then
   echo "Installing powerline-go..."
-  POWERLINE_GO_URL=$(wget -q -O - 'https://api.github.com/repos/justjanne/powerline-go/releases/latest' | jq -r ".assets[] | select(.name==\"powerline-go-macos-$ARCH\").browser_download_url")
+  POWERLINE_GO_URL=$(wget -q -O - 'https://api.github.com/repos/justjanne/powerline-go/releases/latest' | jq -r ".assets[] | select(.name==\"powerline-go-darwin-$ARCH\").browser_download_url")
+  if [ -z "$POWERLINE_GO_URL" ]; then
+    echo "Failed to determine the download URL for vault-token-helper"
+    exit 1
+  fi
   wget -O "${TMPDIR}/powerline-go" "$POWERLINE_GO_URL"
   chmod +x "${TMPDIR}/powerline-go"
   sudo mv "${TMPDIR}/powerline-go" /usr/local/bin/
