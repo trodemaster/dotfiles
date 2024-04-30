@@ -104,31 +104,14 @@ if [ -f ${HOME}/Library/Containers/com.maxgoedjen.Secretive.SecretAgent ]; then
   export SSH_AUTH_SOCK=${HOME}/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/socket.ssh
 fi
 
-# configure shell if running in vscode
-if [[ ${GIT_ASKPASS} =~ "code-server" ]]; then
-  SHELL_TYPE="code-server"
-fi
+# Powerline-go
+function _update_ps1() {
+    PS1="$(/usr/local/bin/powerline-go -error $? -jobs $(jobs -p | wc -l))"
+    set "?"
+}
 
-if [[ ${GIT_ASKPASS} =~ "Visual" ]]; then
-  SHELL_TYPE="vscode"
-fi
-
-PYTHON3VERSION="NONE"
-# check if python3 is installed and get the version
-if command -v /opt/local/bin/python3 &>/dev/null; then
-  PYTHON3VERSION=$(python3 --version | awk '{print $2}')
-  PYTHON3VERSION=$(echo "${PYTHON3VERSION}" | cut -d. -f1-2)
-fi
-
-# start powerline
-if [[ $SHELL_TYPE =~ (terminal|vscode|code-server) ]]; then
-  if POWERLINE_DAEMON=$(ls -1 /opt/local/Library/Frameworks/Python.framework/Versions/${PYTHON3VERSION}/bin/powerline-daemon); then
-    export PATH="$PATH:/opt/local/Library/Frameworks/Python.framework/Versions/${PYTHON3VERSION}/bin"
-    powerline-daemon -q
-    export POWERLINE_BASH_CONTINUATION=1
-    export POWERLINE_BASH_SELECT=1
-    source /opt/local/Library/Frameworks/Python.framework/Versions/${PYTHON3VERSION}/lib/python${PYTHON3VERSION}/site-packages/powerline/bindings/bash/powerline.sh
-  fi
+if [ "$TERM" != "linux" ] && [ -f "/usr/local/bin/powerline-go" ]; then
+    PROMPT_COMMAND="_update_ps1; $PROMPT_COMMAND"
 fi
 
 {{ end -}}

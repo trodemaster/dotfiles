@@ -17,15 +17,9 @@ if ! [[ -d /Library/Developer/CommandLineTools ]]; then
 fi
 
 # determine CPU architecture
-CPU_ARCH=$(uname -m)
-if [[ "$CPU_ARCH" == "x86_64" ]]; then
-  ARCH="amd64"
-elif [[ "$CPU_ARCH" == "arm64" ]]; then
-  ARCH="arm64"
-else
-  echo "Unsupported CPU architecture: $CPU_ARCH"
-  exit 1
-fi
+ARCH=$(uname -m)
+ARCH=${ARCH/x86_64/amd64}
+ARCH=${ARCH/aarch64/arm64}
 
 # get latest release version from github for macports
 PORT_LATEST_RELEASE=$(curl -s https://api.github.com/repos/macports/macports-base/releases/latest | grep tag_name | cut -d '"' -f 4)
@@ -312,9 +306,6 @@ if [[ -e /opt/local/bin/port ]]; then
   sudo /opt/local/bin/port selfupdate
 fi
 
-# set macports python version
-PYTHON3VERSION="3.11"
-PYTHON3VERSION_MPORTS=$(tr -d '.' <<<$PYTHON3VERSION)
 
 # macports packages to install
 PORT_PACKAGES=(
@@ -330,10 +321,6 @@ PORT_PACKAGES=(
   "chezmoi"
   "skhd"
   "vault"
-  "python${PYTHON3VERSION_MPORTS}"
-  "py${PYTHON3VERSION_MPORTS}-pip"
-  "py${PYTHON3VERSION_MPORTS}-powerline"
-  "py${PYTHON3VERSION_MPORTS}-virtualenv"
 )
 
 # install packages
@@ -346,14 +333,6 @@ for PORT_PACKAGE in "${PORT_PACKAGES[@]}"; do
   fi
 done
 
-# fixups after port installation
-if [[ -e /opt/local/bin/python${PYTHON3VERSION} ]]; then
-  sudo /opt/local/bin/port select --set python python${PYTHON3VERSION_MPORTS} >/dev/null
-  sudo /opt/local/bin/port select --set python3 python${PYTHON3VERSION_MPORTS} >/dev/null
-  sudo /opt/local/bin/port select --set virtualenv virtualenv${PYTHON3VERSION_MPORTS} >/dev/null
-  sudo /opt/local/bin/port select --set pip pip${PYTHON3VERSION_MPORTS} >/dev/null
-  sudo /opt/local/bin/port select --set pip3 pip${PYTHON3VERSION_MPORTS} >/dev/null
-fi
 
 # Install source code pro font
 if [[ ! -f /Library/Fonts/SourceCodePro-Medium.otf ]]; then
@@ -410,6 +389,15 @@ if ! command -v /usr/local/bin/vault-token-helper &>/dev/null; then
   sudo chmod +x /usr/local/bin/vault-token-helper
   echo "Installed vault-token-helper version $(/usr/local/bin/vault-token-helper version)"
   /usr/local/bin/vault-token-helper enable
+fi
+
+# check for powerline-go
+if ! [[ -f /usr/local/bin/powerline-go ]]; then
+  echo "Installing powerline-go..."
+  POWERLINE_GO_URL=$(wget -q -O - 'https://api.github.com/repos/justjanne/powerline-go/releases/latest' | jq -r ".assets[] | select(.name==\"powerline-go-macos-$ARCH\").browser_download_url")
+  wget -O "${TMPDIR}/powerline-go" "$POWERLINE_GO_URL"
+  chmod +x "${TMPDIR}/powerline-go"
+  sudo mv "${TMPDIR}/powerline-go" /usr/local/bin/
 fi
 
 {{ end }}
