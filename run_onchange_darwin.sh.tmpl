@@ -384,9 +384,9 @@ if ! [[ -f /usr/local/bin/powerline-go ]]; then
     echo "Failed to determine the download URL for vault-token-helper"
     exit 1
   fi
-  wget -O "${TMPDIR}/powerline-go" "$POWERLINE_GO_URL"
-  chmod +x "${TMPDIR}/powerline-go"
-  sudo mv "${TMPDIR}/powerline-go" /usr/local/bin/
+  wget -O "${TMPDIR}powerline-go" "$POWERLINE_GO_URL"
+  chmod +x "${TMPDIR}powerline-go"
+  sudo mv "${TMPDIR}powerline-go" /usr/local/bin/
 fi
 
 {{ end }}

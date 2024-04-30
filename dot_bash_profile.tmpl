@@ -132,15 +132,15 @@ killsshhost() {
   /usr/bin/sed -i "/$1/d" ~/.ssh/known_hosts
 }
 
-## Powerline-go
-#function _update_ps1() {
-#    PS1="$(/usr/local/bin/powerline-go -error $? -jobs $(jobs -p | wc -l))"
-#    set "?"
-#}
-#
-#if [ "$TERM" != "linux" ] && [ -f "/usr/local/bin/powerline-go" ]; then
-#    PROMPT_COMMAND="_update_ps1; $PROMPT_COMMAND"
-#fi
+# Powerline-go
+function _update_ps1() {
+    PS1="$(/usr/local/bin/powerline-go -error $? -jobs $(jobs -p | wc -l))"
+    set "?"
+}
+
+if [ "$TERM" != "linux" ] && [ -f "/usr/local/bin/powerline-go" ]; then
+    PROMPT_COMMAND="_update_ps1; $PROMPT_COMMAND"
+fi
 
 # do $CODESPACES or ubuntu specific things
 if [[ "${CODESPACES}" == "true" ]]; then
