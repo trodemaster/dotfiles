@@ -35,7 +35,6 @@ sudo sed -i "/#\$nrconf{restart} = 'i';/s/.*/\$nrconf{restart} = 'a';/" /etc/nee
 APT_PACKAGES=(
   "virt-what"
   "jq"
-  "neofetch"
   "glances"
   "git"
   "wget"
@@ -103,6 +102,15 @@ if ! [[ -f /usr/local/bin/powerline-go ]]; then
   wget -O "${TMPDIR}/powerline-go" "$POWERLINE_GO_URL"
   chmod +x "${TMPDIR}/powerline-go"
   sudo mv "${TMPDIR}/powerline-go" /usr/local/bin/
+fi
+
+# install fastfetch
+if ! [[ -f /usr/bin/fastfetch ]]; then
+  echo "Installing fastfetch..."
+  FASTFETCH_URL=$(wget -q -O - 'https://api.github.com/repos/fastfetch-cli/fastfetch/releases/latest' | jq -r ".assets[] | select(.name | contains(\"$ARCH_LONG.deb\")).browser_download_url")
+  wget -O "${TMPDIR}/fastfetch-linux-$ARCH_LONG.deb" "$FASTFETCH_URL"
+  sudo dpkg -i "${TMPDIR}/fastfetch-linux-$ARCH_LONG.deb"
+  rm "${TMPDIR}/fastfetch-linux-$ARCH_LONG.deb"
 fi
 
 {{ end }}
