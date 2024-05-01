@@ -9,6 +9,7 @@ TMPDIR="${TMPDIR:-/var/tmp}"
 
 # check architecture
 ARCH=$(dpkg --print-architecture)
+ARCH_LONG=${ARCH/arm64/aarch64}
 
 # add hashicorp gpg key
 if ! [[ -f /usr/share/keyrings/hashicorp-archive-keyring.gpg ]]; then
