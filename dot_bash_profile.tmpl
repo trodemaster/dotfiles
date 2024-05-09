@@ -38,7 +38,10 @@ SHELL_TYPE="terminal"
 
 # prompt and friends
 export PS1="\[\e[;34m\]\u\[\e[1;37m\]@\h\[\e[;32m\]:\W$ \[\e[0m\]"
-export DISPLAY=${DISPLAY:-:0}
+if [ "$TERM" != "linux" ];then
+  export DISPLAY=:0
+fi
+
 declare -x CLICOLOR=1
 export HISTIGNORE='*VAULT_TOKEN*':'*secret_id*':'*ghp_*':'hvs.*':'*token*':'*password*'
 
