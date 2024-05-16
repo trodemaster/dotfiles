@@ -156,4 +156,13 @@ else
   export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin:$HOME/script
 fi
 
+if [[ -f "{{ .chezmoi.homeDir }}/code/machine-cfg/{{ .chezmoi.hostname }}/bash_profile" ]]; then
+  source "{{ .chezmoi.homeDir }}/code/machine-cfg/{{ .chezmoi.hostname }}/bash_profile"
+fi
+
+{{ end -}}
+
+{{- if eq .chezmoi.os "windows" -}}
+
+
 {{ end -}}
