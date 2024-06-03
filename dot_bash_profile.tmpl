@@ -60,6 +60,9 @@ command -v vault &>/dev/null && complete -C vault vault
 # bash completion for 1password cli
 command -v op &>/dev/null && eval "$(op completion bash)"
 
+# setup direnv
+command -v direnv &>/dev/null && eval "$(direnv hook bash)"
+
 {{- if eq .chezmoi.os "darwin" -}}
 ### macOS specific stuff ###
 
