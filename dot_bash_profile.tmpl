@@ -166,11 +166,13 @@ fi
 
 {{ end -}}
 
+
+## common stuff after platform specific stuff
+
+# source the bash_profile for the machine
 if [[ -f "{{ .chezmoi.homeDir }}/code/machine-cfg/{{ .chezmoi.hostname }}/bash_profile" ]]; then
   source "{{ .chezmoi.homeDir }}/code/machine-cfg/{{ .chezmoi.hostname }}/bash_profile"
 fi
 
-{{- if eq .chezmoi.os "windows" -}}
-
-
-{{ end -}}
+# setup direnv
+command -v direnv &>/dev/null && eval "$(direnv hook bash)"
