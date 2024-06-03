@@ -47,6 +47,9 @@ export HISTIGNORE='*VAULT_TOKEN*':'*secret_id*':'*ghp_*':'hvs.*':'*token*':'*pas
 
 # common things
 
+# set lima wrking dir
+export LIMA_WORKINGDIR=${HOME}
+
 # source the fzf config
 [[ -f "${HOME}/.fzf_completion.bash" ]] && source "${HOME}/.fzf_completion.bash"
 [[ -f "${HOME}/.fzf_completion.bash" ]] && source "${HOME}/.fzf_key-bindings.bash"
