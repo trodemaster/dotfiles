@@ -10,7 +10,7 @@ alias tfstate='terraform state show $(terraform state list | fzf)'
 alias tftaint='terraform taint $(terraform state list | fzf)'
 
 # common functions
-exitssh () {
+exitssh() {
   ssh -O exit "$@"
 }
 
@@ -31,14 +31,14 @@ export HISTCONTROL=ignoredups:erasedups # no duplicate entries
 export HISTSIZE=100000                  # big big history
 export HISTFILESIZE=100000              # big big history
 shopt -s histappend                     # append to history, don't overwrite it
-export PROMPT_COMMAND="history -a"             # update history after every command"
+export PROMPT_COMMAND="history -a"      # update history after every command"
 
 # set shell type
 SHELL_TYPE="terminal"
 
 # prompt and friends
 export PS1="\[\e[;34m\]\u\[\e[1;37m\]@\h\[\e[;32m\]:\W$ \[\e[0m\]"
-if [ "$TERM" != "linux" ];then
+if [ "$TERM" != "linux" ]; then
   export DISPLAY=:0
 fi
 
@@ -114,12 +114,12 @@ fi
 
 # Powerline-go
 function _update_ps1() {
-    PS1="$(/usr/local/bin/powerline-go -error $? -jobs $(jobs -p | wc -l))"
-    set "?"
+  PS1="$(/usr/local/bin/powerline-go -error $? -jobs $(jobs -p | wc -l))"
+  set "?"
 }
 
 if [ "$TERM" != "linux" ] && [ -f "/usr/local/bin/powerline-go" ]; then
-    PROMPT_COMMAND="_update_ps1; $PROMPT_COMMAND"
+  PROMPT_COMMAND="_update_ps1; $PROMPT_COMMAND"
 fi
 
 {{ end -}}
@@ -133,7 +133,7 @@ BROWSER=false
 # aliases
 alias eaw="/bin/chmod +a \"user:$USER allow read,write,append,readattr,writeattr,readextattr,writeextattr,readsecurity\" "
 alias killssh="sed -i "/$1/d" ~/.ssh/known_hosts"
-alias eaw="sudo setfacl -m u:${USER}:rwx" 
+alias eaw="sudo setfacl -m u:${USER}:rwx"
 
 # linux functions
 killsshhost() {
@@ -142,12 +142,12 @@ killsshhost() {
 
 # Powerline-go
 function _update_ps1() {
-    PS1="$(/usr/local/bin/powerline-go -error $? -jobs $(jobs -p | wc -l))"
-    set "?"
+  PS1="$(/usr/local/bin/powerline-go -error $? -jobs $(jobs -p | wc -l))"
+  set "?"
 }
 
 if [ "$TERM" != "linux" ] && [ -f "/usr/local/bin/powerline-go" ]; then
-    PROMPT_COMMAND="_update_ps1; $PROMPT_COMMAND"
+  PROMPT_COMMAND="_update_ps1; $PROMPT_COMMAND"
 fi
 
 # do $CODESPACES or ubuntu specific things
@@ -163,7 +163,6 @@ fi
 
 {{ end -}}
 
-
 ## common stuff after platform specific stuff
 
 # source the bash_profile for the machine
@@ -172,4 +171,6 @@ if [[ -f "{{ .chezmoi.homeDir }}/code/machine-cfg/{{ .chezmoi.hostname }}/bash_p
 fi
 
 # setup direnv
-command -v direnv &>/dev/null && eval "$(direnv hook bash)"
+if command -v direnv &>/dev/null; then
+  eval "$(direnv hook bash)"
+fi
