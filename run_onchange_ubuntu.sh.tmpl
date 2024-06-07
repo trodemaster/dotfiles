@@ -4,6 +4,9 @@
 {{ if eq .chezmoi.osRelease.id "ubuntu" }}
 echo running onchange_ubuntu.sh
 
+# set service restart to automatic
+sudo sed -i "/#\$nrconf{restart} = 'i';/s/.*/\$nrconf{restart} = 'a';/" /etc/needrestart/needrestart.conf
+
 # Variables with default values
 TMPDIR="${TMPDIR:-/var/tmp}"
 
@@ -28,9 +31,6 @@ fi
 
 echo "Updating apt cache..."
 sudo apt update >/dev/null
-
-# set service restart to automatic
-sudo sed -i "/#\$nrconf{restart} = 'i';/s/.*/\$nrconf{restart} = 'a';/" /etc/needrestart/needrestart.conf
 
 # list of apt packages to install
 APT_PACKAGES=(
