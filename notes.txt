@@ -30,3 +30,5 @@ devcontainer
 install 
 chezmoi
 shellcheck
+
+gh install script https://github.com/redraw/gh-install/blob/main/gh-install
