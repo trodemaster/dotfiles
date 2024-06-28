@@ -32,3 +32,4 @@ chezmoi
 shellcheck
 
 gh install script https://github.com/redraw/gh-install/blob/main/gh-install
+https://github.com/kavinvalli/gh-repo-fzf?tab=readme-ov-file
