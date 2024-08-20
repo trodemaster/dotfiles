@@ -3,18 +3,20 @@ set -euo pipefail
 IFS=$'\n\t'
 shopt -s nullglob nocaseglob
 
-# modern bash version check
-! [ "${BASH_VERSINFO:-0}" -ge 4 ] && echo "This script requires bash v4 or later" && exit 1
-
-# path to self and parent dir
-SCRIPT=$(realpath $0)
-SCRIPTPATH=$(dirname $SCRIPT)
-
+# check if nrsc5 is running and kill it
 if (pgrep nrsc5); then
+  echo "stopping Kexp"
   pkill -15 nrsc5
-else
+  exit 0
+fi
+
+# check if dogle is local
+if grep -q RTL2832U <<<"$(ioreg -p IOUSB)";then
+echo "found RTL2832U"
   nrsc5 90.3 0 | tee /dev/stderr | grep -m 2 "Title\|Artist" | cut -d ' ' -f 2-30
-  # nrsc5 -H tc.jibb.tv:9030 -g 6 90.3 0 | stdbuf -oL grep "Title\|Artist" | cut -d ' ' -f 2-30 2>&1 > /Users/blake/Library/Logs/kexp.log
+else
+  echo "connecting to kexp.jibb.tv"
+  nrsc5 -H kexp.jibb.tv:9030 -g 6 90.3 0 | stdbuf -oL grep "Title\|Artist" | cut -d ' ' -f 2-30 2>&1 > /Users/blake/Library/Logs/kexp.log
 fi
 
 
