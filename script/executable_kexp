@@ -11,30 +11,7 @@ if (pgrep nrsc5); then
 fi
 
 # check if dogle is local
-if grep -q RTL2832U <<<"$(ioreg -p IOUSB)";then
-echo "found RTL2832U"
-  nrsc5 90.3 0 | tee /dev/stderr | grep -m 2 "Title\|Artist" | cut -d ' ' -f 2-30
-else
-  echo "connecting to kexp.jibb.tv"
-  nrsc5 -H kexp.jibb.tv:9030 -g 6 90.3 0 | stdbuf -oL grep "Title\|Artist" | cut -d ' ' -f 2-30 2>&1 > /Users/blake/Library/Logs/kexp.log
-fi
+echo "connecting to umac.jibb.tv"
+nrsc5 -H 192.168.235.212:9030 -g 6 90.3 0
 
-
-# nrsc5 -o - 90.3 0 | ffmpeg -i - -acodec aac -ab 128k -ac 2 -ar 44100 -f adts - | ffplay -
-
-# take output from ncrs5 and convert to aac stream with ffmpeg
-# ffmpeg -i - -acodec aac -ab 128k -ac 2 -ar 44100 -f adts - | ffplay -
-
-# broadcast to icecast server
-
-# serve up a url that can be used to stream the audio on mac/ipad
-#nrsc5 -o - 90.3 0 | ffmpeg -i - -acodec aac -ab 128k -ac 2 -ar 44100 -f adts - | mediamtx
-#nrsc5 -o - 90.3 0 | ffmpeg -re -stream_loop -1 -i - -c copy -f rtsp rtsp://localhost:8554/kexp
-
-# ffmmpeg output to file and stream at the same time
-
-
-
-
-
-#http://trac.ffmpeg.org/wiki/Creating%20multiple%20outputs#Teepseudo-muxer
+exit 0
