@@ -1,3 +1,11 @@
 theme = Nocturnal Winter
 font-family = SauceCodeProNerdFontMono-Regular
 font-size = 18
+
+
+## command reference
+# ghostty +reload_config
+# ghostty +show-config --default --docs
+
+## docs
+# https://github.com/ghostty-org/ghostty?tab=readme-ov-file#configuration
