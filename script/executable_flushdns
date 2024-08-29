@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\n\t'
+shopt -s nullglob nocaseglob
+
+# modern bash version check
+! [ "${BASH_VERSINFO:-0}" -ge 4 ] && echo "This script requires bash v4 or later" && exit 1
+
+# flush macos dns cache
+if [[ $(uname) == "Darwin" ]]; then
+  sudo dscacheutil -flushcache
+  sudo killall -HUP mDNSResponder
+fi
+
+# flush linux dns cache
+if [[ $(uname) == "Linux" ]]; then
+  sudo systemd-resolve --flush-caches
+fi
+
+exit 0
