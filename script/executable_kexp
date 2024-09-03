@@ -12,6 +12,6 @@ fi
 
 # check if dogle is local
 echo "connecting to umac.jibb.tv"
-nrsc5 -H 192.168.235.212:9030 -g 6 90.3 0
+nrsc5 -H umac.jibb.tv:9030 -g 6 90.3 0
 
 exit 0
