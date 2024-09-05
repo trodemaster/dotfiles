@@ -343,6 +343,15 @@ if [[ ! -f /Library/Fonts/SourceCodePro-Medium.otf ]]; then
   rm ~/OTF-source-code-pro.zip
 fi
 
+# check if sauce-code-pro font is already installed
+if ! [[ -f /Library/Fonts/SauceCodeProNerdFontMono-Regular.ttf ]]; then
+  echo "Installing Sauce Code Pro font..."
+  wget https://github.com/ryanoasis/nerd-fonts/releases/download/v3.2.1/SourceCodePro.zip
+  unzip -o -d /Library/Fonts ${HOME}/SourceCodePro.zip SauceCodeProNerdFontMono-Regular.ttf
+  rm ${HOME}/SourceCodePro.zip
+fi
+
+
 # update /etc/shells
 if ! grep -q "/opt/local/bin/bash" /etc/shells; then
   sudo tee -a /etc/shells <<<"/opt/local/bin/bash"
