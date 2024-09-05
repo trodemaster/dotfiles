@@ -67,19 +67,29 @@ for APT_PACKAGE in "${APT_PACKAGES[@]}"; do
   fi
 done
 
-sudo apt update
+# sudo apt update
+
+# make sure the ~/.font dir exists
+if ! [[ -d ${HOME}/.fonts ]]; then
+  mkdir ${HOME}/.fonts
+fi
 
 # check if source-code-pro font is already installed
 if ! [[ -f ${HOME}/.fonts/SourceCodePro-Medium.otf ]]; then
   echo "Installing Source Code Pro font..."
   wget https://github.com/adobe-fonts/source-code-pro/releases/download/2.038R-ro%2F1.058R-it%2F1.018R-VAR/OTF-source-code-pro-2.038R-ro-1.058R-it.zip
-  if ! [[ -d ${HOME}/.fonts ]]; then
-    mkdir ${HOME}/.fonts
-  fi
-
   unzip -o -d ${HOME}/.fonts ${HOME}/OTF-source-code-pro*.zip SourceCodePro-Medium.otf
   rm ${HOME}/OTF-source-code-pro*.zip
 fi
+
+# check if sauce-code-pro font is already installed
+if ! [[ -f ${HOME}/.fonts/SauceCodeProNerdFontMono-Regular.ttf ]]; then
+  echo "Installing Sauce Code Pro font..."
+  wget https://github.com/ryanoasis/nerd-fonts/releases/download/v3.2.1/SourceCodePro.zip
+  unzip -o -d ${HOME}/.fonts ${HOME}/SourceCodePro.zip SauceCodeProNerdFontMono-Regular.ttf
+  rm ${HOME}/SourceCodePro.zip
+fi
+
 
 # install latest fzf binary from github release
 if ! [[ -f /usr/local/bin/fzf ]]; then
