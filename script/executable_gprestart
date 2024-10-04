@@ -6,8 +6,8 @@ shopt -s nullglob nocaseglob
 # modern bash version check
 ! [ "${BASH_VERSINFO:-0}" -ge 4 ] && echo "This script requires bash v4 or later" && exit 1
 
-launchctl bootout gui/$UID/com.paloaltonetworks.gp.pangpa
-launchctl bootout gui/$UID/com.paloaltonetworks.gp.pangps
+launchctl bootout gui/$UID/com.paloaltonetworks.gp.pangpa || true
+launchctl bootout gui/$UID/com.paloaltonetworks.gp.pangps || true
 
 PG_PIDS=$(pgrep GlobalProtect)
 
@@ -18,7 +18,11 @@ for PID in ${PG_PIDS}; do
   sudo kill -9 "${PID}"
 done
 
+open "https://adobe.okta.com/login/default"
+
 sleep 5
+launchctl bootstrap gui/$UID /Library/LaunchAgents/com.paloaltonetworks.gp.pangpa.plist
+launchctl bootstrap gui/$UID /Library/LaunchAgents/com.paloaltonetworks.gp.pangps.plist
 
 open /Applications/GlobalProtect.app
 
