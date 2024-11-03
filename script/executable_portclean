@@ -1,0 +1,16 @@
+#!/bin/bash
+
+port -q installed > ~/scratch/installed_ports.txt
+port echo requested | cut -d ' ' -f 1 | uniq > ~/scratch/requested_ports.txt
+
+cp /opt/local/etc/macports/sources.conf ~/scratch/sources.conf
+
+sudo port -fp uninstall installed
+sudo port -fp uninstall leaves
+
+sudo port clean --all all
+
+# reinstall most ports
+sudo port install bash coreutils fzf skhd eza tmux git tree wget curl lima jpeginfo ffmpeg6 nrsc5 imagemagick python312 autoconf automake libtool pkgconfig cmake ninja meson
+
+exit 0 
