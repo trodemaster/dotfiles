@@ -8,9 +8,50 @@ cp /opt/local/etc/macports/sources.conf ~/scratch/sources.conf
 sudo port -fp uninstall installed
 sudo port -fp uninstall leaves
 
-sudo port clean --all all
+sudo port clean -f --all all
 
 # reinstall most ports
-sudo port install bash coreutils fzf skhd eza tmux git tree wget curl lima jpeginfo ffmpeg6 nrsc5 imagemagick python312 autoconf automake libtool pkgconfig cmake ninja meson
+sudo port -N install bash \
+  coreutils \
+  fzf \
+  skhd \
+  eza \
+  tmux \
+  git \
+  tree \
+  wget \
+  curl \
+  lima \
+  socket_vmnet \
+  jpeginfo \
+  ffmpeg7+nonfree+gpl2 \
+  nrsc5 \
+  ImageMagick \
+  python312 \
+  autoconf \
+  automake \
+  libtool \
+  pkgconfig \
+  cmake \
+  ninja \
+  meson \
+  jq \
+  qemu+cocoa+curses+spice+spice_protocol+target_arm+target_i386+target_x86_64+target_ppc+usb+vnc \
+  rsync \
+  rtl-sdr \
+  rust \
+  sqlite3 \
+  wget \
+  python_select \
+  vault \
+  terraform \
+  dotenv \
+  chezmoi \
+  go \
+  btop \
+  duf \
+  py312-pip \
+  py312-virtualenv \
+  chezmoi
 
 exit 0 

@@ -69,11 +69,15 @@ if ! grep -q "fcix" /opt/local/etc/macports/archive_sites.conf; then
 # MacPorts configuration file for binary archive sources.
 
 # disable default by uncommenting the following line
-# name                	macports_archives
+name                	macports_archives
 
 # MacPorts archive site fcix
 name               	fcix
 urls                https://mirror.fcix.net/macports/packages/
+
+# MIT archive site
+name                  mit
+urls                  http://bos.us.packages.macports.org/
 
 EOF
 fi
