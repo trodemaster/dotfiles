@@ -96,11 +96,10 @@ fi
 
 # disable shell warning
 export BASH_SILENCE_DEPRECATION_WARNING=1
-export PATH="/opt/local/bin:/usr/local/bin:/usr/bin:/bin:/opt/local/sbin:/usr/local/sbin:/usr/sbin:/sbin:/usr/local/go/bin:/Users/{{ .chezmoi.homeDir }}/code/go/bin:/Users/{{ .chezmoi.homeDir }}/Library/Python/{{ .python_vers }}/bin:/Users/{{ .chezmoi.homeDir }}/script:/Users/{{ .chezmoi.homeDir }}/code/machine-cfg/scripts"
+export PATH="/opt/local/bin:/usr/local/bin:/usr/bin:/bin:/opt/local/sbin:/usr/local/sbin:/usr/sbin:/sbin:/usr/local/go/bin:{{ .homeDir }}/code/go/bin:{{ .homeDir }}/Library/Python/{{ .python_vers }}/bin:{{ .homeDir }}/script:{{ .homeDir }}/code/machine-cfg/scripts"
 
 # go vars
-export GOPATH=${HOME}/code/go
-export PATH=$PATH:${HOME}/code/go/bin
+export GOPATH={{ .homeDir }}/code/go
 
 # configure secretive ssh
 if [ -f ${HOME}/Library/Containers/com.maxgoedjen.Secretive.SecretAgent ]; then
@@ -161,8 +160,8 @@ fi
 ## common stuff after platform specific stuff
 
 # source the bash_profile for the machine
-if [[ -f "{{ .chezmoi.homeDir }}/code/machine-cfg/{{ .chezmoi.hostname }}/bash_profile" ]]; then
-  source "{{ .chezmoi.homeDir }}/code/machine-cfg/{{ .chezmoi.hostname }}/bash_profile"
+if [[ -f "{{ .homeDir }}/code/machine-cfg/{{ .chezmoi.hostname }}/bash_profile" ]]; then
+  source "{{ .homeDir }}/code/machine-cfg/{{ .chezmoi.hostname }}/bash_profile"
 fi
 
 # setup direnv
