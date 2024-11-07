@@ -74,7 +74,7 @@ alias wd="~/code/weatherdesktop/wd"
 alias lsusb="ioreg -p IOUSB"
 alias eaw="sudo /bin/chmod +a \"user:$USER allow read,write,append,readattr,writeattr,readextattr,writeextattr,readsecurity\" "
 alias utmctl="/Applications/UTM.app/Contents/MacOS/utmctl"
-alias code='/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code'
+alias code="/Applications/Visual\ Studio\ Code.app/Contents/Resources/app/bin/code"
 
 # macos functions
 killsshhost() {
@@ -96,7 +96,7 @@ fi
 
 # disable shell warning
 export BASH_SILENCE_DEPRECATION_WARNING=1
-export PATH="/opt/local/bin:/usr/local/bin:/usr/bin:/bin:/opt/local/sbin:/usr/local/sbin:/usr/sbin:/sbin:/usr/local/go/bin:/Users/{{ .chezmoi.home }}/code/go/bin:/Users/{{ .chezmoi.home }}/Library/Python/{{ .python_vers }}/bin:/Users/{{ .chezmoi.home }}/script:/Users/{{ .chezmoi.home }}/code/machine-cfg/scripts"
+export PATH="/opt/local/bin:/usr/local/bin:/usr/bin:/bin:/opt/local/sbin:/usr/local/sbin:/usr/sbin:/sbin:/usr/local/go/bin:/Users/{{ .chezmoi.homeDir }}/code/go/bin:/Users/{{ .chezmoi.homeDir }}/Library/Python/{{ .python_vers }}/bin:/Users/{{ .chezmoi.homeDir }}/script:/Users/{{ .chezmoi.homeDir }}/code/machine-cfg/scripts"
 
 # go vars
 export GOPATH=${HOME}/code/go
