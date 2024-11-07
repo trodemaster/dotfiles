@@ -159,11 +159,6 @@ fi
 
 ## common stuff after platform specific stuff
 
-# source the bash_profile for the machine
-if [[ -f "{{ .chezmoi.homeDir }}/code/machine-cfg/{{ .chezmoi.hostname }}/bash_profile" ]]; then
-  source "{{ .chezmoi.homeDir }}/code/machine-cfg/{{ .chezmoi.hostname }}/bash_profile"
-fi
-
 # setup direnv
 if command -v direnv &>/dev/null; then
   eval "$(direnv hook bash)"
