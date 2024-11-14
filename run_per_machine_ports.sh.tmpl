@@ -36,7 +36,7 @@ if [[ "$PORT_LIST_HASH" != "$PORT_LIST_HASH_SAVED" ]]; then
     PORT_INSTALL_LIST+=("$line")
   done < <(echo "$PORT_LIST")
 
-  for PORT in "${PORT_LIST[@]}"; do
+  for PORT in "${PORT_INSTALL_LIST[@]}"; do
     echo "Installing $PORT"
     sudo port install "$PORT"
   done
