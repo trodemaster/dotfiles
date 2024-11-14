@@ -44,6 +44,6 @@ if [[ "$PORT_LIST_HASH" != "$PORT_LIST_HASH_SAVED" ]]; then
 fi
 
 # update the hash in the chezmoi.toml file
-sed -i "s/port_list_hash = \"$PORT_LIST_HASH_SAVED\"/port_list_hash = \"$PORT_LIST_HASH\"/g" ~/.config/chezmoi/chezmoi.toml
+sed -i "" "s/port_list_hash = \"$PORT_LIST_HASH_SAVED\"/port_list_hash = \"$PORT_LIST_HASH\"/g" ~/.config/chezmoi/chezmoi.toml
 
 exit 0
