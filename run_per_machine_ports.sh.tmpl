@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\n\t'
+shopt -s nullglob nocaseglob
+
+# modern bash version check
+! [ "${BASH_VERSINFO:-0}" -ge 4 ] && echo "This script requires bash v4 or later" && exit 1
+
+# exit if not darwin
+if [[ $(uname) != "Darwin" ]]; then
+  echo "This script is only for Darwin" && exit 0
+fi
+
+# check for the file ~/.config/chezmoi/chezmoi.toml
+if ! [[ -f ~/.config/chezmoi/chezmoi.toml ]]; then
+  echo "The file ~/.config/chezmoi/chezmoi.toml does not exist"
+  exit 0
+fi
+
+# check for the file ~/code/machine-cfg/$(hostname -s)/portlist
+if ! [[ -f ~/code/machine-cfg/portlist ]]; then
+  echo "The file ~/code/machine-cfg/portlist does not exist"
+  exit 0
+fi
+
+# read the port list files
+PORT_LIST=$(cat ~/code/machine-cfg/portlist ~/code/machine-cfg/$(hostname -s)/portlist 2>/dev/null)
+PORT_LIST_HASH=$(echo "$PORT_LIST" | md5sum --quiet)
+PORT_LIST_HASH_SAVED=$(qq -r .data.port_list_hash ~/.config/chezmoi/chezmoi.toml)
+
+# install missing ports
+if [[ "$PORT_LIST_HASH" != "$PORT_LIST_HASH_SAVED" ]]; then
+  echo "The portlist files have changed"
+  PORT_INSTALL_LIST=()
+  while IFS= read -r line; do
+    PORT_INSTALL_LIST+=("$line")
+  done < <(echo "$PORT_LIST")
+
+  for PORT in "${PORT_LIST[@]}"; do
+    echo "Installing $PORT"
+    sudo port install "$PORT"
+  done
+fi
+
+# update the hash in the chezmoi.toml file
+sed -i "s/port_list_hash = \"$PORT_LIST_HASH_SAVED\"/port_list_hash = \"$PORT_LIST_HASH_NEW\"/g" ~/.config/chezmoi/chezmoi.toml
+
+exit 0
