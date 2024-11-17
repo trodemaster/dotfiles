@@ -45,7 +45,7 @@ if [[ "$PORT_LIST_HASH" != "$PORT_LIST_HASH_SAVED" ]]; then
   for PORT in "${PORT_INSTALL_LIST[@]}"; do
     IFS=$' \t\n'
     echo "sudo port install $PORT"
-    sudo port install $PORT
+    sudo port -N install $PORT
   done
 fi
 
