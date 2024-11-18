@@ -5,7 +5,7 @@ shopt -s nullglob nocaseglob
 
 # geenrate hash of portlist
 # {{ include "~/code/machine-cfg/portlist" | sha256sum }}
-
+sleep 999
 # modern bash version check
 ! [ "${BASH_VERSINFO:-0}" -ge 4 ] && echo "This script requires bash v4 or later" && exit 1
 
