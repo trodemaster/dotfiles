@@ -20,7 +20,7 @@ exit 0
 ! [ "${BASH_VERSINFO:-0}" -ge 4 ] && echo "This script requires bash v4 or later" && exit 1
 
 # read the port list files
-PORT_LIST=$(cat ~/code/machine-cfg/portlist ~/code/machine-cfg/$(hostname -s)/portlist 2>/dev/null ||true)
+PORT_LIST=$(cat {{(joinPath .chezmoi.homeDir "code/machine-cfg/portlist")}} {{(joinPath .chezmoi.homeDir "code/machine-cfg/" .chezmoi.hostname "/portlist")}} 2>/dev/null ||true)
 
 # install missing ports
 PORT_INSTALL_LIST=()
