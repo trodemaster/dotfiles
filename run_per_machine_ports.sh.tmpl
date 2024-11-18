@@ -3,50 +3,35 @@ set -euo pipefail
 IFS=$'\n\t'
 shopt -s nullglob nocaseglob
 
-# geenrate hash of portlist
-# {{ include "~/code/machine-cfg/portlist" | sha256sum }}
-sleep 999
+{{ if ne .chezmoi.os "darwin" }}
+# not Darwin, just exit
+exit 0
+{{ end }}
+{{ if (stat (joinPath .chezmoi.homeDir "code/machine-cfg/portlist")) }}
+# Hash for {{(joinPath .chezmoi.homeDir "code/machine-cfg/portlist")}} {{ include (joinPath .chezmoi.homeDir "code/machine-cfg/portlist") | sha256sum }}
+{{ else }}
+exit 0
+{{ end }}
+{{ if (stat (joinPath .chezmoi.homeDir "code/machine-cfg/" .chezmoi.hostname "/portlist")) }}
+# Hash for {{(joinPath .chezmoi.homeDir "code/machine-cfg/" .chezmoi.hostname "/portlist")}} {{ include (joinPath .chezmoi.homeDir "code/machine-cfg/" .chezmoi.hostname "/portlist") | sha256sum }}
+{{ end }}
+
 # modern bash version check
 ! [ "${BASH_VERSINFO:-0}" -ge 4 ] && echo "This script requires bash v4 or later" && exit 1
 
-# exit if not darwin
-if [[ $(uname) != "Darwin" ]]; then
-  exit 0
-fi
-
-# check for the file ~/code/machine-cfg/$(hostname -s)/portlist
-if ! [[ -f ~/code/machine-cfg/portlist ]]; then
-  echo "The file ~/code/machine-cfg/portlist does not exist"
-  exit 0
-fi
-
 # read the port list files
 PORT_LIST=$(cat ~/code/machine-cfg/portlist ~/code/machine-cfg/$(hostname -s)/portlist 2>/dev/null ||true)
-PORT_LIST_HASH=$(echo "$PORT_LIST" | md5sum --quiet)
-
-# if ~/.config/portlisthash exists, read it
-if [[ -f ~/.config/portlisthash ]]; then
-  PORT_LIST_HASH_SAVED=$(cat ~/.config/portlisthash)
-else
-  PORT_LIST_HASH_SAVED=""
-fi
 
 # install missing ports
-if [[ "$PORT_LIST_HASH" != "$PORT_LIST_HASH_SAVED" ]]; then
-  echo "The portlist files have changed"
-  PORT_INSTALL_LIST=()
-  while IFS= read -r line; do
-    PORT_INSTALL_LIST+=("$line")
-  done < <(echo "$PORT_LIST")
+PORT_INSTALL_LIST=()
+while IFS= read -r line; do
+  PORT_INSTALL_LIST+=("$line")
+done < <(echo "$PORT_LIST")
 
-  for PORT in "${PORT_INSTALL_LIST[@]}"; do
-    IFS=$' \t\n'
-    echo "sudo port install $PORT"
-    sudo port -N install $PORT || true
-  done
-fi
-
-# update the hash in the chezmoi.toml file
-echo "$PORT_LIST_HASH" > ~/.config/portlisthash
+for PORT in "${PORT_INSTALL_LIST[@]}"; do
+  IFS=$' \t\n'
+  echo "sudo port install $PORT"
+  sudo port -N install $PORT || true
+done
 
 exit 0
