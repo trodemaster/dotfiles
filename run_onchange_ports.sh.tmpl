@@ -37,6 +37,8 @@ for PORT in "${INSTALLED_PORTS[@]}"; do
   PORT_INSTALL_LIST=("${PORT_INSTALL_LIST[@]/$PORT}")
 done
 
+echo "Ports to install: ${PORT_INSTALL_LIST[@]}"
+
 for PORT in "${PORT_INSTALL_LIST[@]}"; do
   IFS=$' \t\n'
   echo "sudo port install $PORT"
