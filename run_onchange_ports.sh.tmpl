@@ -28,6 +28,14 @@ while IFS= read -r line; do
   PORT_INSTALL_LIST+=("$line")
 done < <(echo "$PORT_LIST")
 
+# get installed ports
+INSTALLED_PORTS=$(port installed | awk '{print $1}' | uniq)
+
+# remove installed ports from the list
+for PORT in "${INSTALLED_PORTS[@]}"; do
+  PORT_INSTALL_LIST=("${PORT_INSTALL_LIST[@]/$PORT}")
+done
+
 for PORT in "${PORT_INSTALL_LIST[@]}"; do
   IFS=$' \t\n'
   echo "sudo port install $PORT"
