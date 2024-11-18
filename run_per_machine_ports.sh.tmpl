@@ -11,12 +11,6 @@ if [[ $(uname) != "Darwin" ]]; then
   echo "This script is only for Darwin" && exit 0
 fi
 
-# check for the file ~/.config/chezmoi/chezmoi.toml
-if ! [[ -f ~/.config/chezmoi/chezmoi.toml ]]; then
-  echo "The file ~/.config/chezmoi/chezmoi.toml does not exist"
-  exit 0
-fi
-
 # check for the file ~/code/machine-cfg/$(hostname -s)/portlist
 if ! [[ -f ~/code/machine-cfg/portlist ]]; then
   echo "The file ~/code/machine-cfg/portlist does not exist"
@@ -24,7 +18,7 @@ if ! [[ -f ~/code/machine-cfg/portlist ]]; then
 fi
 
 # read the port list files
-PORT_LIST=$(cat ~/code/machine-cfg/portlist ~/code/machine-cfg/$(hostname -s)/portlist 2>/dev/null)
+PORT_LIST=$(cat ~/code/machine-cfg/portlist ~/code/machine-cfg/$(hostname -s)/portlist 2>/dev/null ||true)
 PORT_LIST_HASH=$(echo "$PORT_LIST" | md5sum --quiet)
 
 # if ~/.config/portlisthash exists, read it
@@ -45,7 +39,7 @@ if [[ "$PORT_LIST_HASH" != "$PORT_LIST_HASH_SAVED" ]]; then
   for PORT in "${PORT_INSTALL_LIST[@]}"; do
     IFS=$' \t\n'
     echo "sudo port install $PORT"
-    sudo port -N install $PORT
+    sudo port -N install $PORT || true
   done
 fi
 
