@@ -9,6 +9,8 @@ alias yolossh="ssh -o \"ControlPath ~/.ssh/controlmasters/%r@%h:%p\" -o \"Contro
 alias tfstate='terraform state show $(terraform state list | fzf)'
 alias tftaint='terraform taint $(terraform state list | fzf)'
 
+
+
 # common functions
 exitssh() {
   ssh -O exit "$@"
@@ -163,3 +165,14 @@ fi
 if command -v direnv &>/dev/null; then
   eval "$(direnv hook bash)"
 fi
+
+{{ if (stat (joinPath .chezmoi.homeDir "code/machine-cfg/bash_profile")) }}
+# Hash for {{(joinPath .chezmoi.homeDir "code/machine-cfg/bash_profile")}} {{ include (joinPath .chezmoi.homeDir "code/machine-cfg/bash_profile") | sha256sum }}
+# Added content from {{(joinPath .chezmoi.homeDir "code/machine-cfg/bash_profile")}}
+{{ include (joinPath .chezmoi.homeDir "code/machine-cfg/bash_profile") }}
+{{ end }}
+{{ if (stat (joinPath .chezmoi.homeDir "code/machine-cfg/" .chezmoi.hostname "/bash_profile")) }}
+# Hash for {{(joinPath .chezmoi.homeDir "code/machine-cfg/" .chezmoi.hostname "/bash_profile")}} {{ include (joinPath .chezmoi.homeDir "code/machine-cfg/" .chezmoi.hostname "/bash_profile") | sha256sum }}
+# Added content from {{(joinPath .chezmoi.homeDir "code/machine-cfg/" .chezmoi.hostname "/bash_profile") }}
+{{ include (joinPath .chezmoi.homeDir "code/machine-cfg/" .chezmoi.hostname "/bash_profile") }}
+{{ end }}
