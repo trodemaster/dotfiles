@@ -6,6 +6,26 @@
 # test for running in codespaces by checking $CODESPACES
 if [[ "${CODESPACES}" == "true" ]]; then
   echo "Running run_onchange_ubuntu_devcontainer.sh"
+
+echo "Updating apt cache..."
+sudo apt update >/dev/null
+
+# list of apt packages to install
+APT_PACKAGES=(
+  "jq"
+)
+
+# loop over apt packages and install them
+for APT_PACKAGE in "${APT_PACKAGES[@]}"; do
+  if ! dpkg -s $APT_PACKAGE &>/dev/null; then
+    echo "Installing apt package $APT_PACKAGE..."
+    sudo apt-get install -y $APT_PACKAGE
+  fi
+done
+
+
+
+
 else
   echo "Not Running run_onchange_ubuntu_devcontainer.sh"
   exit 0
