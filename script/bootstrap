@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # if $CODESPACES is true exit 0
-if [ "$CODESPACES" = "true" ]; then
-  exit 0
-fi
+# if [ "$CODESPACES" = "true" ]; then
+#  exit 0
+# fi
 
 sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply trodemaster
 
