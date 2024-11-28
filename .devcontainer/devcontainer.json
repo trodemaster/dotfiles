@@ -2,7 +2,7 @@
 	"runArgs": [
 		"--device=/dev/net/tun"
 	],
-	"image": "mcr.microsoft.com/devcontainers/universal:2",
+	"image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
 	"features": {
 		"ghcr.io/rio/features/chezmoi:1": {},
 		"ghcr.io/tailscale/codespace/tailscale": {}
