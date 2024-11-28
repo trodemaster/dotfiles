@@ -3,13 +3,15 @@
 # common aliases
 alias vautenv="set | grep VAULT"
 alias lz="ls -1 | fzf"
-alias ls="eza -1 -l -F --icons=auto"
 alias crtchk="openssl x509 -text -noout -dates -in"
 alias yolossh="ssh -o \"ControlPath ~/.ssh/controlmasters/%r@%h:%p\" -o \"ControlMaster auto\" -o \"ControlPersist 10m\" -o \"StrictHostKeyChecking no\" -o \"UserKnownHostsFile=/dev/null\""
 alias tfstate='terraform state show $(terraform state list | fzf)'
 alias tftaint='terraform taint $(terraform state list | fzf)'
 
-
+# conditional aliases
+if command -v eza &>/dev/null; then
+  alias ls="eza -1 -l -F --icons=auto"
+fi
 
 # common functions
 exitssh() {
