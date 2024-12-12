@@ -7,7 +7,7 @@ alias crtchk="openssl x509 -text -noout -dates -in"
 alias yolossh="ssh -o \"ControlPath ~/.ssh/controlmasters/%r@%h:%p\" -o \"ControlMaster auto\" -o \"ControlPersist 10m\" -o \"StrictHostKeyChecking no\" -o \"UserKnownHostsFile=/dev/null\""
 alias tfstate='terraform state show $(terraform state list | fzf)'
 alias tftaint='terraform taint $(terraform state list | fzf)'
-alias tfyolo="terraform apply -destroy -auto-approve && terraform apply -auto-approve"
+alias tfyolo='terraform apply -destroy -auto-approve && terraform apply -auto-approve'
 
 # conditional aliases
 if command -v eza &>/dev/null; then
