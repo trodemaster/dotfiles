@@ -1,11 +1,11 @@
 # chezmoi managed file
 
-# If ~/code/machine-cfg/ssh_config exists, it will be included here
+# If {{ .chezmoi.homeDir }}/code/machine-cfg/ssh_config exists, it will be included here
 {{ if (stat (joinPath .chezmoi.homeDir "code/machine-cfg/ssh_config")) }}
 {{ include (joinPath .chezmoi.homeDir "code/machine-cfg/ssh_config") }}
 {{ end }}
 
-# If ~/code/machine-cfg/<hostname>/ssh_config exists, it will be included here
+# If {{ .chezmoi.homeDir }}/code/machine-cfg/{{ .chezmoi.hostname }}/ssh_config exists, it will be included here
 {{ if (stat (joinPath .chezmoi.homeDir "code/machine-cfg/" .chezmoi.hostname "/ssh_config")) }}
 {{ include (joinPath .chezmoi.homeDir "code/machine-cfg/" .chezmoi.hostname "/ssh_config") }}
 {{ end }}
