@@ -10,7 +10,6 @@ if [ ! -d ~/code ]; then
     mkdir -p ~/code
 fi
 
-sudo rm /etc/ssh/sshd_config.d/206-machine-cfg.conf
 # add ssh include if the directory exists
 if [ -d ~/code/machine-cfg ]; then
     if [ -d /etc/ssh/sshd_config.d ]; then
