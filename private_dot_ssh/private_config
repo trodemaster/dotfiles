@@ -1,3 +1,0 @@
-# chezmoi managed file
-Include ~/code/machine-cfg/ssh_config
-Include ~/code/machine-cfg/%h/ssh_config
