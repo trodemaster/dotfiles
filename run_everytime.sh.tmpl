@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 
-echo "Refresh ~/.ssh/config contents"
-chezmoi execute-template --source-path "{{ .chezmoi.sourceDir }}/private_dot_ssh/private_config.tmpl" | > /dev/null
-#echo -e "\n"
+# Check if chezmoi is installed
+if command -v chezmoi &>/dev/null; then
+  echo "Refresh ~/.ssh/config contents"
+  chezmoi execute-template --source-path "{{ .chezmoi.sourceDir }}/private_dot_ssh/private_config.tmpl" >/dev/null
+fi
+
 exit 0
