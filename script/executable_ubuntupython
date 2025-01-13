@@ -1,0 +1,26 @@
+#!/bin/env bash
+if [[ "$(uname)" == "Darwin" ]]; then
+  echo "This is for ubuntu only"
+  exit 1
+fi
+
+echo "Updating apt cache..."
+sudo apt update >/dev/null
+
+# list of apt packages to install
+APT_PACKAGES=(
+  "python3"
+  "python3-pip"
+  "python-is-python3"
+  "python3-virtualenv"
+)
+
+# loop over apt packages and install them
+for APT_PACKAGE in "${APT_PACKAGES[@]}"; do
+  if ! dpkg -s $APT_PACKAGE &>/dev/null; then
+    echo "Installing apt package $APT_PACKAGE..."
+    sudo apt-get install -y $APT_PACKAGE
+  fi
+done
+
+exit 0
