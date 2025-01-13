@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-echo "Running ssh config template"
-chezmoi execute-template --source-path "{{ .chezmoi.sourceDir }}/private_dot_ssh/private_config.tmpl"
+echo "Refresh ~/.ssh/config contents"
+chezmoi execute-template --source-path "{{ .chezmoi.sourceDir }}/private_dot_ssh/private_config.tmpl" | > /dev/null
 echo -e "\n"
 exit 0
