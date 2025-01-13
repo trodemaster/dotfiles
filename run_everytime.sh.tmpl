@@ -2,3 +2,5 @@
 
 echo "Running ssh config template"
 chezmoi execute-template --source-path "{{ .chezmoi.sourceDir }}/private_dot_ssh/private_config.tmpl"
+echo -e "\n"
+exit 0
