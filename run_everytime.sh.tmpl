@@ -2,5 +2,5 @@
 
 echo "Refresh ~/.ssh/config contents"
 chezmoi execute-template --source-path "{{ .chezmoi.sourceDir }}/private_dot_ssh/private_config.tmpl" | > /dev/null
-echo -e "\n"
+#echo -e "\n"
 exit 0
