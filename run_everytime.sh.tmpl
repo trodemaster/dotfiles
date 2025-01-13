@@ -1,3 +1,2 @@
-# force chezmoi to run the ssh config template
 echo "Running ssh config template"
-{{ .chezmoi.runCmd "chezmoi template --force --source-path private_dot_ssh/private_config.tmpl" }}
+chezmoi execute-template --source-path "{{ .chezmoi.sourceDir }}/private_dot_ssh/private_config.tmpl"
