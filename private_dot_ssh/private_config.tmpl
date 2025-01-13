@@ -1,5 +1,5 @@
 # chezmoi managed file
-# {{ time.Now }}
+# {{ .chezmoi.timestamp }}
 
 # If {{ .chezmoi.homeDir }}/code/machine-cfg/ssh_config exists, it will be included here
 {{ if (stat (joinPath .chezmoi.homeDir "code/machine-cfg/ssh_config")) }}
