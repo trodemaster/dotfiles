@@ -2,12 +2,12 @@
 
 # common aliases
 alias vautenv="set | grep VAULT"
-alias lz="ls -1 | fzf"
 alias crtchk="openssl x509 -text -noout -dates -in"
 alias yolossh="ssh -o \"ControlPath ~/.ssh/controlmasters/%r@%h:%p\" -o \"ControlMaster auto\" -o \"ControlPersist 10m\" -o \"StrictHostKeyChecking no\" -o \"UserKnownHostsFile=/dev/null\""
 alias tfstate='terraform state show $(terraform state list | fzf)'
 alias tftaint='terraform taint $(terraform state list | fzf)'
 alias tfyolo='terraform apply -destroy -auto-approve && terraform apply -auto-approve'
+alias unsetvault="unset VAULT_ADDR; unset VAULT_NAMESPACE; unset VAULT_TOKEN"
 
 # conditional aliases
 if command -v eza &>/dev/null; then
@@ -78,8 +78,24 @@ alias encode="~/code/timelapse-tools/encode"
 alias wd="~/code/weatherdesktop/wd"
 alias lsusb="ioreg -p IOUSB"
 alias eaw="sudo /bin/chmod +a \"user:$USER allow read,write,append,readattr,writeattr,readextattr,writeextattr,readsecurity\" "
-alias utmctl="/Applications/UTM.app/Contents/MacOS/utmctl"
-alias code="/Applications/Visual\ Studio\ Code.app/Contents/Resources/app/bin/code"
+
+# Extract application name from VSCODE_GIT_ASKPASS_NODE and set alias
+if [ -n "$VSCODE_GIT_ASKPASS_NODE" ]; then
+  HELPER_APP_NAME=$(basename "$(echo "$VSCODE_GIT_ASKPASS_NODE" | sed -E 's#(.*)/Contents/MacOS/.*$#\1#')")
+  case "$HELPER_APP_NAME" in
+  "Code Helper (Plugin).app")
+    alias code='/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code'
+    ;;
+  "Code - Insiders Helper (Plugin).app")
+    alias code='/Applications/Visual Studio Code - Insiders.app/Contents/Resources/app/bin/code'
+    ;;
+  "Cursor Helper (Plugin).app")
+    alias code='/Applications/Cursor.app/Contents/Resources/app/bin/code'
+    ;;
+  esac
+else
+  alias code='/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code'
+fi
 
 # macos functions
 killsshhost() {
