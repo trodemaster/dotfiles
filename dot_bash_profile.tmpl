@@ -84,17 +84,17 @@ if [ -n "$VSCODE_GIT_ASKPASS_NODE" ]; then
   HELPER_APP_NAME=$(basename "$(echo "$VSCODE_GIT_ASKPASS_NODE" | sed -E 's#(.*)/Contents/MacOS/.*$#\1#')")
   case "$HELPER_APP_NAME" in
   "Code Helper (Plugin).app")
-    alias code='/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code'
+    alias code='/Applications/Visual\ Studio\ Code.app/Contents/Resources/app/bin/code'
     ;;
   "Code - Insiders Helper (Plugin).app")
-    alias code='/Applications/Visual Studio Code - Insiders.app/Contents/Resources/app/bin/code'
+    alias code='/Applications/Visual\ Studio\ Code\ -\ Insiders.app/Contents/Resources/app/bin/code'
     ;;
   "Cursor Helper (Plugin).app")
     alias code='/Applications/Cursor.app/Contents/Resources/app/bin/code'
     ;;
   esac
 else
-  alias code='/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code'
+  alias code='/Applications/Visual\ Studio\ Code.app/Contents/Resources/app/bin/code'
 fi
 
 # macos functions
