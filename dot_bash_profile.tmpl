@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # common aliases
-alias vautenv="set | grep VAULT"
+alias vaultenv="set | grep VAULT"
 alias crtchk="openssl x509 -text -noout -dates -in"
 alias yolossh="ssh -o \"ControlPath ~/.ssh/controlmasters/%r@%h:%p\" -o \"ControlMaster auto\" -o \"ControlPersist 10m\" -o \"StrictHostKeyChecking no\" -o \"UserKnownHostsFile=/dev/null\""
 alias tfstate='terraform state show $(terraform state list | fzf)'
