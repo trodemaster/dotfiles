@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+current_branch=$(git branch --show-current)
+
+if [ "$current_branch" != "main" ]; then
+  git checkout main
+  git pull upstream main
+  git push
+  git branch -d "$current_branch"
+  git push origin --delete "$current_branch"
+  git fetch --prune
+else
+  echo "Already on main branch, nothing to clean."
+fi
+
+exit 0
