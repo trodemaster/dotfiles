@@ -99,7 +99,7 @@ if ! [[ -f /usr/local/bin/fzf ]]; then
   FZF_FILENAME="fzf-${FZF_VERSION//v/}-linux_${ARCH}.tar.gz"
   FZF_DOWNLOAD_URL="https://github.com/junegunn/fzf/releases/download/${FZF_VERSION}/${FZF_FILENAME}"
   echo "Downloading fzf version ${FZF_DOWNLOAD_URL}..."
-  wget -q${FZF_DOWNLOAD_URL}
+  wget -q ${FZF_DOWNLOAD_URL}
   tar xzf ${FZF_FILENAME}
   sudo mv fzf /usr/local/bin/fzf
   rm ${FZF_FILENAME}
