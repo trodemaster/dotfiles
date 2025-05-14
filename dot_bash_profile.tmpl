@@ -8,6 +8,7 @@ alias tfstate='terraform state show $(terraform state list | fzf)'
 alias tftaint='terraform taint -ignore-remote-version $(terraform state list | fzf)'
 alias tfyolo='terraform apply -destroy -auto-approve && terraform apply -auto-approve'
 alias unsetvault="unset VAULT_ADDR; unset VAULT_NAMESPACE; unset VAULT_TOKEN"
+alias whatismyip="curl http://checkip.amazonaws.com"
 
 # conditional aliases
 if command -v eza &>/dev/null; then
