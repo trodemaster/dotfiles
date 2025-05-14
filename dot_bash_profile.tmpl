@@ -19,18 +19,6 @@ exitssh() {
   ssh -O exit "$@"
 }
 
-# source .vaultenv file if it exists
-[ -f ~/.vaultenv ] && source ~/.vaultenv
-
-# run the vault login command and then source the env vars
-vl() {
-  RETURN_DIR="$(PWD)"
-  cd ~/code/vaultlogin
-  go run main.go $@
-  source ~/.vaultenv &>/dev/null || true
-  cd "$RETURN_DIR"
-}
-
 # common bash config
 export HISTCONTROL=ignoredups:erasedups # no duplicate entries
 export HISTSIZE=100000                  # big big history
