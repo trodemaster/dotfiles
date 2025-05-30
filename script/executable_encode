@@ -1,0 +1,405 @@
+#!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\n\t'
+shopt -s nullglob
+shopt -s nocaseglob
+
+# Define global variables and set defaults
+INPUT_PATH="$PWD"
+OUTPUT_PATH="$PWD/encoded.mp4"
+ENCODE_ARCHIVE=1
+ENCODE_ARCHIVE_HARDWARE=1
+ENCODE_HEVC=1
+HD_ARCHIVE=1
+JPEG_EXT="none"
+BADPEG=1
+VIMEO=1
+ENCODE_3D=1
+ENCODE_HEVC_VIDEOTOOLBOX=1 # New preset variable
+CONVERT_MKV_TO_MP4=1 # New preset variable for MKV to MP4 conversion
+BATCH_PATTERN=""
+BATCH_MODE=1
+
+# Utility Functions
+usage() {
+  cat <<EOF
+USAGE: ./encode [options] -p <input_path> -o <output_path>
+
+EXAMPLES:
+  # Basic JPEG sequence encoding
+  ./encode -p /Volumes/fast/timelapseSource -o /Volumes/fast/timelapseArchive.mp4 -a
+
+  # Batch process all MP4 files in a directory
+  ./encode -p /Volumes/fast/videos -o /Volumes/fast/encoded -b "*.mp4" -x
+
+  # Batch process files with specific pattern
+  ./encode -p /Volumes/fast/videos -o /Volumes/fast/encoded -b "*VR180*" -x
+
+  # Batch process MKV files for Vimeo upload
+  ./encode -p /Volumes/fast/videos -o /Volumes/fast/vimeo -b "*.mkv" -v
+
+  # Check for bad JPEGs in a directory
+  ./encode -p /Volumes/fast/timelapseSource -B
+
+OPTIONS:
+   -p    Path to source files (directory or file)
+   -o    Path to output file or directory
+         For batch mode: specifies output directory
+         For single file: specifies output file path
+   -b    Batch mode with pattern (e.g. "*.mp4" or "*VR180*")
+         Processes all matching files in input directory
+         Output files are saved to output directory with .mp4 extension
+         Pattern must be quoted to prevent shell expansion
+   -B    Search for bad jpeg files and delete them without warning
+   -a    Encode with archive format 60fps (JPEG sequences only)
+   -x    Encode with x265 and maintain size and fps
+   -t    Encode with hevc hardware encoder 60fps (JPEG sequences only)
+   -T    Encode with hevc_videotoolbox (Apple hardware) for single files
+   -d    Encode with HD 1080p 60fps
+   -c    Convert to h265
+   -M    Convert MKV to MP4 (copy streams, iPad compatible)
+   -3    Encode 3d
+   -v    Encode for Vimeo
+   -h    Help
+
+BATCH PROCESSING:
+   Batch mode (-b) processes multiple video files in a directory:
+   - Input path (-p) must be a directory
+   - Output path (-o) must be a directory
+   - Pattern (-b) uses standard glob patterns (e.g. "*.mp4", "*VR180*")
+   - Pattern must be quoted to prevent shell expansion
+   - Files are processed in alphabetical order
+   - Original filenames are preserved with .mp4 extension
+   - Successfully processed files are labeled as "completed"
+   - JPEG files are never labeled as "completed"
+
+   Supported encoding options for batch mode:
+   -x    x265 encoding
+   -v    Vimeo encoding
+   -3    3D encoding
+   -d    HD encoding
+   -M    MKV to MP4 conversion (stream copy)
+
+   Note: JPEG sequence encoding (-a, -t) is not available in batch mode
+EOF
+  exit
+}
+
+get_info() {
+  FIRST_JPG=$(find ${INPUT_PATH} -maxdepth 1 -name '*.JPG' -o -name '*.jpg' -o -name '*.mp4' -o -name '*.MP4' -o -name '*.mkv' -o -name '*.MKV' | head -n 1) || true
+  if [[ -f "$FIRST_JPG" ]]; then
+    jpeginfo -i "$FIRST_JPG"
+    JPEG_EXT=$(rev <<<"$FIRST_JPG" | cut -d '.' -f 1 | rev)
+  else
+    echo "Error: ${INPUT_PATH}/*.$JPEG_EXT not found!"
+    exit 1
+  fi
+}
+
+badpeg() {
+  if ! (command -v jpeginfo >/dev/null 2>&1); then
+    echo "missing jpeginfo command"
+    exit 1
+  fi
+  echo "Deleting any invalid jpeg files found..."
+  find ${INPUT_PATH} -maxdepth 1 -name '*.JPG' -o -name '*.jpg' | xargs jpeginfo -c -q -d - >/dev/null 2>&1 || true
+}
+
+# JPEG-based Encoding Functions
+archive_encode() {
+  if [[ ${INPUT_PATH_TYPE} == 'dir' ]]; then
+    get_info
+    nice -n 19 "${FFMPEG_PATH}" -y -r 60 -thread_queue_size 16384 -pattern_type glob -i "${INPUT_PATH}/*.$JPEG_EXT" -crf 26 -tune fastdecode -preset slow -c:v libx265 -pix_fmt yuv420p -tag:v hvc1 -profile:v main -level:v 5.1 -movflags +faststart -brand hev1 ${OUTPUT_PATH}
+  else
+    echo "archive encode only works with source dir"
+  fi
+}
+
+archive_hardware_encode() {
+  if [[ ${INPUT_PATH_TYPE} == 'dir' ]]; then
+    get_info
+    nice -n 19 "${FFMPEG_PATH}" -y -r 60 -pattern_type glob -i "${INPUT_PATH}/*.$JPEG_EXT" -c:v hevc_videotoolbox -q:v 40 -tag:v hvc1 ${OUTPUT_PATH}
+  else
+    echo "archive encode only works with source dir"
+  fi
+}
+
+# Video Encoding Functions
+hd_encode() {
+  local input_path="$1"
+  local output_path="$2"
+  if [[ -d "${input_path}" ]]; then
+    get_info
+    nice -n 19 "${FFMPEG_PATH}" -y -r 30 -thread_queue_size 8192 -pattern_type glob -i "${input_path}/*.$JPEG_EXT" -vcodec libx264 -crf 22 -tune fastdecode -vf "scale=iw*min(1920/iw\,1080/ih):ih*min(1920/iw\,1080/ih):flags=lanczos, pad=1920:1080:(1920-iw*min(1920/iw\,1080/ih))/2:(1080-ih*min(1920/iw\,1080/ih))/2" -preset fast -c:v libx265 -pix_fmt yuv420p -tag:v hvc1 -profile:v main -level:v 5.1 -movflags +faststart -brand hev1 "${output_path}"
+  elif [[ -f "${input_path}" ]]; then
+    nice -n 19 "${FFMPEG_PATH}" -y -r 30 -thread_queue_size 8192 -i "${input_path}" -vcodec libx264 -crf 22 -tune fastdecode -vf "scale=iw*min(1920/iw\,1080/ih):ih*min(1920/iw\,1080/ih):flags=lanczos, pad=1920:1080:(1920-iw*min(1920/iw\,1080/ih))/2:(1080-ih*min(1920/iw\,1080/ih))/2" -preset fast -c:v libx265 -pix_fmt yuv420p -tag:v hvc1 -profile:v main -level:v 5.1 -movflags +faststart -brand hev1 "${output_path}"
+  fi
+}
+
+vimeo_encode() {
+  local input_path="$1"
+  local output_path="$2"
+  if [[ -d "${input_path}" ]]; then
+    get_info
+    nice -n 19 "${FFMPEG_PATH}" -y -r 30 -pattern_type glob -i "${input_path}/*.$JPEG_EXT" -c:v hevc_videotoolbox -q:v 40 -tag:v hvc1 "${output_path}"
+  elif [[ -f "${input_path}" ]]; then
+    nice -n 19 "${FFMPEG_PATH}" -y -r 30 -i "${input_path}" -pix_fmt yuv420p -vf "scale=iw*min(1280/iw\,720/ih):ih*min(1280/iw\,720/ih):flags=lanczos, pad=1280:720:(1280-iw*min(1280/iw\,720/ih))/2:(720-ih*min(1280/iw\,720/ih))/2" -b:v 5120k -bufsize 1M "${output_path}"
+  fi
+}
+
+3d_encode() {
+  local input_path="$1"
+  local output_path="$2"
+  nice -n 19 "${FFMPEG_PATH}" -y -i "${input_path}" -vf "stereo3d=sbsl:arbg, scale=-1:2160:flags=lanczos" -crf 18 -tune fastdecode -preset slow -c:v libx265 -pix_fmt yuv420p -tag:v hvc1 -profile:v main -level:v 5.1 -movflags +faststart -brand hev1 "${output_path}"
+}
+
+hevc_encode() {
+  local input_path="$1"
+  local output_path="$2"
+  nice -n 19 "${FFMPEG_PATH}" -y -thread_queue_size 16384 -i "${input_path}" -crf 26 -tune fastdecode -preset slow -c:v libx265 -pix_fmt yuv420p -tag:v hvc1 -profile:v main -level:v 5.1 -movflags +faststart -brand hev1 "${output_path}"
+}
+
+hevc_videotoolbox_encode() {
+  local input_path="$1"
+  local output_path="$2"
+  nice -n 19 "${FFMPEG_PATH}" -y -i "${input_path}" -c:v hevc_videotoolbox -q:v 50 -profile:v main -level:v 5.1 -pix_fmt yuv420p -movflags +faststart -tag:v hvc1 -brand hev1 "${output_path}"
+}
+
+convert_mkv_to_mp4() {
+  local input_path="$1"
+  local output_path="$2"
+  # Ensure output has .mp4 extension
+  local base_output_path="${output_path%.*}"
+  nice -n 19 "${FFMPEG_PATH}" -y -i "${input_path}" -c:v copy -c:a copy -movflags +faststart -pix_fmt yuv420p -tag:v hvc1 -brand hev1 "${base_output_path}.mp4"
+  echo "MKV to MP4 conversion complete: ${base_output_path}.mp4"
+}
+
+# Batch Processing Function
+batch_encode() {
+  if [[ -z "$BATCH_PATTERN" ]]; then
+    echo "Error: Batch pattern is required"
+    exit 1
+  fi
+
+  if [[ ! -d "${OUTPUT_PATH}" ]]; then
+    echo "Creating output directory: ${OUTPUT_PATH}"
+    mkdir -p "${OUTPUT_PATH}"
+  fi
+
+  # Debug output for encoding options
+  echo "Encoding options:"
+  echo "3D: $ENCODE_3D"
+  echo "HEVC: $ENCODE_HEVC"
+  echo "Vimeo: $VIMEO"
+  echo "HD: $HD_ARCHIVE"
+
+  mapfile -t FILES < <(find "${INPUT_PATH}" -type f -name "${BATCH_PATTERN}" | sort)
+  
+  if [[ ${#FILES[@]} -eq 0 ]]; then
+    echo "No files found matching pattern: ${BATCH_PATTERN}"
+    exit 1
+  fi
+
+  echo "Found ${#FILES[@]} files to process"
+  
+  for file in "${FILES[@]}"; do
+    # Check if file still exists before processing
+    if [[ ! -f "${file}" ]]; then
+      echo "Warning: File no longer exists, skipping: ${file}"
+      continue
+    fi
+    
+    echo "Processing: ${file}"
+    filename=$(basename "${file}")
+    output_file="${OUTPUT_PATH}/${filename%.*}.mp4"
+    
+    if [[ $ENCODE_3D == 0 ]]; then
+      echo "Encoding 3D: ${file}"
+      3d_encode "${file}" "${output_file}"
+    elif [[ $ENCODE_HEVC == 0 ]]; then
+      echo "Encoding HEVC: ${file}"
+      hevc_encode "${file}" "${output_file}"
+    elif [[ $VIMEO == 0 ]]; then
+      echo "Encoding for Vimeo: ${file}"
+      vimeo_encode "${file}" "${output_file}"
+    elif [[ $HD_ARCHIVE == 0 ]]; then
+      echo "Encoding HD: ${file}"
+      hd_encode "${file}" "${output_file}"
+    elif [[ $CONVERT_MKV_TO_MP4 == 0 ]]; then
+      echo "Converting MKV to MP4: ${file}"
+      convert_mkv_to_mp4 "${file}" "${output_file}"
+    else
+      echo "Error: No encoding option selected for batch mode"
+      echo "Please specify one of: -3 (3D), -x (HEVC), -v (Vimeo), -d (HD), or -M (MKV to MP4)"
+      exit 1
+    fi
+
+    if [[ $? -eq 0 ]]; then
+      # Check if file still exists before labeling
+      if [[ -f "${file}" ]]; then
+        ext=$(echo "${file##*.}" | tr '[:upper:]' '[:lower:]')
+        if [[ "$ext" != "jpg" && "$ext" != "jpeg" ]]; then
+          echo "Setting 'completed' tag on: ${file}"
+          xattr -w com.apple.metadata:_kMDItemUserTags '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"><plist version="1.0"><array><string>completed</string></array></plist>' "${file}"
+        else
+          echo "Skipping tag for JPEG file: ${file}"
+        fi
+      else
+        echo "Warning: File was deleted during processing, skipping tag: ${file}"
+      fi
+    else
+      echo "Encoding failed for: ${file}"
+    fi
+  done
+}
+
+# Main function to handle script flow
+main() {
+  # Check for required binaries
+  if ! hash "ffmpeg7" >/dev/null 2>&1; then
+    echo "Error: ffmpeg7 not found in path"
+    exit 1
+  fi
+
+  if ! hash "jpeginfo" >/dev/null 2>&1; then
+    echo "Error: missing jpeginfo command"
+    exit 1
+  fi
+
+  # Check input type
+  if [[ -d ${INPUT_PATH} ]]; then
+    echo "${INPUT_PATH} is a directory"
+    INPUT_PATH_TYPE=dir
+  elif [[ -f "${INPUT_PATH}" ]]; then
+    echo "${INPUT_PATH} is a file"
+    INPUT_PATH_TYPE=file
+  else
+    echo "${INPUT_PATH} is not valid"
+    exit 1
+  fi
+
+  # Validate batch pattern if in batch mode
+  if [[ $BATCH_MODE == 0 ]]; then
+    if [[ -z "${BATCH_PATTERN:-}" ]]; then
+      echo "Error: Batch pattern is required and must be quoted"
+      echo "Example: -b \"*.mp4\" or -b \"*VR180*\""
+      exit 1
+    fi
+    batch_encode
+    exit 0
+  fi
+
+  # Process options for non-batch mode
+  if [[ $BADPEG == 0 ]]; then
+    badpeg
+  fi
+
+  if [[ $ENCODE_ARCHIVE == 0 ]]; then
+    archive_encode
+  fi
+
+  if [[ $ENCODE_ARCHIVE_HARDWARE == 0 ]]; then
+    archive_hardware_encode
+  fi
+
+  if [[ $HD_ARCHIVE == 0 ]]; then
+    hd_encode "${INPUT_PATH}" "${OUTPUT_PATH}"
+  fi
+
+  if [[ $VIMEO == 0 ]]; then
+    vimeo_encode "${INPUT_PATH}" "${OUTPUT_PATH}"
+    echo "Vimeo encoded"
+  fi
+
+  if [[ $ENCODE_3D == 0 ]]; then
+    echo "3d encoded"
+    3d_encode "${INPUT_PATH}" "${OUTPUT_PATH}"
+  fi
+
+  if [[ $ENCODE_HEVC == 0 ]]; then
+    hevc_encode "${INPUT_PATH}" "${OUTPUT_PATH}"
+    echo "x265 encoded"
+  fi
+
+  if [[ $ENCODE_HEVC_VIDEOTOOLBOX == 0 ]]; then
+    hevc_videotoolbox_encode "${INPUT_PATH}" "${OUTPUT_PATH}"
+    echo "hevc_videotoolbox encoded"
+  fi
+
+  if [[ $CONVERT_MKV_TO_MP4 == 0 ]]; then
+    convert_mkv_to_mp4 "${INPUT_PATH}" "${OUTPUT_PATH}"
+    # The open command might need adjustment if OUTPUT_PATH doesn't have .mp4
+    # For now, convert_mkv_to_mp4 handles the .mp4 extension for the actual output file.
+    # Consider if 'open' should use the modified output_file name from the function.
+  fi
+}
+
+# Process all command line arguments
+process_args() {
+  local i=1
+  local arg
+  local pattern_found=0
+  
+  # First pass: handle all normal options
+  while [[ $i -le $# ]]; do
+    arg="${!i}"
+    
+    case "$arg" in
+      -h) usage && exit 1 ;;
+      -p) 
+        i=$((i+1))
+        INPUT_PATH="${!i}" 
+        ;;
+      -o) 
+        i=$((i+1))
+        OUTPUT_PATH="${!i}" 
+        ;;
+      -a) ENCODE_ARCHIVE=0 ;;
+      -x) ENCODE_HEVC=0 ;;
+      -t) ENCODE_ARCHIVE_HARDWARE=0 ;;
+      -T) ENCODE_HEVC_VIDEOTOOLBOX=0 ;; # New option
+      -3) ENCODE_3D=0 ;;
+      -d) HD_ARCHIVE=0 ;;
+      -M) CONVERT_MKV_TO_MP4=0 ;; # New option for MKV to MP4
+      -v) VIMEO=0 ;;
+      -B) BADPEG=0 ;;
+      -b) 
+        BATCH_MODE=0
+        i=$((i+1))
+        if [[ $i -le $# ]]; then
+          BATCH_PATTERN="${!i}"
+          pattern_found=1
+        fi
+        ;;
+    esac
+    i=$((i+1))
+  done
+  
+  if [[ $BATCH_MODE -eq 0 && $pattern_found -eq 0 ]]; then
+    echo "Error: Batch pattern is required with -b option"
+    echo "Example: -b \"*.mp4\" or -b \"*VR180*\""
+    exit 1
+  fi
+  
+  # Print debug info
+  echo "Command line options:"
+  echo "Input path: $INPUT_PATH"
+  echo "Output path: $OUTPUT_PATH"
+  echo "Batch mode: $BATCH_MODE"
+  echo "Batch pattern: $BATCH_PATTERN"
+  echo "ENCODE_3D: $ENCODE_3D"
+  echo "ENCODE_HEVC: $ENCODE_HEVC"
+  echo "ENCODE_HEVC_VIDEOTOOLBOX: $ENCODE_HEVC_VIDEOTOOLBOX" # New debug output
+  echo "VIMEO: $VIMEO"
+  echo "HD_ARCHIVE: $HD_ARCHIVE"
+  echo "CONVERT_MKV_TO_MP4: $CONVERT_MKV_TO_MP4" # New debug output
+}
+
+# Process arguments
+process_args "$@"
+
+# Set ffmpeg path
+FFMPEG_PATH=$(which ffmpeg7)
+
+# Run main function
+main
