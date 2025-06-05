@@ -105,7 +105,7 @@ fi
 
 # disable shell warning
 export BASH_SILENCE_DEPRECATION_WARNING=1
-export PATH="/opt/local/bin:/usr/local/bin:/usr/bin:/bin:/opt/local/sbin:/usr/local/sbin:/usr/sbin:/sbin:/usr/local/go/bin:{{ .chezmoi.homeDir }}/code/go/bin:{{ .chezmoi.homeDir }}/Library/Python/{{ .python_vers }}/bin:{{ .chezmoi.homeDir }}/script:{{ .chezmoi.homeDir }}/code/machine-cfg/scripts:$PATH"
+export PATH="/opt/local/bin:/usr/local/bin:/usr/bin:/bin:/opt/local/sbin:/usr/local/sbin:/usr/sbin:/sbin:/usr/local/go/bin:{{ .chezmoi.homeDir }}/code/go/bin:{{ .chezmoi.homeDir }}/Library/Python/{{ .python_vers }}/bin:{{ .chezmoi.homeDir }}/script:{{ .chezmoi.homeDir }}/code/machine-cfg/scripts:$HOME/script:$PATH"
 
 # go vars
 export GOPATH={{ .chezmoi.homeDir }}/code/go
