@@ -1,0 +1,73 @@
+#!/bin/bash
+
+# Exit on any error
+set -e
+
+# Check if a directory path was provided
+if [ $# -eq 0 ]; then
+    echo "Usage: $0 <directory_path>"
+    exit 1
+fi
+
+DIRECTORY="$1"
+
+# Check if the directory exists
+if [ ! -d "$DIRECTORY" ]; then
+    echo "Directory not found: $DIRECTORY"
+    exit 1
+fi
+
+echo "Processing directory: $DIRECTORY"
+
+# Function to process a single file
+process_file() {
+    local FILEZ_ON_DISK="$1"
+    echo "Checking file: $FILEZ_ON_DISK"
+    
+    # Get container format and video format using mediainfo
+    FILE_FORMAT=$(/opt/local/bin/mediainfo --Inform="General;%Format%" "${FILEZ_ON_DISK}" 2>/dev/null)
+    VIDEO_FORMAT=$(/opt/local/bin/mediainfo --Inform="Video;%Format%" "${FILEZ_ON_DISK}" 2>/dev/null)
+    
+    echo "File format: $FILE_FORMAT"
+    echo "Video format: $VIDEO_FORMAT"
+
+    # Remove the last extension using rev and cut
+    BASE_NAME=$(echo "$FILEZ_ON_DISK" | rev | cut -d. -f2- | rev)
+
+    # Check if video format is not HEVC
+    if [[ "$VIDEO_FORMAT" != "HEVC" ]]; then
+        echo "Converting file to H265: $FILEZ_ON_DISK"
+        echo "running: ~/script/encode -p \"$FILEZ_ON_DISK\" -o \"${BASE_NAME}.hvec.mp4\" -T -D"
+        if ! ~/script/encode -p "$FILEZ_ON_DISK" -o "${BASE_NAME}.hvec.mp4" -T -D; then
+            echo "Error: Encode command failed"
+            echo "Debug information:"
+            echo "  Input file: $FILEZ_ON_DISK"
+            echo "  Output file: ${BASE_NAME}.hvec.mp4"
+            echo "  File format: $FILE_FORMAT"
+            echo "  Video format: $VIDEO_FORMAT"
+            echo "  Base name: $BASE_NAME"
+            return 1
+        fi
+    # If file format is Matroska and already is HEVC convert to fast start mp4
+    elif [ "$FILE_FORMAT" = "Matroska" ]; then
+        echo "Converting Matroska to MP4: $FILEZ_ON_DISK"
+        echo "running: ~/script/encode -p \"$FILEZ_ON_DISK\" -o \"${BASE_NAME}.mp4\" -M -D"
+        if ! ~/script/encode -p "$FILEZ_ON_DISK" -o "${BASE_NAME}.mp4" -M -D; then
+            echo "Error: Encode command failed"
+            echo "Debug information:"
+            echo "  Input file: $FILEZ_ON_DISK"
+            echo "  Output file: ${BASE_NAME}.mp4"
+            echo "  File format: $FILE_FORMAT"
+            echo "  Video format: $VIDEO_FORMAT"
+            echo "  Base name: $BASE_NAME"
+            return 1
+        fi
+    fi
+    return 0
+}
+
+# Export the function so it can be used by find
+export -f process_file
+
+# Use find with -exec to process files
+find "$DIRECTORY" -type f ! -name ".DS_Store" -exec bash -c 'process_file "$0"' {} \;
