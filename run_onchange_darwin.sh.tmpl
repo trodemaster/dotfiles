@@ -326,7 +326,6 @@ PORT_PACKAGES=(
   "gh"
   "bash"
   "bash-completion"
-  "wget"
   "jq"
   "go"
   "fzf"
@@ -337,7 +336,6 @@ PORT_PACKAGES=(
   "dotenv"
   "eza"
   "btop"
-  "wget"
   "curl"
   "mpstats"
 )
@@ -355,7 +353,7 @@ done
 # Install source code pro font
 if [[ ! -f /Library/Fonts/SourceCodePro-Medium.otf ]]; then
   echo "Installing source code pro font..."
-  /opt/local/bin/wget -q https://github.com/adobe-fonts/source-code-pro/releases/download/2.038R-ro%2F1.058R-it%2F1.018R-VAR/OTF-source-code-pro-2.038R-ro-1.058R-it.zip -O ~/OTF-source-code-pro.zip
+  curl -s -L -o ~/OTF-source-code-pro.zip https://github.com/adobe-fonts/source-code-pro/releases/download/2.038R-ro%2F1.058R-it%2F1.018R-VAR/OTF-source-code-pro-2.038R-ro-1.058R-it.zip
   unzip -o -d /Library/Fonts/ ~/OTF-source-code-pro.zip SourceCodePro-Medium.otf
   rm ~/OTF-source-code-pro.zip
 fi
@@ -363,7 +361,7 @@ fi
 # check if sauce-code-pro font is already installed
 if ! [[ -f /Library/Fonts/SauceCodeProNerdFontMono-Regular.ttf ]]; then
   echo "Installing Sauce Code Pro font..."
-  wget https://github.com/ryanoasis/nerd-fonts/releases/download/v3.2.1/SourceCodePro.zip
+  curl -L -o ${HOME}/SourceCodePro.zip https://github.com/ryanoasis/nerd-fonts/releases/download/v3.2.1/SourceCodePro.zip
   unzip -o -d /Library/Fonts ${HOME}/SourceCodePro.zip SauceCodeProNerdFontMono-Regular.ttf
   rm ${HOME}/SourceCodePro.zip
 fi
@@ -408,12 +406,12 @@ fi
 # check for powerline-go
 if ! [[ -f /usr/local/bin/powerline-go ]]; then
   echo "Installing powerline-go..."
-  POWERLINE_GO_URL=$(wget -q -O - 'https://api.github.com/repos/justjanne/powerline-go/releases/latest' | jq -r ".assets[] | select(.name==\"powerline-go-darwin-$ARCH\").browser_download_url")
+  POWERLINE_GO_URL=$(curl -s -L 'https://api.github.com/repos/justjanne/powerline-go/releases/latest' | jq -r ".assets[] | select(.name==\"powerline-go-darwin-$ARCH\").browser_download_url")
   if [ -z "$POWERLINE_GO_URL" ]; then
     echo "Failed to determine the download URL for vault-token-helper"
     exit 1
   fi
-  wget -O "${TMPDIR}powerline-go" "$POWERLINE_GO_URL"
+  curl -L -o "${TMPDIR}powerline-go" "$POWERLINE_GO_URL"
   chmod +x "${TMPDIR}powerline-go"
   sudo mv "${TMPDIR}powerline-go" /usr/local/bin/
 fi

@@ -150,7 +150,7 @@ vimeo_encode() {
 3d_encode() {
   local input_path="$1"
   local output_path="$2"
-  nice -n 19 "${FFMPEG_PATH}" -y -i "${input_path}" -vf "stereo3d=sbsl:arbg, scale=-1:2160:flags=lanczos" -crf 18 -tune fastdecode -preset slow -c:v libx265 -pix_fmt yuv420p -tag:v hvc1 -profile:v main -level:v 5.1 -movflags +faststart -brand hev1 "${output_path}"
+  nice -n 19 "${FFMPEG_PATH}" -y -i "${input_path}" -vf "stereo3d=sbs2l:arcd, scale=-1:'min(2160,ih)', setsar=1:1" -tune fastdecode -c:v hevc_videotoolbox -q:v 50 -pix_fmt yuv420p -tag:v hvc1 -profile:v main -level:v 5.1 -movflags +faststart -brand hev1 "${output_path}"
 }
 
 hevc_encode() {
