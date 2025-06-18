@@ -9,7 +9,7 @@ alias tftaint='terraform taint -ignore-remote-version $(terraform state list | f
 alias tfyolo='terraform apply -auto-approve'
 alias tfnuke='terraform apply -destroy -auto-approve'
 alias tfrebuild='terraform apply -destroy -auto-approve && terraform apply -auto-approve'
-alias tfmods="jq -r '.Modules[] | select(.Version != null) | "\(.Key): \(.Version)"' .terraform/modules/modules.json"
+alias tfmods='jq -r ".Modules[] | select(.Version != null) | \"\(.Key): \(.Version)\"" .terraform/modules/modules.json'
 alias unsetvault="unset VAULT_ADDR; unset VAULT_NAMESPACE; unset VAULT_TOKEN"
 alias whatismyip="curl http://checkip.amazonaws.com"
 
