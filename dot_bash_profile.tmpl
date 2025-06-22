@@ -51,8 +51,17 @@ export LIMA_WORKINGDIR=${HOME}
 # bash completion for vault
 command -v vault &>/dev/null && complete -C vault vault
 
+# bash completion for packer
+command -v packer &>/dev/null && complete -C packer packer
+
+# bash completion for terraform
+command -v terraform &>/dev/null && complete -C terraform terraform
+
 # bash completion for 1password cli
 command -v op &>/dev/null && eval "$(op completion bash)"
+
+# bash completion for limactl
+command -v limactl &>/dev/null && source <(limactl completion bash)
 
 {{- if eq .chezmoi.os "darwin" -}}
 
