@@ -6,7 +6,10 @@ alias crtchk="openssl x509 -text -noout -dates -in"
 alias yolossh="ssh -o \"ControlPath ~/.ssh/controlmasters/%r@%h:%p\" -o \"ControlMaster auto\" -o \"ControlPersist 10m\" -o \"StrictHostKeyChecking no\" -o \"UserKnownHostsFile=/dev/null\""
 alias tfstate='terraform state show $(terraform state list | fzf)'
 alias tftaint='terraform taint -ignore-remote-version $(terraform state list | fzf)'
-alias tfyolo='terraform apply -destroy -auto-approve && terraform apply -auto-approve'
+alias tfyolo='terraform apply -auto-approve'
+alias tfnuke='terraform apply -destroy -auto-approve'
+alias tfrebuild='terraform apply -destroy -auto-approve && terraform apply -auto-approve'
+alias tfmods='jq -r ".Modules[] | select(.Version != null) | \"\(.Key): \(.Version)\"" .terraform/modules/modules.json'
 alias unsetvault="unset VAULT_ADDR; unset VAULT_NAMESPACE; unset VAULT_TOKEN"
 alias whatismyip="curl http://checkip.amazonaws.com"
 
