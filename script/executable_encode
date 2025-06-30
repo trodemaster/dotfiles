@@ -118,7 +118,7 @@ archive_encode() {
 archive_hardware_encode() {
   if [[ ${INPUT_PATH_TYPE} == 'dir' ]]; then
     get_info
-    nice -n 19 "${FFMPEG_PATH}" -y -r 60 -pattern_type glob -i "${INPUT_PATH}/*.$JPEG_EXT" -c:v hevc_videotoolbox -q:v 40 -tag:v hvc1 ${OUTPUT_PATH}
+    nice -n 19 "${FFMPEG_PATH}" -y -r 60 -pattern_type glob -i "${INPUT_PATH}/*.$JPEG_EXT" -c:v hevc_videotoolbox -q:v 40 -profile:v main -level:v 5.1 -pix_fmt yuv420p -movflags +faststart -tag:v hvc1 -brand hev1 ${OUTPUT_PATH}
   else
     echo "archive encode only works with source dir"
   fi
