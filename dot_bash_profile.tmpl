@@ -52,19 +52,19 @@ export LIMA_WORKINGDIR=${HOME}
 [[ -f "${HOME}/.fzf_completion.bash" ]] && source "${HOME}/.fzf_key-bindings.bash"
 
 # bash completion for vault
-command -v vault &>/dev/null && complete -C vault vault
+command -v vault &>/dev/null && complete -C vault vault 2>/dev/null || true
 
 # bash completion for packer
-command -v packer &>/dev/null && complete -C packer packer
+command -v packer &>/dev/null && complete -C packer packer 2>/dev/null || true
 
 # bash completion for terraform
-command -v terraform &>/dev/null && complete -C terraform terraform
+command -v terraform &>/dev/null && complete -C terraform terraform 2>/dev/null || true
 
 # bash completion for 1password cli
-command -v op &>/dev/null && eval "$(op completion bash)"
+command -v op &>/dev/null && eval "$(op completion bash)" 2>/dev/null || true
 
 # bash completion for limactl
-command -v limactl &>/dev/null && source <(limactl completion bash)
+command -v limactl &>/dev/null && source <(limactl completion bash 2>/dev/null) 2>/dev/null || true
 
 {{- if eq .chezmoi.os "darwin" -}}
 
@@ -112,8 +112,8 @@ if [ -f /opt/local/etc/profile.d/bash_completion.sh ]; then
   source /opt/local/etc/profile.d/bash_completion.sh
 fi
 
-# add bash autocomplete for vault
-[ -f /opt/local/bin/vault ] && complete -C /opt/local/bin/vault vault
+# add bash autocomplete for vault (macOS specific)
+[ -f /opt/local/bin/vault ] && complete -C /opt/local/bin/vault vault 2>/dev/null || true
 
 # disable shell warning
 export BASH_SILENCE_DEPRECATION_WARNING=1
@@ -146,7 +146,6 @@ SYSTEMD_EDITOR="/usr/bin/vi"
 BROWSER=false
 
 # aliases
-alias eaw="/bin/chmod +a \"user:$USER allow read,write,append,readattr,writeattr,readextattr,writeextattr,readsecurity\" "
 alias killssh="sed -i "/$1/d" ~/.ssh/known_hosts"
 alias eaw="sudo setfacl -m u:${USER}:rwx"
 
