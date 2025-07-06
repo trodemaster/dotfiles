@@ -66,13 +66,8 @@ command -v op &>/dev/null && eval "$(op completion bash)" 2>/dev/null || true
 # bash completion for limactl
 command -v limactl &>/dev/null && source <(limactl completion bash 2>/dev/null) 2>/dev/null || true
 
-# platform specific stuff
-
-
-{{- if eq .chezmoi.os "darwin" -}}
-
 ### macOS specific stuff ###
-
+{{- if eq .chezmoi.os "darwin" -}}
 # macOS aliases
 alias fullres="~/code/blakeconfig/fullres"
 alias preso="~/code/blakeconfig/preso"
