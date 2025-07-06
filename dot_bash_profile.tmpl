@@ -66,6 +66,7 @@ command -v op &>/dev/null && eval "$(op completion bash)" 2>/dev/null || true
 # bash completion for limactl
 command -v limactl &>/dev/null && source <(limactl completion bash 2>/dev/null) 2>/dev/null || true
 
+
 {{- if eq .chezmoi.os "darwin" -}}
 
 
