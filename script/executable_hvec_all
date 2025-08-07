@@ -19,10 +19,26 @@ fi
 
 echo "Processing directory: $DIRECTORY"
 
+# Array of file extensions to delete instead of process
+DELETE_EXTENSIONS=(".jpg" ".jpeg" ".png" ".gif" ".bmp" ".tiff" ".nfo" ".txt" ".srt" ".sub" ".idx" ".sup")
+
 # Function to process a single file
 process_file() {
     local FILEZ_ON_DISK="$1"
     echo "Checking file: $FILEZ_ON_DISK"
+    
+    # Get file extension (convert to lowercase for comparison)
+    FILE_EXTENSION=$(echo "${FILEZ_ON_DISK##*.}" | tr '[:upper:]' '[:lower:]')
+    FILE_EXTENSION=".${FILE_EXTENSION}"
+    
+    # Check if file extension is in the delete list
+    for ext in "${DELETE_EXTENSIONS[@]}"; do
+        if [[ "$FILE_EXTENSION" == "$ext" ]]; then
+            echo "Deleting file with unwanted extension: $FILEZ_ON_DISK"
+            rm "$FILEZ_ON_DISK"
+            return 0
+        fi
+    done
     
     # Get container format and video format using mediainfo
     FILE_FORMAT=$(/opt/local/bin/mediainfo --Inform="General;%Format%" "${FILEZ_ON_DISK}" 2>/dev/null)
@@ -66,8 +82,9 @@ process_file() {
     return 0
 }
 
-# Export the function so it can be used by find
+# Export the function and array so they can be used by find
 export -f process_file
+export DELETE_EXTENSIONS
 
 # Use find with -exec to process files
 find "$DIRECTORY" -type f ! -name ".DS_Store" -exec bash -c 'process_file "$0"' {} \;
