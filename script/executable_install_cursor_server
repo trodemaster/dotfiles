@@ -5,10 +5,26 @@
 
 set -e  # Exit on any error
 
-# Configuration - you may need to adjust these
-CURSOR_COMMIT="d750e54bba5cffada6d7b3d18e5688ba5e944ad0"  # Update this to match your local Cursor
-CURSOR_VERSION="1.6.27"
+# Configuration
 CURSOR_SERVER_DIR="$HOME/.cursor-server"
+
+# Auto-detect Cursor version and commit from local installation
+get_cursor_info() {
+    local cursor_app="/Applications/Cursor.app"
+    local product_json="$cursor_app/Contents/Resources/app/product.json"
+    
+    if [ ! -f "$product_json" ]; then
+        error "Cursor product.json not found at $product_json"
+    fi
+    
+    # Get version and commit from product.json
+    CURSOR_VERSION=$(grep '"version"' "$product_json" | sed 's/.*"version": "\([^"]*\)".*/\1/')
+    CURSOR_COMMIT=$(grep '"commit"' "$product_json" | sed 's/.*"commit": "\([^"]*\)".*/\1/')
+    
+    if [ -z "$CURSOR_VERSION" ] || [ -z "$CURSOR_COMMIT" ]; then
+        error "Failed to determine Cursor version or commit from product.json"
+    fi
+}
 
 # Colors for output
 RED='\033[0;31m'
@@ -66,30 +82,17 @@ download_server() {
     local platform="$1"
     local arch="$2"
     
-    # Try multiple download URLs
-    local urls=(
-        "https://cursor.blob.core.windows.net/cursor/stable-${CURSOR_COMMIT}/server-${platform}-${arch}.tar.gz"
-        "https://update.code.visualstudio.com/commit:${CURSOR_COMMIT}/server-${platform}-${arch}/stable"
-        "https://vscode.download.prss.microsoft.com/dbazure/download/stable/${CURSOR_COMMIT}/vscode-reh-${platform}-${arch}.tar.gz"
-    )
+    # Use the official Cursor serverDownloadUrlTemplate from product.json
+    local url="https://cursor.blob.core.windows.net/remote-releases/${CURSOR_COMMIT}/vscode-reh-${platform}-${arch}.tar.gz"
     
     local temp_dir=$(mktemp -d)
-    local downloaded=false
     
-    for url in "${urls[@]}"; do
-        log "Trying to download from: $url"
-        
-        if curl -L -f --progress-bar "$url" -o "$temp_dir/server.tar.gz"; then
-            log "Successfully downloaded from: $url"
-            downloaded=true
-            break
-        else
-            warn "Failed to download from: $url"
-        fi
-    done
+    log "Downloading from: $url"
     
-    if [ "$downloaded" = false ]; then
-        error "Failed to download server from any URL"
+    if curl -L -f --progress-bar "$url" -o "$temp_dir/server.tar.gz"; then
+        log "Successfully downloaded from: $url"
+    else
+        error "Failed to download server from: $url"
     fi
     
     # Extract to server directory
@@ -143,7 +146,11 @@ download_cli_binary() {
     
     local cli_urls=(
         "https://cursor.blob.core.windows.net/cursor/stable-${CURSOR_COMMIT}/cli-${platform}-${arch}.tar.gz"
-        "https://update.code.visualstudio.com/commit:${CURSOR_COMMIT}/cli-${platform}-${arch}/stable"
+        "https://cursor.blob.core.windows.net/cursor/${CURSOR_VERSION}-${CURSOR_COMMIT}/cli-${platform}-${arch}.tar.gz"
+        "https://cursor.blob.core.windows.net/cursor/stable/cli-${platform}-${arch}-${CURSOR_COMMIT}.tar.gz"
+        "https://download.cursor.com/stable/${CURSOR_COMMIT}/cli-${platform}-${arch}.tar.gz"
+        "https://cursor.blob.core.windows.net/cursor/cli-${platform}-${arch}-${CURSOR_COMMIT}.tar.gz"
+        "https://cursor.blob.core.windows.net/downloads/${CURSOR_VERSION}/cli-${platform}-${arch}.tar.gz"
     )
     
     local temp_dir=$(mktemp -d)
@@ -174,9 +181,13 @@ download_cli_binary() {
 # Main installation process
 main() {
     log "Starting Cursor server installation"
+    
+    # Auto-detect Cursor version and commit
+    get_cursor_info
+    
     log "Target directory: $CURSOR_SERVER_DIR"
-    log "Commit ID: $CURSOR_COMMIT"
-    log "Version: $CURSOR_VERSION"
+    log "Detected Cursor version: $CURSOR_VERSION"
+    log "Detected commit ID: $CURSOR_COMMIT"
     
     # Detect system info
     local platform=$(detect_platform)
