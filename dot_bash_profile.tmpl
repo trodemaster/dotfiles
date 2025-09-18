@@ -12,6 +12,7 @@ alias tfrebuild='terraform apply -destroy -auto-approve && terraform apply -auto
 alias tfmods='jq -r ".Modules[] | select(.Version != null) | \"\(.Key): \(.Version)\"" .terraform/modules/modules.json'
 alias unsetvault="unset VAULT_ADDR; unset VAULT_NAMESPACE; unset VAULT_TOKEN"
 alias whatismyip="curl http://checkip.amazonaws.com"
+alias ssh-close='ssh -O exit'
 
 # conditional aliases
 if command -v eza &>/dev/null; then
