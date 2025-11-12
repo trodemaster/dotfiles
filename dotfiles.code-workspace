@@ -5,6 +5,9 @@
 		},
 		{
 			"path": "../machine-cfg"
+		},
+		{
+			"path": "../technotes"
 		}
 	],
 	"settings": {}
