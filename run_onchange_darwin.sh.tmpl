@@ -405,13 +405,16 @@ if id macports &>/dev/null; then
   }
   
   # Set read access on blake directory (no inheritance)
-  set_acl_idempotent {{ .chezmoi.homeDir }} "user:macports allow read,readattr,readextattr,readsecurity"
+  # Include 'list' for directory traversal
+  set_acl_idempotent {{ .chezmoi.homeDir }} "user:macports allow list,read,readattr,readextattr,readsecurity"
   
   # Set read access on code directory (no inheritance)
-  set_acl_idempotent {{ (joinPath .chezmoi.homeDir "code") }} "user:macports allow read,readattr,readextattr,readsecurity"
+  # Include 'list' for directory traversal
+  set_acl_idempotent {{ (joinPath .chezmoi.homeDir "code") }} "user:macports allow list,read,readattr,readextattr,readsecurity"
   
   # Set read access on blakeports directory (with inheritance)
-  set_acl_idempotent {{ (joinPath .chezmoi.homeDir "code/blakeports") }} "user:macports allow read,readattr,readextattr,readsecurity,file_inherit,directory_inherit"
+  # Include 'list' for directory listing capability
+  set_acl_idempotent {{ (joinPath .chezmoi.homeDir "code/blakeports") }} "user:macports allow list,read,readattr,readextattr,readsecurity,file_inherit,directory_inherit"
 fi
 
 # use macports chezmoi if it exists
