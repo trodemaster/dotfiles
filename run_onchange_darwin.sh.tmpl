@@ -386,14 +386,13 @@ if id macports &>/dev/null; then
     local acl_entry="$2"
     
     if [[ -d "$path" ]]; then
-      # Get all ACL entries for macports user and remove them by index (in reverse order)
-      # This avoids index shifting issues when removing multiple entries
+      # Get all ACL entries for macports user using awk for precise parsing
+      # ls -led outputs ACL entries as "index: user:macports ..."
+      # Extract indices in reverse order to avoid index shifting when removing
       local indices=()
-      while IFS= read -r line; do
-        if [[ "$line" =~ ^([0-9]+):.*user:macports ]]; then
-          indices+=("${BASH_REMATCH[1]}")
-        fi
-      done < <(/bin/ls -led "$path" 2>/dev/null)
+      while IFS= read -r index; do
+        [[ -n "$index" ]] && indices+=("$index")
+      done < <(/bin/ls -led "$path" 2>/dev/null | /usr/bin/awk '/^[[:space:]]*[0-9]+:.*user:macports/ { sub(/^[[:space:]]*/, ""); split($0, parts, ":"); if (parts[1] ~ /^[0-9]+$/) print parts[1] }')
       
       # Remove indices in reverse order to avoid shifting
       for (( i=${#indices[@]}-1; i>=0; i-- )); do
