@@ -405,16 +405,16 @@ if id macports &>/dev/null; then
   }
   
   # Set read access on blake directory (no inheritance)
-  # Include 'list' for directory traversal
-  set_acl_idempotent {{ .chezmoi.homeDir }} "user:macports allow list,read,readattr,readextattr,readsecurity"
+  # Include 'list' and 'search' for directory traversal
+  set_acl_idempotent {{ .chezmoi.homeDir }} "user:macports allow list,search,readattr,readextattr,readsecurity"
   
   # Set read access on code directory (no inheritance)
-  # Include 'list' for directory traversal
-  set_acl_idempotent {{ (joinPath .chezmoi.homeDir "code") }} "user:macports allow list,read,readattr,readextattr,readsecurity"
+  # Include 'list' and 'search' for directory traversal
+  set_acl_idempotent {{ (joinPath .chezmoi.homeDir "code") }} "user:macports allow list,search,readattr,readextattr,readsecurity"
   
   # Set read access on blakeports directory (with inheritance)
-  # Include 'list' for directory listing capability
-  set_acl_idempotent {{ (joinPath .chezmoi.homeDir "code/blakeports") }} "user:macports allow list,read,readattr,readextattr,readsecurity,file_inherit,directory_inherit"
+  # Include 'list' and 'search' for directory listing and traversal capability
+  set_acl_idempotent {{ (joinPath .chezmoi.homeDir "code/blakeports") }} "user:macports allow list,search,readattr,readextattr,readsecurity,file_inherit,directory_inherit"
   
   # Apply ACL recursively to all existing files and directories in blakeports
   # Inheritance only applies to new files, so we need to explicitly set ACLs on existing ones
@@ -422,9 +422,9 @@ if id macports &>/dev/null; then
   BLAKEPORTS_DIR="{{ (joinPath .chezmoi.homeDir "code/blakeports") }}"
   if [[ -d "$BLAKEPORTS_DIR" ]]; then
     echo "Applying ACL recursively to existing files and directories in $BLAKEPORTS_DIR..."
-    # Apply to directories: include list and inheritance flags (handle filenames with spaces)
+    # Apply to directories: include list, search and inheritance flags (handle filenames with spaces)
     find "$BLAKEPORTS_DIR" -type d -print0 | while IFS= read -r -d '' dir; do
-      set_acl_idempotent "$dir" "user:macports allow list,read,readattr,readextattr,readsecurity,file_inherit,directory_inherit"
+      set_acl_idempotent "$dir" "user:macports allow list,search,readattr,readextattr,readsecurity,file_inherit,directory_inherit"
     done
     # Apply to files: read-only, no list or inheritance needed (handle filenames with spaces)
     find "$BLAKEPORTS_DIR" -type f -print0 | while IFS= read -r -d '' file; do
