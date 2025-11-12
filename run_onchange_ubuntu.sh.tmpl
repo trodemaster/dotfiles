@@ -26,7 +26,19 @@ fi
 # add hashicorp repo
 if ! [[ -f /etc/apt/sources.list.d/hashicorp.list ]]; then
   echo "Adding Hashicorp repo..."
-  echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+  
+  CURRENT_RELEASE=$(lsb_release -cs)
+  
+  # Check if current release is available in Hashicorp repo
+  if curl -s -o /dev/null -w "%{http_code}" "https://apt.releases.hashicorp.com/dists/${CURRENT_RELEASE}/Release" | grep -q "200"; then
+    SELECTED_RELEASE="$CURRENT_RELEASE"
+  else
+    # Use oracular (25.04) as fallback since we know it exists
+    SELECTED_RELEASE="oracular"
+    echo "Current release $CURRENT_RELEASE not available, using: oracular"
+  fi
+  
+  echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com ${SELECTED_RELEASE} main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
   sudo chmod 644 /etc/apt/sources.list.d/hashicorp.list
 fi
 
