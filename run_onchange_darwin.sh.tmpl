@@ -378,21 +378,41 @@ if [[ -e /opt/local/bin/bash ]]; then
 fi
 
 # set ACL permissions for macports user on blake directory, code directory and blakeports subdirectory (read-only)
+# This is idempotent: removes existing macports ACLs before adding the correct one
 if id macports &>/dev/null; then
+  # Helper function to set ACL idempotently
+  set_acl_idempotent() {
+    local path="$1"
+    local acl_entry="$2"
+    
+    if [[ -d "$path" ]]; then
+      # Get all ACL entries for macports user and remove them by index (in reverse order)
+      # This avoids index shifting issues when removing multiple entries
+      local indices=()
+      while IFS= read -r line; do
+        if [[ "$line" =~ ^([0-9]+):.*user:macports ]]; then
+          indices+=("${BASH_REMATCH[1]}")
+        fi
+      done < <(/bin/ls -led "$path" 2>/dev/null)
+      
+      # Remove indices in reverse order to avoid shifting
+      for (( i=${#indices[@]}-1; i>=0; i-- )); do
+        sudo /bin/chmod -a# "${indices[$i]}" "$path" 2>/dev/null
+      done
+      
+      # Add the correct ACL entry
+      sudo /bin/chmod +a "$acl_entry" "$path"
+    fi
+  }
+  
   # Set read access on blake directory (no inheritance)
-  if [[ -d "/Users/blake" ]]; then
-    sudo /bin/chmod +a "user:macports allow read,readattr,readextattr,readsecurity" {{ .chezmoi.homeDir }}
-  fi
+  set_acl_idempotent {{ .chezmoi.homeDir }} "user:macports allow read,readattr,readextattr,readsecurity"
   
   # Set read access on code directory (no inheritance)
-  if [[ -d "/Users/blake/code" ]]; then
-    sudo /bin/chmod +a "user:macports allow read,readattr,readextattr,readsecurity" {{ (joinPath .chezmoi.homeDir "code") }}
-  fi
+  set_acl_idempotent {{ (joinPath .chezmoi.homeDir "code") }} "user:macports allow read,readattr,readextattr,readsecurity"
   
   # Set read access on blakeports directory (with inheritance)
-  if [[ -d "/Users/blake/code/blakeports" ]]; then
-    sudo /bin/chmod +a "user:macports allow read,readattr,readextattr,readsecurity,file_inherit,directory_inherit" {{ (joinPath .chezmoi.homeDir "code/blakeports") }}
-  fi
+  set_acl_idempotent {{ (joinPath .chezmoi.homeDir "code/blakeports") }} "user:macports allow read,readattr,readextattr,readsecurity,file_inherit,directory_inherit"
 fi
 
 # use macports chezmoi if it exists
