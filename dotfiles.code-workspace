@@ -8,6 +8,9 @@
 		},
 		{
 			"path": "../technotes"
+		},
+		{
+			"path": "../lima"
 		}
 	],
 	"settings": {}
