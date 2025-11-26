@@ -377,6 +377,62 @@ if [[ -e /opt/local/bin/bash ]]; then
   sudo chsh -s /opt/local/bin/bash $USER
 fi
 
+# set ACL permissions for macports user on blake directory, code directory and blakeports subdirectory (read-only)
+# This is idempotent: removes existing macports ACLs before adding the correct one
+if id macports &>/dev/null; then
+  # Helper function to set ACL idempotently (works for both files and directories)
+  set_acl_idempotent() {
+    local path="$1"
+    local acl_entry="$2"
+    
+    if [[ -e "$path" ]]; then
+      # Get all ACL entries for macports user using awk for precise parsing
+      # ls -led outputs ACL entries as "index: user:macports ..."
+      # Extract indices in reverse order to avoid index shifting when removing
+      local indices=()
+      while IFS= read -r index; do
+        [[ -n "$index" ]] && indices+=("$index")
+      done < <(/bin/ls -led "$path" 2>/dev/null | /usr/bin/awk '/^[[:space:]]*[0-9]+:.*user:macports/ { sub(/^[[:space:]]*/, ""); split($0, parts, ":"); if (parts[1] ~ /^[0-9]+$/) print parts[1] }')
+      
+      # Remove indices in reverse order to avoid shifting
+      for (( i=${#indices[@]}-1; i>=0; i-- )); do
+        sudo /bin/chmod -a# "${indices[$i]}" "$path" 2>/dev/null
+      done
+      
+      # Add the correct ACL entry
+      sudo /bin/chmod +a "$acl_entry" "$path"
+    fi
+  }
+  
+  # Set read access on blake directory (no inheritance)
+  # Include 'list' and 'search' for directory traversal
+  set_acl_idempotent {{ .chezmoi.homeDir }} "user:macports allow list,search,readattr,readextattr,readsecurity"
+  
+  # Set read access on code directory (no inheritance)
+  # Include 'list' and 'search' for directory traversal
+  set_acl_idempotent {{ (joinPath .chezmoi.homeDir "code") }} "user:macports allow list,search,readattr,readextattr,readsecurity"
+  
+  # Set read access on blakeports directory (with inheritance)
+  # Include 'list' and 'search' for directory listing and traversal capability
+  set_acl_idempotent {{ (joinPath .chezmoi.homeDir "code/blakeports") }} "user:macports allow list,search,readattr,readextattr,readsecurity,file_inherit,directory_inherit"
+  
+  # Apply ACL recursively to all existing files and directories in blakeports
+  # Inheritance only applies to new files, so we need to explicitly set ACLs on existing ones
+  # This uses the idempotent function to avoid duplicate ACL entries
+  BLAKEPORTS_DIR="{{ (joinPath .chezmoi.homeDir "code/blakeports") }}"
+  if [[ -d "$BLAKEPORTS_DIR" ]]; then
+    echo "Applying ACL recursively to existing files and directories in $BLAKEPORTS_DIR..."
+    # Apply to directories: include list, search and inheritance flags (handle filenames with spaces)
+    find "$BLAKEPORTS_DIR" -type d -print0 | while IFS= read -r -d '' dir; do
+      set_acl_idempotent "$dir" "user:macports allow list,search,readattr,readextattr,readsecurity,file_inherit,directory_inherit"
+    done
+    # Apply to files: read-only, no list or inheritance needed (handle filenames with spaces)
+    find "$BLAKEPORTS_DIR" -type f -print0 | while IFS= read -r -d '' file; do
+      set_acl_idempotent "$file" "user:macports allow read,readattr,readextattr,readsecurity"
+    done
+  fi
+fi
+
 # use macports chezmoi if it exists
 if [[ -e /opt/local/bin/chezmoi ]]; then
   if [[ -e ~/bin/chezmoi ]]; then

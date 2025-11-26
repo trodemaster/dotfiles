@@ -5,6 +5,12 @@
 		},
 		{
 			"path": "../machine-cfg"
+		},
+		{
+			"path": "../technotes"
+		},
+		{
+			"path": "../lima"
 		}
 	],
 	"settings": {}
