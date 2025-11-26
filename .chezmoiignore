@@ -1,5 +1,6 @@
 README.md
 notes.txt
+dotfiles.code-workspace
 
 # ignore these files on linux
 {{- if eq .chezmoi.os "linux" }}
