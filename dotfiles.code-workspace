@@ -11,6 +11,9 @@
 		},
 		{
 			"path": "../lima"
+		},
+		{
+			"path": "../macsl"
 		}
 	],
 	"settings": {}

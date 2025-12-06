@@ -15,11 +15,6 @@ sudo apt update
 # Install zeroconf packages
 sudo apt install -y avahi-daemon avahi-utils libnss-mdns
 
-# config avahi to publish on IPv6
-sudo sed -i 's/use-ipv4=yes/use-ipv4=no/g' /etc/avahi/avahi-daemon.conf
-sudo sed -i 's/#publish-addresses=yes/publish-addresses=yes/g' /etc/avahi/avahi-daemon.conf
-sudo sed -i 's/#publish-a-on-ipv6=no/publish-a-on-ipv6=yes/g' /etc/avahi/avahi-daemon.conf
-
 # enable and start zeroconf
 sudo systemctl enable avahi-daemon
 sudo systemctl start avahi-daemon
