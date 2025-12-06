@@ -7,7 +7,7 @@ shopt -s nullglob nocaseglob
 ! [ "${BASH_VERSINFO:-0}" -ge 4 ] && echo "This script requires bash v4 or later" && exit 1
 
 # set macports python version
-PYTHON3VERSION="3.12"
+PYTHON3VERSION="3.13"
 PYTHON3VERSION_MPORTS=$(tr -d '.' <<<$PYTHON3VERSION)
 
 # macports packages to install
