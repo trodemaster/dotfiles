@@ -71,9 +71,6 @@ command -v limactl &>/dev/null && source <(limactl completion bash 2>/dev/null) 
 {{- if eq .chezmoi.os "darwin" -}}
 
 # macOS aliases
-alias fullres="~/code/blakeconfig/fullres"
-alias preso="~/code/blakeconfig/preso"
-alias remote="~/code/blakeconfig/mirrorscreen"
 alias wd="~/code/weatherdesktop/wd"
 alias lsusb="ioreg -p IOUSB"
 alias eaw="sudo /bin/chmod +a \"user:$USER allow read,write,append,readattr,writeattr,readextattr,writeextattr,readsecurity\" "
@@ -116,7 +113,7 @@ fi
 
 # disable shell warning
 export BASH_SILENCE_DEPRECATION_WARNING=1
-export PATH="/opt/local/bin:/usr/local/bin:/usr/bin:/bin:/opt/local/sbin:/usr/local/sbin:/usr/sbin:/sbin:/usr/local/go/bin:{{ .chezmoi.homeDir }}/code/go/bin:{{ .chezmoi.homeDir }}/Library/Python/{{ .python_vers }}/bin:{{ .chezmoi.homeDir }}/script:{{ .chezmoi.homeDir }}/code/machine-cfg/scripts:{{ .chezmoi.homeDir }}/.local/bin:{{ .chezmoi.homeDir }}/script:$PATH"
+export PATH="/opt/local/bin:/usr/local/bin:/usr/bin:/bin:/opt/local/sbin:/usr/local/sbin:/usr/sbin:/sbin:/usr/local/go/bin:{{ .chezmoi.homeDir }}/code/go/bin:{{ .chezmoi.homeDir }}/Library/Python/{{ .python_vers }}/bin:{{ .chezmoi.homeDir }}/script:{{ .chezmoi.homeDir }}/Developer/machine-cfg/scripts:{{ .chezmoi.homeDir }}/.local/bin:{{ .chezmoi.homeDir }}/script:$PATH"
 
 # go vars
 export GOPATH={{ .chezmoi.homeDir }}/code/go
@@ -183,13 +180,13 @@ if command -v direnv &>/dev/null; then
   eval "$(direnv hook bash)"
 fi
 
-{{ if (stat (joinPath .chezmoi.homeDir "code/machine-cfg/bash_profile")) }}
-# Hash for {{(joinPath .chezmoi.homeDir "code/machine-cfg/bash_profile")}} {{ include (joinPath .chezmoi.homeDir "code/machine-cfg/bash_profile") | sha256sum }}
-# Added content from {{(joinPath .chezmoi.homeDir "code/machine-cfg/bash_profile")}}
-{{ include (joinPath .chezmoi.homeDir "code/machine-cfg/bash_profile") }}
+{{ if (stat (joinPath .chezmoi.homeDir "Developer/machine-cfg/bash_profile")) }}
+# Hash for {{(joinPath .chezmoi.homeDir "Developer/machine-cfg/bash_profile")}} {{ include (joinPath .chezmoi.homeDir "Developer/machine-cfg/bash_profile") | sha256sum }}
+# Added content from {{(joinPath .chezmoi.homeDir "Developer/machine-cfg/bash_profile")}}
+{{ include (joinPath .chezmoi.homeDir "Developer/machine-cfg/bash_profile") }}
 {{ end }}
-{{ if (stat (joinPath .chezmoi.homeDir "code/machine-cfg/" .chezmoi.hostname "/bash_profile")) }}
-# Hash for {{(joinPath .chezmoi.homeDir "code/machine-cfg/" .chezmoi.hostname "/bash_profile")}} {{ include (joinPath .chezmoi.homeDir "code/machine-cfg/" .chezmoi.hostname "/bash_profile") | sha256sum }}
-# Added content from {{(joinPath .chezmoi.homeDir "code/machine-cfg/" .chezmoi.hostname "/bash_profile") }}
-{{ include (joinPath .chezmoi.homeDir "code/machine-cfg/" .chezmoi.hostname "/bash_profile") }}
+{{ if (stat (joinPath .chezmoi.homeDir "Developer/machine-cfg/" .chezmoi.hostname "/bash_profile")) }}
+# Hash for {{(joinPath .chezmoi.homeDir "Developer/machine-cfg/" .chezmoi.hostname "/bash_profile")}} {{ include (joinPath .chezmoi.homeDir "Developer/machine-cfg/" .chezmoi.hostname "/bash_profile") | sha256sum }}
+# Added content from {{(joinPath .chezmoi.homeDir "Developer/machine-cfg/" .chezmoi.hostname "/bash_profile") }}
+{{ include (joinPath .chezmoi.homeDir "Developer/machine-cfg/" .chezmoi.hostname "/bash_profile") }}
 {{ end }}

@@ -1,6 +1,19 @@
+{{- $python_vers := "3.13" -}}
+{{- $python_binary := "" -}}
+{{- if stat "/opt/local/bin/python3" -}}
+{{-   $python_binary = "/opt/local/bin/python3" -}}
+{{- else if stat "/usr/bin/python3" -}}
+{{-   $python_binary = "/usr/bin/python3" -}}
+{{- end -}}
+{{- if $python_binary -}}
+{{-   $raw := output $python_binary "--version" | trim -}}
+{{-   $python_vers = regexReplaceAll "Python (\\d+\\.\\d+).*" $raw "${1}" -}}
+{{- end -}}
+{{- $python_vers_ports := replace "." "" $python_vers -}}
+
 [data]
-    python_vers_ports = "313"
-    python_vers = "3.13"
+    python_vers_ports = "{{ $python_vers_ports }}"
+    python_vers = "{{ $python_vers }}"
 
 [scriptEnv]
 
