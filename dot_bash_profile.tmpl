@@ -113,10 +113,15 @@ fi
 
 # disable shell warning
 export BASH_SILENCE_DEPRECATION_WARNING=1
-export PATH="/opt/local/bin:/usr/local/bin:/usr/bin:/bin:/opt/local/sbin:/usr/local/sbin:/usr/sbin:/sbin:/usr/local/go/bin:{{ .chezmoi.homeDir }}/code/go/bin:{{ .chezmoi.homeDir }}/Library/Python/{{ .python_vers }}/bin:{{ .chezmoi.homeDir }}/script:{{ .chezmoi.homeDir }}/Developer/machine-cfg/scripts:{{ .chezmoi.homeDir }}/.local/bin:{{ .chezmoi.homeDir }}/script:$PATH"
+{{- $python_vers := "3.13" -}}
+{{- if stat "/opt/local/bin/python3" -}}
+{{-   $raw := output "/opt/local/bin/python3" "--version" | trim -}}
+{{-   $python_vers = regexReplaceAll "Python (\\d+\\.\\d+).*" $raw "${1}" -}}
+{{- end -}}
+export PATH="/opt/local/bin:/usr/local/bin:/usr/bin:/bin:/opt/local/sbin:/usr/local/sbin:/usr/sbin:/sbin:/usr/local/go/bin:{{ .chezmoi.homeDir }}/Developer/go/bin:{{ .chezmoi.homeDir }}/Library/Python/{{ $python_vers }}/bin:{{ .chezmoi.homeDir }}/.local/bin:{{ .chezmoi.homeDir }}/script:{{ .chezmoi.homeDir }}/Developer/machine-cfg/scripts:{{ .chezmoi.homeDir }}/Developer/machine-cfg/{{ .chezmoi.hostname }}/scripts:$PATH"
 
 # go vars
-export GOPATH={{ .chezmoi.homeDir }}/code/go
+export GOPATH={{ .chezmoi.homeDir }}/Developer/go
 
 # configure secretive ssh
 if [ -f ${HOME}/Library/Containers/com.maxgoedjen.Secretive.SecretAgent ]; then
