@@ -1,0 +1,17 @@
+theme = Nocturnal Winter
+font-family = SauceCodeProNerdFontMono-Regular
+{{- if eq .chezmoi.os "darwin" }}
+font-size = 18
+{{- else if .isDesktop }}
+font-size = 14
+{{- else }}
+font-size = 14
+{{- end }}
+
+
+## command reference
+# ghostty +reload_config
+# ghostty +show-config --default --docs
+
+## docs
+# https://github.com/ghostty-org/ghostty?tab=readme-ov-file#configuration

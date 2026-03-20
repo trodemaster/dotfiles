@@ -10,10 +10,15 @@
 {{-   $python_vers = regexReplaceAll "Python (\\d+\\.\\d+).*" $raw "${1}" -}}
 {{- end -}}
 {{- $python_vers_ports := replace "." "" $python_vers -}}
+{{- $isDesktop := false -}}
+{{- if stat "/usr/bin/gnome-session" -}}
+{{-   $isDesktop = true -}}
+{{- end -}}
 
 [data]
     python_vers_ports = "{{ $python_vers_ports }}"
     python_vers = "{{ $python_vers }}"
+    isDesktop = {{ $isDesktop }}
 
 [scriptEnv]
 
