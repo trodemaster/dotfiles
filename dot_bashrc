@@ -1,0 +1,19 @@
+# ~/.bashrc: executed by bash(1) for non-login interactive shells.
+
+# If not running interactively, don't do anything
+case $- in
+    *i*) ;;
+      *) return;;
+esac
+
+# Ubuntu system bash completion
+if ! shopt -oq posix; then
+  if [ -f /usr/share/bash-completion/bash_completion ]; then
+    . /usr/share/bash-completion/bash_completion
+  elif [ -f /etc/bash_completion ]; then
+    . /etc/bash_completion
+  fi
+fi
+
+# Source .bash_profile so non-login shells (desktop terminals) get the same config
+[[ -f "${HOME}/.bash_profile" ]] && source "${HOME}/.bash_profile"
