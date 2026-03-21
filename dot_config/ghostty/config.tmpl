@@ -2,7 +2,7 @@ theme = Nocturnal Winter
 font-family = SauceCodeProNerdFontMono-Regular
 {{- if eq .chezmoi.os "darwin" }}
 font-size = 18
-{{- else if .isDesktop }}
+{{- else if (index . "isDesktop") }}
 font-size = 14
 {{- else }}
 font-size = 14
