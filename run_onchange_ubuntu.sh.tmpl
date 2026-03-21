@@ -126,6 +126,20 @@ if ! [[ -f /usr/local/bin/powerline-go ]]; then
   sudo mv "${TMPDIR}/powerline-go" /usr/local/bin/
 fi
 
+{{ if .isDesktop }}
+# install chezmoi from github release .deb (puts chezmoi in /usr/bin, standard PATH)
+if ! dpkg -s chezmoi &>/dev/null; then
+  echo "Installing chezmoi..."
+  CHEZMOI_VERSION=$(curl -s https://api.github.com/repos/twpayne/chezmoi/releases/latest | grep -oP '"tag_name": "\K(.*)(?=")')
+  CHEZMOI_FILENAME="chezmoi_${CHEZMOI_VERSION//v/}_linux_${ARCH}.deb"
+  CHEZMOI_DOWNLOAD_URL="https://github.com/twpayne/chezmoi/releases/download/${CHEZMOI_VERSION}/${CHEZMOI_FILENAME}"
+  echo "Downloading chezmoi ${CHEZMOI_VERSION}..."
+  wget -q -O "${TMPDIR}/chezmoi.deb" "$CHEZMOI_DOWNLOAD_URL"
+  sudo dpkg -i "${TMPDIR}/chezmoi.deb"
+  rm "${TMPDIR}/chezmoi.deb"
+fi
+{{ end }}
+
 # install fastfetch
 if ! [[ -f /usr/bin/fastfetch ]]; then
   echo "Installing fastfetch..."
