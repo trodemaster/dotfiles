@@ -1,0 +1,23 @@
+# chezmoi managed file
+
+# Base MCP servers shared across machines.
+[mcp_servers.filesystem]
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-filesystem", "{{ .chezmoi.homeDir }}"]
+
+{{- if env "GITHUB_PERSONAL_ACCESS_TOKEN" }}
+[mcp_servers.github]
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-github"]
+env = { GITHUB_PERSONAL_ACCESS_TOKEN = "{{ env "GITHUB_PERSONAL_ACCESS_TOKEN" }}" }
+{{- end }}
+
+# Optional machine-cfg overlays:
+# - {{ .chezmoi.homeDir }}/code/machine-cfg/codex/config.toml
+# - {{ .chezmoi.homeDir }}/code/machine-cfg/{{ .chezmoi.hostname }}/codex/config.toml
+{{ if (stat (joinPath .chezmoi.homeDir "code/machine-cfg/codex/config.toml")) }}
+{{ include (joinPath .chezmoi.homeDir "code/machine-cfg/codex/config.toml") }}
+{{ end }}
+{{ if (stat (joinPath .chezmoi.homeDir "code/machine-cfg/" .chezmoi.hostname "/codex/config.toml")) }}
+{{ include (joinPath .chezmoi.homeDir "code/machine-cfg/" .chezmoi.hostname "/codex/config.toml") }}
+{{ end }}
