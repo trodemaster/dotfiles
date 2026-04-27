@@ -9,6 +9,26 @@ font-size = 14
 {{- end }}
 
 
+## claude code optimizations
+# https://code.claude.com/docs/en/terminal-config
+
+# enable option key as alt for claude shortcuts (option+enter=newline, option+p=model switch)
+{{- if eq .chezmoi.os "darwin" }}
+macos-option-as-alt = true
+{{- end }}
+
+# progress bars via ConEmu OSC 9;4 (default: true, explicit for clarity)
+progress-style = true
+
+# larger scrollback for long claude sessions (10MB vs default ~1MB)
+scrollback-limit = 10000000
+
+# smoother scrolling: finer precision-device steps, snappier discrete wheel
+mouse-scroll-multiplier = precision:0.5,discrete:5
+
+# enhanced shell integration: ssh-env for remote claude sessions
+shell-integration-features = cursor,title,sudo,ssh-env,ssh-terminfo
+
 ## command reference
 # ghostty +reload_config
 # ghostty +show-config --default --docs
