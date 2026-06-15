@@ -33,7 +33,7 @@ MACOS_VERSION_NAME=$(awk '/SOFTWARE LICENSE AGREEMENT FOR macOS/' '/System/Libra
 if ! command -v /opt/local/bin/port &>/dev/null; then
   echo "Installing macports..."
   MACOS_VERSION=$(sw_vers -productVersion | cut -f 1 -d .)
-  if [[ $MACOS_VERSION -ge 16 ]]; then
+  if [[ $MACOS_VERSION -ge 27 ]]; then
     cd
     echo "macOS version $MACOS_VERSION is not supported by macports installer"
     echo "Attempting install from source..."
