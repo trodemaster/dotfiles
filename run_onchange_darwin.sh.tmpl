@@ -2,14 +2,17 @@
 
 {{ if eq .chezmoi.os "darwin" }}
 
-# GitHub API helper: uses GITHUB_TOKEN or gh auth token for authenticated requests (higher rate limits)
+# GitHub API helper: tries unauthenticated first, falls back to gh auth token on rate limit
 github_api() {
-  local token="${GITHUB_TOKEN:-$(gh auth token 2>/dev/null)}"
-  if [[ -n "$token" ]]; then
-    curl -s -H "Authorization: token $token" "$@"
-  else
-    curl -s "$@"
+  local response
+  response=$(curl -s "$@")
+  if echo "$response" | grep -q "API rate limit exceeded"; then
+    local token="${GITHUB_TOKEN:-$(gh auth token 2>/dev/null)}"
+    if [[ -n "$token" ]]; then
+      response=$(curl -s -H "Authorization: token $token" "$@")
+    fi
   fi
+  echo "$response"
 }
 
 # configure sudoers
