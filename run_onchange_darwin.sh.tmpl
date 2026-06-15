@@ -464,7 +464,7 @@ if ! [[ -f /usr/local/bin/powerline-go ]]; then
   echo "Installing powerline-go..."
   POWERLINE_GO_URL=$(curl -s -L 'https://api.github.com/repos/justjanne/powerline-go/releases/latest' | jq -r ".assets[] | select(.name==\"powerline-go-darwin-$ARCH\").browser_download_url")
   if [ -z "$POWERLINE_GO_URL" ]; then
-    echo "Failed to determine the download URL for vault-token-helper"
+    echo "Failed to determine the download URL for powerline-go"
     exit 1
   fi
   curl -L -o "${TMPDIR}powerline-go" "$POWERLINE_GO_URL"
