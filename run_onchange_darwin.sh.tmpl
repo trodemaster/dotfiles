@@ -2,6 +2,15 @@
 
 {{ if eq .chezmoi.os "darwin" }}
 
+# GitHub API helper: uses GITHUB_TOKEN if available for authenticated requests (higher rate limits)
+github_api() {
+  if [[ -n "$GITHUB_TOKEN" ]]; then
+    curl -s -H "Authorization: token $GITHUB_TOKEN" "$@"
+  else
+    curl -s "$@"
+  fi
+}
+
 # configure sudoers
 if ! [[ -f /etc/sudoers.d/admin ]]; then
   echo "Adding admin group to sudoers..."
@@ -22,7 +31,7 @@ ARCH=${ARCH/x86_64/amd64}
 ARCH=${ARCH/aarch64/arm64}
 
 # get latest release version from github for macports
-PORT_LATEST_RELEASE=$(curl -s https://api.github.com/repos/macports/macports-base/releases/latest | grep tag_name | cut -d '"' -f 4)
+PORT_LATEST_RELEASE=$(github_api https://api.github.com/repos/macports/macports-base/releases/latest | grep tag_name | cut -d '"' -f 4)
 PORT_LATEST_RELEASE_NUMBER=${PORT_LATEST_RELEASE#v}
 
 # get macOS operating system version long name including california parks using system_profiler
@@ -443,7 +452,7 @@ fi
 # install cliclick from github
 if ! [[ -f /usr/local/bin/cliclick ]]; then
   echo "Installing cliclick..."
-  CLICLICK_RELEASE=$(curl -s https://api.github.com/repos/BlueM/cliclick/releases/latest | grep tag_name | cut -d '"' -f 4)
+  CLICLICK_RELEASE=$(github_api https://api.github.com/repos/BlueM/cliclick/releases/latest | grep tag_name | cut -d '"' -f 4)
   CLICLICK_RELEASE_NUMBER=${CLICLICK_RELEASE#v}
   CLICLICK_URL="https://github.com/BlueM/cliclick/releases/download/${CLICLICK_RELEASE_NUMBER}/cliclick.zip"
   echo "Downloading latest version of cliclick ${CLICLICK_URL}..."
@@ -462,14 +471,14 @@ fi
 # check for powerline-go
 if ! [[ -f /usr/local/bin/powerline-go ]]; then
   echo "Installing powerline-go..."
-  POWERLINE_GO_URL=$(curl -s -L 'https://api.github.com/repos/justjanne/powerline-go/releases/latest' | jq -r ".assets[] | select(.name==\"powerline-go-darwin-$ARCH\").browser_download_url")
+  POWERLINE_GO_URL=$(github_api 'https://api.github.com/repos/justjanne/powerline-go/releases/latest' | jq -r ".assets[] | select(.name==\"powerline-go-darwin-$ARCH\").browser_download_url")
   if [ -z "$POWERLINE_GO_URL" ]; then
-    echo "Failed to determine the download URL for powerline-go"
-    exit 1
+    echo "Warning: could not determine powerline-go download URL (GitHub API rate limit?), skipping"
+  else
+    curl -L -o "${TMPDIR}powerline-go" "$POWERLINE_GO_URL"
+    chmod +x "${TMPDIR}powerline-go"
+    sudo mv "${TMPDIR}powerline-go" /usr/local/bin/
   fi
-  curl -L -o "${TMPDIR}powerline-go" "$POWERLINE_GO_URL"
-  chmod +x "${TMPDIR}powerline-go"
-  sudo mv "${TMPDIR}powerline-go" /usr/local/bin/
 fi
 
 {{ end }}
