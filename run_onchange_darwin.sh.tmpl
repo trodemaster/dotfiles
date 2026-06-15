@@ -2,10 +2,11 @@
 
 {{ if eq .chezmoi.os "darwin" }}
 
-# GitHub API helper: uses GITHUB_TOKEN if available for authenticated requests (higher rate limits)
+# GitHub API helper: uses GITHUB_TOKEN or gh auth token for authenticated requests (higher rate limits)
 github_api() {
-  if [[ -n "$GITHUB_TOKEN" ]]; then
-    curl -s -H "Authorization: token $GITHUB_TOKEN" "$@"
+  local token="${GITHUB_TOKEN:-$(gh auth token 2>/dev/null)}"
+  if [[ -n "$token" ]]; then
+    curl -s -H "Authorization: token $token" "$@"
   else
     curl -s "$@"
   fi
