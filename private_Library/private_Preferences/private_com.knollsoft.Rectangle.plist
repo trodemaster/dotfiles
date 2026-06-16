@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>NSNavLastRootDirectory</key>
+	<string>~/Desktop</string>
+	<key>NSNavPanelExpandedSizeForSaveMode</key>
+	<string>{800, 448}</string>
+	<key>NSNavPanelExpandedStateForSaveMode</key>
+	<true/>
+	<key>NSStatusItem Preferred Position Item-0</key>
+	<real>574</real>
+	<key>NSWindow Frame NSNavPanelAutosaveName</key>
+	<string>1520 1202 800 448 0 0 3840 2135 </string>
+	<key>NSWindow Frame SUStatusFrame</key>
+	<string>1577 1231 400 135 0 0 3840 2135 </string>
+	<key>NSWindow Frame SUUpdateAlert</key>
+	<string>1610 1298 620 398 0 0 3840 2129 </string>
+	<key>NSWindow Frame SUUpdateAlert2</key>
+	<string>991 755 578 402 0 0 2560 1409 </string>
+	<key>NSWindow Frame SUUpdateAlertSmall</key>
+	<string>1610 1531 620 169 0 0 3840 2135 </string>
+	<key>SUAutomaticallyUpdate</key>
+	<true/>
+	<key>SUEnableAutomaticChecks</key>
+	<true/>
+	<key>SUHasLaunchedBefore</key>
+	<true/>
+	<key>SULastCheckTime</key>
+	<date>2026-06-14T22:09:54Z</date>
+	<key>SUUpdateGroupIdentifier</key>
+	<integer>3288091158</integer>
+	<key>SUUpdateRelaunchingMarker</key>
+	<true/>
+	<key>alternateDefaultShortcuts</key>
+	<true/>
+	<key>bottomHalf</key>
+	<dict/>
+	<key>bottomLeft</key>
+	<dict/>
+	<key>bottomRight</key>
+	<dict/>
+	<key>center</key>
+	<dict/>
+	<key>centerThird</key>
+	<dict/>
+	<key>firstThird</key>
+	<dict>
+		<key>keyCode</key>
+		<integer>123</integer>
+		<key>modifierFlags</key>
+		<integer>786432</integer>
+	</dict>
+	<key>firstTwoThirds</key>
+	<dict>
+		<key>keyCode</key>
+		<integer>123</integer>
+		<key>modifierFlags</key>
+		<integer>1572864</integer>
+	</dict>
+	<key>larger</key>
+	<dict/>
+	<key>lastThird</key>
+	<dict>
+		<key>keyCode</key>
+		<integer>124</integer>
+		<key>modifierFlags</key>
+		<integer>786432</integer>
+	</dict>
+	<key>lastTwoThirds</key>
+	<dict>
+		<key>keyCode</key>
+		<integer>124</integer>
+		<key>modifierFlags</key>
+		<integer>1572864</integer>
+	</dict>
+	<key>lastVersion</key>
+	<string>99</string>
+	<key>launchOnLogin</key>
+	<true/>
+	<key>leftHalf</key>
+	<dict/>
+	<key>maximize</key>
+	<dict/>
+	<key>maximizeHeight</key>
+	<dict/>
+	<key>nextDisplay</key>
+	<dict>
+		<key>keyCode</key>
+		<integer>124</integer>
+		<key>modifierFlags</key>
+		<integer>393216</integer>
+	</dict>
+	<key>previousDisplay</key>
+	<dict>
+		<key>keyCode</key>
+		<integer>123</integer>
+		<key>modifierFlags</key>
+		<integer>393216</integer>
+	</dict>
+	<key>reflowTodo</key>
+	<dict>
+		<key>keyCode</key>
+		<integer>45</integer>
+		<key>modifierFlags</key>
+		<integer>786432</integer>
+	</dict>
+	<key>restore</key>
+	<dict/>
+	<key>rightHalf</key>
+	<dict/>
+	<key>smaller</key>
+	<dict/>
+	<key>subsequentExecutionMode</key>
+	<integer>1</integer>
+	<key>toggleTodo</key>
+	<dict>
+		<key>keyCode</key>
+		<integer>11</integer>
+		<key>modifierFlags</key>
+		<integer>786432</integer>
+	</dict>
+	<key>topHalf</key>
+	<dict/>
+	<key>topLeft</key>
+	<dict/>
+	<key>topRight</key>
+	<dict/>
+	<key>windowSnapping</key>
+	<integer>2</integer>
+</dict>
+</plist>

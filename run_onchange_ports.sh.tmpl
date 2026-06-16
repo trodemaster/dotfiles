@@ -7,20 +7,20 @@ shopt -s nullglob nocaseglob
 # not Darwin, just exit
 exit 0
 {{ end }}
-{{ if (stat (joinPath .chezmoi.homeDir "code/machine-cfg/portlist")) }}
-# Hash for {{(joinPath .chezmoi.homeDir "code/machine-cfg/portlist")}} {{ include (joinPath .chezmoi.homeDir "code/machine-cfg/portlist") | sha256sum }}
+{{ if (stat (joinPath .chezmoi.homeDir "Developer/machine-cfg/portlist")) }}
+# Hash for {{(joinPath .chezmoi.homeDir "Developer/machine-cfg/portlist")}} {{ include (joinPath .chezmoi.homeDir "Developer/machine-cfg/portlist") | sha256sum }}
 {{ else }}
 exit 0
 {{ end }}
-{{ if (stat (joinPath .chezmoi.homeDir "code/machine-cfg/" .chezmoi.hostname "/portlist")) }}
-# Hash for {{(joinPath .chezmoi.homeDir "code/machine-cfg/" .chezmoi.hostname "/portlist")}} {{ include (joinPath .chezmoi.homeDir "code/machine-cfg/" .chezmoi.hostname "/portlist") | sha256sum }}
+{{ if (stat (joinPath .chezmoi.homeDir "Developer/machine-cfg/" .chezmoi.hostname "/portlist")) }}
+# Hash for {{(joinPath .chezmoi.homeDir "Developer/machine-cfg/" .chezmoi.hostname "/portlist")}} {{ include (joinPath .chezmoi.homeDir "Developer/machine-cfg/" .chezmoi.hostname "/portlist") | sha256sum }}
 {{ end }}
 
 # modern bash version check
 ! [ "${BASH_VERSINFO:-0}" -ge 4 ] && echo "This script requires bash v4 or later" && exit 1
 
 # read the port list files
-PORT_LIST=$(cat {{(joinPath .chezmoi.homeDir "code/machine-cfg/portlist")}} {{(joinPath .chezmoi.homeDir "code/machine-cfg/" .chezmoi.hostname "/portlist")}} 2>/dev/null ||true)
+PORT_LIST=$(cat {{(joinPath .chezmoi.homeDir "Developer/machine-cfg/portlist")}} {{(joinPath .chezmoi.homeDir "Developer/machine-cfg/" .chezmoi.hostname "/portlist")}} 2>/dev/null ||true)
 
 # install missing ports
 PORT_INSTALL_LIST=()
