@@ -118,13 +118,18 @@ if ! [[ -f /usr/local/bin/fzf ]]; then
   rm ${FZF_FILENAME}
 fi
 
-# check for powerline-go
-if ! [[ -f /usr/local/bin/powerline-go ]]; then
+# check for powerline-go (use -s to catch 0-byte placeholder from a rate-limited download)
+if ! [[ -s /usr/local/bin/powerline-go ]]; then
   echo "Installing powerline-go..."
   POWERLINE_GO_URL=$(wget -q -O - 'https://api.github.com/repos/justjanne/powerline-go/releases/latest' | jq -r ".assets[] | select(.name==\"powerline-go-linux-$ARCH\").browser_download_url")
-  wget -q -O "${TMPDIR}/powerline-go" "$POWERLINE_GO_URL"
-  chmod +x "${TMPDIR}/powerline-go"
-  sudo mv "${TMPDIR}/powerline-go" /usr/local/bin/
+  if [[ -n "$POWERLINE_GO_URL" ]]; then
+    wget -q -O "${TMPDIR}/powerline-go" "$POWERLINE_GO_URL" && \
+      chmod +x "${TMPDIR}/powerline-go" && \
+      sudo mv "${TMPDIR}/powerline-go" /usr/local/bin/
+  else
+    echo "powerline-go: could not resolve download URL (GitHub API rate limit?), skipping"
+    rm -f "${TMPDIR}/powerline-go"
+  fi
 fi
 
 {{ if .isDesktop }}
