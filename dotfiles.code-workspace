@@ -20,6 +20,9 @@
 		},
 		{
 			"path": "../daneel"
+		},
+		{
+			"path": "../obsidianghost"
 		}
 	],
 	"settings": {}
