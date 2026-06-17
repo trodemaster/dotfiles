@@ -132,7 +132,6 @@ if ! [[ -s /usr/local/bin/powerline-go ]]; then
   fi
 fi
 
-{{ if .isDesktop }}
 # install chezmoi from github release .deb (puts chezmoi in /usr/bin, standard PATH)
 if ! dpkg -s chezmoi &>/dev/null; then
   echo "Installing chezmoi..."
@@ -144,7 +143,6 @@ if ! dpkg -s chezmoi &>/dev/null; then
   sudo dpkg -i "${TMPDIR}/chezmoi.deb"
   rm "${TMPDIR}/chezmoi.deb"
 fi
-{{ end }}
 
 # install fastfetch
 if ! [[ -f /usr/bin/fastfetch ]]; then
