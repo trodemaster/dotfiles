@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-SKILLS_SRC="{{ .chezmoi.homeDir }}/Developer/machine-cfg/skills"
+SKILLS_SRC="{{ .chezmoi.homeDir }}/Developer/machine-cfg/claude/skills"
 SKILLS_DST="{{ .chezmoi.homeDir }}/.claude/skills"
 
 # Skip if ~/.claude is still a symlink — migration hasn't happened yet
@@ -22,7 +22,7 @@ for skill_dir in "$SKILLS_SRC"/*/; do
   fi
 done
 
-# Remove stale symlinks for skills removed from machine-cfg/skills/
+# Remove stale symlinks for skills removed from machine-cfg/claude/skills/
 for link in "$SKILLS_DST"/*/; do
   link="${link%/}"
   [ -L "$link" ] || continue
@@ -31,3 +31,20 @@ for link in "$SKILLS_DST"/*/; do
     rm "$link"
   fi
 done
+
+# Obsidian plugins — link machine-cfg/obsisian/plugins/* into any vault that exists
+OBSIDIAN_PLUGINS_SRC="{{ .chezmoi.homeDir }}/Developer/machine-cfg/obsisian/plugins"
+if [ -d "$OBSIDIAN_PLUGINS_SRC" ]; then
+  for vault in orac daneel; do
+    vault_plugins="{{ .chezmoi.homeDir }}/$vault/.obsidian/plugins"
+    [ -d "$vault_plugins" ] || continue
+    for plugin_dir in "$OBSIDIAN_PLUGINS_SRC"/*/; do
+      [ -d "$plugin_dir" ] || continue
+      plugin_name=$(basename "$plugin_dir")
+      link_path="$vault_plugins/$plugin_name"
+      if [ ! -e "$link_path" ] && [ ! -L "$link_path" ]; then
+        ln -s "$plugin_dir" "$link_path"
+      fi
+    done
+  done
+fi
