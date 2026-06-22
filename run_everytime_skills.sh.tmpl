@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-SKILLS_SRC="{{ .chezmoi.homeDir }}/Developer/machine-cfg/claude/skills"
+SKILLS_SRC="{{ .chezmoi.homeDir }}/Developer/machine-cfg/skills"
 SKILLS_DST="{{ .chezmoi.homeDir }}/.claude/skills"
 
 # Skip if ~/.claude is still a symlink — migration hasn't happened yet
