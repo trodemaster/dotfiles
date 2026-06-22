@@ -118,7 +118,7 @@ export BASH_SILENCE_DEPRECATION_WARNING=1
 {{-   $raw := output "/opt/local/bin/python3" "--version" | trim -}}
 {{-   $python_vers = regexReplaceAll "Python (\\d+\\.\\d+).*" $raw "${1}" -}}
 {{- end -}}
-export PATH="/opt/local/bin:/usr/local/bin:/usr/bin:/bin:/opt/local/sbin:/usr/local/sbin:/usr/sbin:/sbin:/usr/local/go/bin:{{ .chezmoi.homeDir }}/Developer/go/bin:/opt/local/Library/Frameworks/Python.framework/Versions/{{ $python_vers }}/bin:{{ .chezmoi.homeDir }}/Library/Python/{{ $python_vers }}/bin:{{ .chezmoi.homeDir }}/.local/bin:{{ .chezmoi.homeDir }}/script:{{ .chezmoi.homeDir }}/Developer/machine-cfg/scripts:{{ .chezmoi.homeDir }}/Developer/machine-cfg/{{ .chezmoi.hostname }}/scripts:$PATH"
+export PATH="/opt/local/bin:/opt/local/sbin:/opt/local/Library/Frameworks/Python.framework/Versions/{{ $python_vers }}/bin:/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin:/usr/local/go/bin:{{ .chezmoi.homeDir }}/Developer/go/bin:{{ .chezmoi.homeDir }}/Library/Python/{{ $python_vers }}/bin:{{ .chezmoi.homeDir }}/.local/bin:{{ .chezmoi.homeDir }}/script:{{ .chezmoi.homeDir }}/Developer/machine-cfg/scripts:{{ .chezmoi.homeDir }}/Developer/machine-cfg/{{ .chezmoi.hostname }}/scripts:$PATH"
 
 # go vars
 export GOPATH={{ .chezmoi.homeDir }}/Developer/go
