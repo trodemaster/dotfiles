@@ -12,17 +12,21 @@ fi
 
 mkdir -p "$SKILLS_DST"
 
-# Create symlinks for any skill in machine-cfg/skills/ not yet linked
+# Create or fix symlinks for each skill in machine-cfg/skills/
 for skill_dir in "$SKILLS_SRC"/*/; do
   [ -d "$skill_dir" ] || continue
   skill_name=$(basename "$skill_dir")
   link_path="$SKILLS_DST/$skill_name"
+  # Re-link if the symlink exists but points to the wrong target
+  if [ -L "$link_path" ] && [ "$(readlink "$link_path")" != "$skill_dir" ]; then
+    rm "$link_path"
+  fi
   if [ ! -e "$link_path" ] && [ ! -L "$link_path" ]; then
     ln -s "$skill_dir" "$link_path"
   fi
 done
 
-# Remove stale symlinks for skills removed from machine-cfg/claude/skills/
+# Remove symlinks for skills removed from machine-cfg/skills/
 for link in "$SKILLS_DST"/*/; do
   link="${link%/}"
   [ -L "$link" ] || continue
