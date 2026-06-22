@@ -113,7 +113,7 @@ fi
 
 # disable shell warning
 export BASH_SILENCE_DEPRECATION_WARNING=1
-{{- $python_vers := "3.13" -}}
+{{- $python_vers := "3.14" -}}
 {{- if stat "/opt/local/bin/python3" -}}
 {{-   $raw := output "/opt/local/bin/python3" "--version" | trim -}}
 {{-   $python_vers = regexReplaceAll "Python (\\d+\\.\\d+).*" $raw "${1}" -}}
