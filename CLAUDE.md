@@ -33,6 +33,20 @@ Claude Code skills live in two places depending on scope:
 
 Do not manually create symlinks in `~/.claude/skills/` — chezmoi owns that directory. If a symlink was created manually, run `chezmoi apply` after committing to have chezmoi take over management of it.
 
+## Git / gh Commands — Always cd First
+
+**Always `cd` into a repo before running `git` or `gh` commands.** direnv loads `.envrc` based on the shell's working directory. `git -C <path>` and `gh -R <repo>` change where git/gh operate but do NOT change the shell's cwd — direnv never fires and the wrong `GH_CONFIG_DIR` (wrong GitHub account) is used.
+
+```bash
+# Wrong — direnv won't load dotfiles/.envrc
+git -C ~/Developer/dotfiles push
+
+# Correct
+cd ~/Developer/dotfiles && git push
+```
+
+This applies to all repos that use `.envrc` for credential switching.
+
 ## Key Files
 
 - `dot_bash_env.tmpl` → `~/.bash_env` — non-interactive shell env; used by Claude via `BASH_ENV`; runs `direnv export bash`
