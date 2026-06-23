@@ -12,5 +12,5 @@ export PATH="/opt/local/bin:/opt/local/sbin:/opt/local/Library/Frameworks/Python
 {{ end -}}
 if [[ -z "$_BASH_ENV_GUARD" ]]; then
   export _BASH_ENV_GUARD=1
-  command -v direnv &>/dev/null && eval "$(direnv export bash 2>/dev/null)"
+  command -v direnv &>/dev/null && eval "$(direnv export bash)"
 fi
