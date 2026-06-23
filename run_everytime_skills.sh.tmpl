@@ -3,6 +3,7 @@ set -e
 
 SKILLS_SRC="{{ .chezmoi.homeDir }}/Developer/machine-cfg/skills"
 SKILLS_DST="{{ .chezmoi.homeDir }}/.claude/skills"
+CODEX_SKILLS_DST="{{ .chezmoi.homeDir }}/.codex/skills"
 
 # Skip if ~/.claude is still a symlink — migration hasn't happened yet
 if [ -L "{{ .chezmoi.homeDir }}/.claude" ]; then
@@ -28,6 +29,30 @@ done
 
 # Remove symlinks for skills removed from machine-cfg/skills/
 for link in "$SKILLS_DST"/*/; do
+  link="${link%/}"
+  [ -L "$link" ] || continue
+  skill_name=$(basename "$link")
+  if [ ! -d "$SKILLS_SRC/$skill_name" ]; then
+    rm "$link"
+  fi
+done
+
+# Populate ~/.codex/skills with the same symlinks
+mkdir -p "$CODEX_SKILLS_DST"
+
+for skill_dir in "$SKILLS_SRC"/*/; do
+  [ -d "$skill_dir" ] || continue
+  skill_name=$(basename "$skill_dir")
+  link_path="$CODEX_SKILLS_DST/$skill_name"
+  if [ -L "$link_path" ] && [ "$(readlink "$link_path")" != "$skill_dir" ]; then
+    rm "$link_path"
+  fi
+  if [ ! -e "$link_path" ] && [ ! -L "$link_path" ]; then
+    ln -s "$skill_dir" "$link_path"
+  fi
+done
+
+for link in "$CODEX_SKILLS_DST"/*/; do
   link="${link%/}"
   [ -L "$link" ] || continue
   skill_name=$(basename "$link")
