@@ -1,8 +1,9 @@
 #!/bin/bash
 set -e
 
-SKILLS_SRC="{{ .chezmoi.homeDir }}/Developer/machine-cfg/skills"
-SKILLS_DST="{{ .chezmoi.homeDir }}/.claude/skills"
+MACHINE_SKILLS_SRC="{{ .chezmoi.homeDir }}/Developer/machine-cfg/skills"
+DOTFILES_SKILLS_SRC="{{ .chezmoi.sourceDir }}/skills"
+CLAUDE_SKILLS_DST="{{ .chezmoi.homeDir }}/.claude/skills"
 CODEX_SKILLS_DST="{{ .chezmoi.homeDir }}/.codex/skills"
 
 # Skip if ~/.claude is still a symlink — migration hasn't happened yet
@@ -11,55 +12,43 @@ if [ -L "{{ .chezmoi.homeDir }}/.claude" ]; then
   exit 0
 fi
 
-mkdir -p "$SKILLS_DST"
+# sync_skills <src_dir> <dst_dir>
+# Creates symlinks in dst for each skill dir in src; removes stale symlinks
+# that originated from this src (won't touch links pointing elsewhere).
+sync_skills() {
+  local src="$1" dst="$2"
+  [ -d "$src" ] || return 0
+  mkdir -p "$dst"
+  for skill_dir in "$src"/*/; do
+    [ -d "$skill_dir" ] || continue
+    local skill_name link_path
+    skill_name=$(basename "$skill_dir")
+    link_path="$dst/$skill_name"
+    if [ -L "$link_path" ] && [ "$(readlink "$link_path")" != "$skill_dir" ]; then
+      rm "$link_path"
+    fi
+    if [ ! -e "$link_path" ] && [ ! -L "$link_path" ]; then
+      ln -s "$skill_dir" "$link_path"
+    fi
+  done
+  # Only remove links that point into this src (leave links from other sources alone)
+  for link in "$dst"/*/; do
+    link="${link%/}"
+    [ -L "$link" ] || continue
+    local target
+    target=$(readlink "$link")
+    if [[ "$target" == "$src/"* ]] && [ ! -d "$target" ]; then
+      rm "$link"
+    fi
+  done
+}
 
-# Create or fix symlinks for each skill in machine-cfg/skills/
-for skill_dir in "$SKILLS_SRC"/*/; do
-  [ -d "$skill_dir" ] || continue
-  skill_name=$(basename "$skill_dir")
-  link_path="$SKILLS_DST/$skill_name"
-  # Re-link if the symlink exists but points to the wrong target
-  if [ -L "$link_path" ] && [ "$(readlink "$link_path")" != "$skill_dir" ]; then
-    rm "$link_path"
-  fi
-  if [ ! -e "$link_path" ] && [ ! -L "$link_path" ]; then
-    ln -s "$skill_dir" "$link_path"
-  fi
-done
-
-# Remove symlinks for skills removed from machine-cfg/skills/
-for link in "$SKILLS_DST"/*/; do
-  link="${link%/}"
-  [ -L "$link" ] || continue
-  skill_name=$(basename "$link")
-  if [ ! -d "$SKILLS_SRC/$skill_name" ]; then
-    rm "$link"
-  fi
-done
-
-# Populate ~/.codex/skills with the same symlinks
-mkdir -p "$CODEX_SKILLS_DST"
-
-for skill_dir in "$SKILLS_SRC"/*/; do
-  [ -d "$skill_dir" ] || continue
-  skill_name=$(basename "$skill_dir")
-  link_path="$CODEX_SKILLS_DST/$skill_name"
-  if [ -L "$link_path" ] && [ "$(readlink "$link_path")" != "$skill_dir" ]; then
-    rm "$link_path"
-  fi
-  if [ ! -e "$link_path" ] && [ ! -L "$link_path" ]; then
-    ln -s "$skill_dir" "$link_path"
-  fi
-done
-
-for link in "$CODEX_SKILLS_DST"/*/; do
-  link="${link%/}"
-  [ -L "$link" ] || continue
-  skill_name=$(basename "$link")
-  if [ ! -d "$SKILLS_SRC/$skill_name" ]; then
-    rm "$link"
-  fi
-done
+# Populate ~/.claude/skills and ~/.codex/skills from both sources.
+# machine-cfg is applied first; dotfiles skills can add to but not override it.
+sync_skills "$MACHINE_SKILLS_SRC" "$CLAUDE_SKILLS_DST"
+sync_skills "$DOTFILES_SKILLS_SRC" "$CLAUDE_SKILLS_DST"
+sync_skills "$MACHINE_SKILLS_SRC" "$CODEX_SKILLS_DST"
+sync_skills "$DOTFILES_SKILLS_SRC" "$CODEX_SKILLS_DST"
 
 # Obsidian plugins — link machine-cfg/obsisian/plugins/* into any vault that exists
 OBSIDIAN_PLUGINS_SRC="{{ .chezmoi.homeDir }}/Developer/machine-cfg/obsisian/plugins"

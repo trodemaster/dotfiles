@@ -3,6 +3,7 @@ notes.txt
 dotfiles.code-workspace
 .gitignore
 .devcontainer/
+skills/
 
 # ignore these files on linux
 {{- if eq .chezmoi.os "linux" }}
