@@ -10,4 +10,7 @@ export PATH="/opt/local/bin:/opt/local/sbin:/opt/local/Library/Frameworks/Python
 {{- if stat $extraEnv -}}
 {{ output "cat" $extraEnv | trim }}
 {{ end -}}
-eval "$(direnv export bash 2>/dev/null)"
+if [[ -z "$_BASH_ENV_GUARD" ]]; then
+  export _BASH_ENV_GUARD=1
+  command -v direnv &>/dev/null && eval "$(direnv export bash 2>/dev/null)"
+fi
