@@ -26,12 +26,15 @@ Claude Code skills live in two places depending on scope:
 
 `run_everytime_skills.sh.tmpl` runs on every `chezmoi apply` and syncs both sources into `~/.claude/skills/` and `~/.codex/skills/` as symlinks. machine-cfg skills are applied first; dotfiles skills add to but cannot override them.
 
+**Chezmoi source vs working repo:** `~/Developer/dotfiles` is the working git repo where edits are made. Chezmoi's actual source directory is `~/.local/share/chezmoi` — a separate copy. `chezmoi apply` reads from `~/.local/share/chezmoi`, not from `~/Developer/dotfiles` directly.
+
 **To add or move a skill — correct workflow:**
 1. Create/move the skill directory (`SKILL.md` inside) in the appropriate source repo
-2. **Commit and push that repo** — chezmoi's source is the git state; applying before committing leaves the repos out of sync and won't propagate to other machines via `chezmoi update`
-3. Run `chezmoi apply` — `run_everytime_skills.sh.tmpl` creates the symlink in `~/.claude/skills/`
+2. **Commit and push** from `~/Developer/dotfiles` (as two separate commands — see git section below)
+3. Run `chezmoi update` — pulls from the remote and refreshes `~/.local/share/chezmoi`
+4. Run `chezmoi apply` — `run_everytime_skills.sh.tmpl` creates the symlink in `~/.claude/skills/`
 
-Do not manually create symlinks in `~/.claude/skills/` — chezmoi owns that directory. If a symlink was created manually, run `chezmoi apply` after committing to have chezmoi take over management of it.
+Do not manually create symlinks in `~/.claude/skills/` — chezmoi owns that directory.
 
 ## Git / gh Commands — Always cd First
 
