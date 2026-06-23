@@ -56,3 +56,12 @@ This applies to all repos that use `.envrc` for credential switching.
 - `dot_bash_profile.tmpl` → `~/.bash_profile` — interactive shell setup; runs `direnv hook bash`
 - `dot_claude/symlink_settings.json.tmpl` → `~/.claude/settings.json` symlink into `machine-cfg/claude/`
 - `dot_claude/symlink_settings.local.json.tmpl` → `~/.claude/settings.local.json` symlink into `machine-cfg/claude/`
+
+## Claude Settings Files
+
+`~/.claude/settings.json` and `~/.claude/settings.local.json` are **symlinks** managed by chezmoi. The real files are:
+
+- `~/Developer/machine-cfg/claude/settings.json` — global Claude settings (permissions, sandbox, model, env)
+- `~/Developer/machine-cfg/claude/settings.local.json` — local overrides
+
+**Always edit the real paths directly** — the Edit tool refuses to write through symlinks. After editing, commit and push machine-cfg from the terminal.
