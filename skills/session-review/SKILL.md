@@ -101,7 +101,26 @@ Look for patterns of unnecessary overhead:
 Look for write operations to paths that failed due to sandbox restrictions. These are candidates for `sandbox.filesystem.allowWrite`. Only propose paths that are:
 - Within the user's home directory
 - Project-local working directories
-- Not credential stores, SSH dirs, or system paths
+- Not system paths (`/etc`, `/usr`, `/System`, `/Library`)
+
+**Principle of least privilege — secrets carve-out (mandatory for every `allowWrite` addition):**
+
+Don't reject an otherwise-legitimate `allowWrite` path just because it *might* contain secrets somewhere inside it — and don't grant it blindly either. Scan the directory first:
+
+```bash
+find <path> -maxdepth 4 \( \
+  -iname "*.pem" -o -iname "*.key" -o -iname "id_rsa*" -o -iname "id_ed25519*" \
+  -o -iname ".env" -o -iname ".env.*" -o -iname ".netrc" -o -iname ".npmrc" \
+  -o -iname "credentials*" -o -iname "*.credentials" -o -iname ".git-credentials" \
+  -o -iname "*token*" -o -iname "*secret*" -o -iname "*.p12" -o -iname "*.pfx" \
+  -o -ipath "*/vault/certs/*" -o -ipath "*/vault/data/*" -o -ipath "*/.ssh/*" \
+  -o -ipath "*/.aws/credentials" -o -ipath "*/.gnupg/*" \
+\) 2>/dev/null
+```
+
+- **Nothing found** — propose the `allowWrite` addition as-is.
+- **Something found** — still propose the `allowWrite` addition (the directory has a legitimate reason to need writes, e.g. it's a git repo the user pushes from), but pair it with a `sandbox.filesystem.denyWrite` (and consider `denyRead`) entry for each specific secret-bearing path found, scoped as narrowly as possible. Precedent: `~/.lima` is in `allowWrite` for hostagent's routine file churn, with `~/.lima/_config/user` (Lima's own SSH private key) carved out via `denyWrite` — the directory isn't blocked wholesale, only the one file that actually holds a secret.
+- Always show both halves of the pair together in the proposal (Step 4) — never propose `allowWrite` without having run this scan.
 
 ### 2g — Other Session Optimizations (report-only, no settings.json change)
 
@@ -297,3 +316,7 @@ Before proposing any change, verify it does not match any of:
 - [ ] Network access to non-work hosts (check against existing sandbox.network allowlist)
 
 If any proposed change would match, remove it and note it in the SKIPPED section.
+
+Separately, for every `sandbox.filesystem.allowWrite` addition specifically:
+- [ ] Ran the secrets scan from Step 2f against the proposed path
+- [ ] Any secret-bearing file found has a matching `denyWrite` (and considered `denyRead`) entry in the same proposal
