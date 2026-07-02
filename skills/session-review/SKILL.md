@@ -38,15 +38,28 @@ Look for any Bash commands that required user approval or were denied. These are
 **Hard rules — never propose these for auto-allow:**
 - `sudo *`
 - `rm -rf *`
-- `git push --force*`
+- `git push --force*`, `git push -f *`
 - `git reset --hard *`
 - `git checkout -- *`
-- `chmod 777 *`
+- `git clean -f *`
+- `gh pr merge *`, `gh pr close *`, `gh release create *`
+- `chmod 777 *`, `chmod -R *` under `sudo`
+- Database DDL or irreversible migrations (`DROP *`, `TRUNCATE *`, etc.)
 - Any command writing to system directories (`/etc/*`, `/usr/*`, `/System/*`)
 - Any command exfiltrating credentials (`gh auth token`, `cat ~/.ssh/*`, `cat ~/.aws/*`)
 
 **Safe patterns to consider for auto-allow:**
 - Read-only system commands: `date *`, `which *`, `env`, `printenv *`, `uname *`
+- Common universal dev tools, if used this session and not already allowed — propose narrowly, only the ones actually seen:
+  - SCM: `git *`, `gh *`
+  - Language toolchains: `go *`, `cargo *`, `node *`, `npm *`, `npx *`, `yarn *`, `bun *`, `python3 *`, `pip *`, `uv *`
+  - Build: `make *`, `cmake *`, `ninja *`
+  - Containers/packages: `docker *`, `podman *`, `brew *`, and the platform's native package manager
+  - System inspection: `ps *`, `pgrep *`, `lsof *`, `ls *`, `find *`, `grep *`, `df *`, `du *`, `stat *`, `file *`
+  - Text processing: `wc *`, `diff *`, `sort *`, `uniq *`, `jq *`, `yq *`, `curl *`
+  - Process management: `kill *`, `pkill *`
+  - Session tools: `tmux *`, `screen *`
+  - Env/utils: `direnv *`, `open *`, `cp *`, `mv *`, `mkdir *`, `which *`
 - Project-local file ops that stayed within the repo
 - CLI tools that are already in `permissions.allow` but ran unsandboxed
 - Tools already in `sandbox.excludedCommands` that work fine
@@ -89,6 +102,21 @@ Look for write operations to paths that failed due to sandbox restrictions. Thes
 - Within the user's home directory
 - Project-local working directories
 - Not credential stores, SSH dirs, or system paths
+
+### 2g — Other Session Optimizations (report-only, no settings.json change)
+
+These don't map to a specific settings.json key — surface them as suggestions in the EFFICIENCY NOTES section of the proposal (Step 4), not as line-item config changes.
+
+- **Stop hook for long tasks** — if this session had long-running steps, suggest a `Stop` hook so the user gets notified when Claude finishes without watching the terminal. Example (macOS):
+  ```json
+  "hooks": {
+    "Stop": [{ "type": "command", "command": "afplay /System/Library/Sounds/Glass.aiff" }]
+  }
+  ```
+- **Custom slash commands** — if the same multi-step workflow was spelled out in the prompt more than once this session (or across recent sessions), suggest capturing it as a project-local command under `.claude/commands/`.
+- **Effort level tuning** — if this was routine, low-stakes work (note management, status checks) under a global `effortLevel: "high"`, suggest a project-local `effortLevel: "medium"` override; leave high effort for genuine engineering work.
+- **Context hygiene** — note if the session would have benefited from `/clear` at a task-domain switch, from putting stable content (file paths, templates) before variable content to hit the prompt cache, or if CLAUDE.md looked stale relative to the current codebase.
+- **Model selection** — if the session's tasks were routine/low-complexity, note that a cheaper model (e.g. via `/config` → Model) would likely have been sufficient, reserving higher-tier models for engineering work.
 
 ---
 
@@ -265,7 +293,7 @@ Before proposing any change, verify it does not match any of:
 - [ ] `sudo *`
 - [ ] Credential access (`gh auth token`, `cat ~/.ssh/*`, `cat ~/.aws/*`, `cat ~/.gnupg/*`)
 - [ ] Destructive file ops (`rm -rf *`, `git reset --hard *`, `git push --force*`)
-- [ ] System directory writes (``/etc/*`, `/usr/*`, `/System/*`, `/Library/*`)
+- [ ] System directory writes (`/etc/*`, `/usr/*`, `/System/*`, `/Library/*`)
 - [ ] Network access to non-work hosts (check against existing sandbox.network allowlist)
 
 If any proposed change would match, remove it and note it in the SKIPPED section.
