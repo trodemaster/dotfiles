@@ -1,17 +1,19 @@
-{{ if eq .chezmoi.os "darwin" -}}
 {{- $python_vers := "3.14" -}}
 {{- if stat "/opt/local/bin/python3" -}}
 {{-   $raw := output "/opt/local/bin/python3" "--version" | trim -}}
 {{-   $python_vers = regexReplaceAll "Python (\\d+\\.\\d+).*" $raw "${1}" -}}
 {{- end -}}
-export PATH="/opt/local/bin:/opt/local/sbin:/opt/local/Library/Frameworks/Python.framework/Versions/{{ $python_vers }}/bin:/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin:/usr/local/go/bin:{{ .chezmoi.homeDir }}/Developer/go/bin:{{ .chezmoi.homeDir }}/Library/Python/{{ $python_vers }}/bin:{{ .chezmoi.homeDir }}/.local/bin:{{ .chezmoi.homeDir }}/script:{{ .chezmoi.homeDir }}/Developer/machine-cfg/scripts:{{ .chezmoi.homeDir }}/Developer/machine-cfg/{{ .chezmoi.hostname }}/scripts"
+if [[ -z "$_BASH_ENV_GUARD" ]]; then
+  export _BASH_ENV_GUARD=1
+
+{{ if eq .chezmoi.os "darwin" -}}
+  export PATH="/opt/local/bin:/opt/local/sbin:/opt/local/Library/Frameworks/Python.framework/Versions/{{ $python_vers }}/bin:/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin:/usr/local/go/bin:{{ .chezmoi.homeDir }}/Developer/go/bin:{{ .chezmoi.homeDir }}/Library/Python/{{ $python_vers }}/bin:{{ .chezmoi.homeDir }}/.local/bin:{{ .chezmoi.homeDir }}/script:{{ .chezmoi.homeDir }}/Developer/machine-cfg/scripts:{{ .chezmoi.homeDir }}/Developer/machine-cfg/{{ .chezmoi.hostname }}/scripts"
 {{ end -}}
 {{- $extraEnv := joinPath .chezmoi.homeDir "Developer/machine-cfg/bash_env" -}}
 {{- if stat $extraEnv -}}
 {{ output "cat" $extraEnv | trim }}
 {{ end -}}
-if [[ -z "$_BASH_ENV_GUARD" ]]; then
-  export _BASH_ENV_GUARD=1
+
   # `direnv export bash` is stateful (diffs against its own prior invocation) and
   # unreliable in a cold, one-shot, non-interactive shell - it can silently no-op
   # regardless of how many times it's retried. Bypass it: run `direnv exec` to fully
