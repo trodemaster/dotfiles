@@ -12,20 +12,18 @@ export PATH="/opt/local/bin:/opt/local/sbin:/opt/local/Library/Frameworks/Python
 {{ end -}}
 if [[ -z "$_BASH_ENV_GUARD" ]]; then
   export _BASH_ENV_GUARD=1
-  # Unset stale direnv tracking vars inherited from the parent process (e.g. Claude
-  # Code's own environment) - otherwise direnv diffs against that stale state instead
-  # of computing a fresh export for this shell's actual directory, and silently no-ops.
-  unset DIRENV_DIR DIRENV_FILE DIRENV_DIFF DIRENV_WATCHES
-  # A single export can be a no-op in a cold, non-interactive shell (direnv sometimes
-  # needs another pass to converge); an interactive shell's PROMPT_COMMAND hook fires
-  # repeatedly so it never hits this, but BASH_ENV only gets one shot. Loop until
-  # direnv itself reports no more changes, capped so a real failure can't hang the shell.
+  # `direnv export bash` is stateful (diffs against its own prior invocation) and
+  # unreliable in a cold, one-shot, non-interactive shell - it can silently no-op
+  # regardless of how many times it's retried. Bypass it: run `direnv exec` to fully
+  # resolve the environment for this directory (handles .envrc discovery, parent
+  # search, and the allow check the same as export would), then re-export everything
+  # it produces directly. Skip any key that isn't a valid identifier (some system
+  # daemons - e.g. Nexthink - set malformed env vars with literal quotes baked in).
   if command -v direnv &>/dev/null; then
-    for _ in 1 2 3 4; do
-      _direnv_out=$(direnv export bash 2>/dev/null)
-      [[ -z $_direnv_out ]] && break
-      eval "$_direnv_out"
-    done
-    unset _direnv_out
+    while IFS= read -r -d '' _direnv_kv; do
+      _direnv_key=${_direnv_kv%%=*}
+      [[ $_direnv_key =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]] && export "$_direnv_kv"
+    done < <(direnv exec . env -0 2>/dev/null)
+    unset _direnv_kv _direnv_key
   fi
 fi
