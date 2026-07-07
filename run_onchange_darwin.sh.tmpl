@@ -361,7 +361,9 @@ export PATH="/opt/local/bin:/opt/local/sbin:$PATH"
 for PORT_PACKAGE in "${PORT_PACKAGES[@]}"; do
   if /opt/local/bin/port installed $PORT_PACKAGE | grep -q "None of the specified ports are installed"; then
     echo "Installing $PORT_PACKAGE..."
-    sudo /opt/local/bin/port -q install $PORT_PACKAGE
+    if ! sudo /opt/local/bin/port -q install $PORT_PACKAGE; then
+      echo "Warning: failed to install $PORT_PACKAGE via macports, skipping"
+    fi
   fi
 done
 
