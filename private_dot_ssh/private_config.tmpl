@@ -1,11 +1,15 @@
+{{- $devDir := "code" -}}
+{{- if eq .chezmoi.os "darwin" -}}
+{{- $devDir = "Developer" -}}
+{{- end -}}
 # chezmoi managed file
 
-# If {{ .chezmoi.homeDir }}/code/machine-cfg/ssh_config exists, it will be included here
-{{ if (stat (joinPath .chezmoi.homeDir "code/machine-cfg/ssh_config")) }}
-{{ include (joinPath .chezmoi.homeDir "code/machine-cfg/ssh_config") }}
+# If {{ .chezmoi.homeDir }}/{{ $devDir }}/machine-cfg/ssh_config exists, it will be included here
+{{ if (stat (joinPath .chezmoi.homeDir $devDir "machine-cfg/ssh_config")) }}
+{{ include (joinPath .chezmoi.homeDir $devDir "machine-cfg/ssh_config") }}
 {{ end }}
 
-# If {{ .chezmoi.homeDir }}/code/machine-cfg/{{ .chezmoi.hostname }}/ssh_config exists, it will be included here
-{{ if (stat (joinPath .chezmoi.homeDir "code/machine-cfg/" .chezmoi.hostname "/ssh_config")) }}
-{{ include (joinPath .chezmoi.homeDir "code/machine-cfg/" .chezmoi.hostname "/ssh_config") }}
+# If {{ .chezmoi.homeDir }}/{{ $devDir }}/machine-cfg/{{ .chezmoi.hostname }}/ssh_config exists, it will be included here
+{{ if (stat (joinPath .chezmoi.homeDir $devDir "machine-cfg/" .chezmoi.hostname "/ssh_config")) }}
+{{ include (joinPath .chezmoi.homeDir $devDir "machine-cfg/" .chezmoi.hostname "/ssh_config") }}
 {{ end }}
