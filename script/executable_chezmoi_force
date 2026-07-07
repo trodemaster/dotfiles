@@ -8,13 +8,14 @@ shopt -s nullglob nocaseglob
 
 echo "This clears chezmoi's tracking of run_once_/run_onchange_ scripts,"
 echo "so every one of them will run again on the next chezmoi apply."
-read -r -p "Continue? [y/N] " REPLY
+REPLY=""
+read -r -p "Continue? [y/N] " REPLY || true
 if [[ ! $REPLY =~ ^[Yy]$ ]]; then
   echo "Aborted."
   exit 1
 fi
 
-chezmoi state delete-bucket --bucket=scriptState
-chezmoi apply
+chezmoi reset state
+chezmoi update
 
 exit 0
