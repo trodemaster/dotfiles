@@ -16,5 +16,11 @@ if [[ -z "$_BASH_ENV_GUARD" ]]; then
   # Code's own environment) - otherwise direnv diffs against that stale state instead
   # of computing a fresh export for this shell's actual directory, and silently no-ops.
   unset DIRENV_DIR DIRENV_FILE DIRENV_DIFF DIRENV_WATCHES
-  command -v direnv &>/dev/null && eval "$(direnv export bash)"
+  # The first export in a cold, non-interactive shell is a no-op (direnv needs a second
+  # pass to converge); an interactive shell's PROMPT_COMMAND hook fires repeatedly so it
+  # never hits this, but BASH_ENV only gets one shot, so call it twice here.
+  if command -v direnv &>/dev/null; then
+    eval "$(direnv export bash)" 2>/dev/null
+    eval "$(direnv export bash)"
+  fi
 fi
