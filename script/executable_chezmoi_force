@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\n\t'
+shopt -s nullglob nocaseglob
+
+# modern bash version check
+! [ "${BASH_VERSINFO:-0}" -ge 4 ] && echo "This script requires bash v4 or later" && exit 1
+
+echo "This clears chezmoi's tracking of run_once_/run_onchange_ scripts,"
+echo "so every one of them will run again on the next chezmoi apply."
+read -r -p "Continue? [y/N] " REPLY
+if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+  echo "Aborted."
+  exit 1
+fi
+
+chezmoi state delete-bucket --bucket=scriptState
+chezmoi apply
+
+exit 0
