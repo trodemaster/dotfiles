@@ -16,6 +16,7 @@ if [[ ! $REPLY =~ ^[Yy]$ ]]; then
 fi
 
 chezmoi reset state
+chezmoi init
 chezmoi update
 
 exit 0
