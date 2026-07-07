@@ -11,6 +11,9 @@ github_api() {
     if [[ -n "$token" ]]; then
       response=$(curl -s -H "Authorization: token $token" "$@")
     fi
+    if echo "$response" | grep -q "API rate limit exceeded"; then
+      echo "Warning: GitHub API rate limit exceeded for $* - revisit this install later" >&2
+    fi
   fi
   echo "$response"
 }
@@ -456,14 +459,21 @@ fi
 if ! [[ -f /usr/local/bin/cliclick ]]; then
   echo "Installing cliclick..."
   CLICLICK_RELEASE=$(github_api https://api.github.com/repos/BlueM/cliclick/releases/latest | grep tag_name | cut -d '"' -f 4)
-  CLICLICK_RELEASE_NUMBER=${CLICLICK_RELEASE#v}
-  CLICLICK_URL="https://github.com/BlueM/cliclick/releases/download/${CLICLICK_RELEASE_NUMBER}/cliclick.zip"
-  echo "Downloading latest version of cliclick ${CLICLICK_URL}..."
-  curl -L -o ${TMPDIR}cliclick.zip $CLICLICK_URL
-  unzip -p ${TMPDIR}cliclick.zip cliclick/cliclick >${TMPDIR}cliclick
-  sudo mv ${TMPDIR}cliclick /usr/local/bin/cliclick
-  sudo chmod +x /usr/local/bin/cliclick
-  rm ${TMPDIR}cliclick.zip
+  if [ -z "$CLICLICK_RELEASE" ]; then
+    echo "Warning: could not determine cliclick release (GitHub API rate limit?), skipping"
+  else
+    CLICLICK_RELEASE_NUMBER=${CLICLICK_RELEASE#v}
+    CLICLICK_URL="https://github.com/BlueM/cliclick/releases/download/${CLICLICK_RELEASE_NUMBER}/cliclick.zip"
+    echo "Downloading latest version of cliclick ${CLICLICK_URL}..."
+    curl -L -o ${TMPDIR}cliclick.zip $CLICLICK_URL
+    if ! unzip -p ${TMPDIR}cliclick.zip cliclick/cliclick >${TMPDIR}cliclick 2>/dev/null; then
+      echo "Warning: cliclick.zip download was not a valid archive, skipping"
+    else
+      sudo mv ${TMPDIR}cliclick /usr/local/bin/cliclick
+      sudo chmod +x /usr/local/bin/cliclick
+    fi
+    rm -f ${TMPDIR}cliclick.zip
+  fi
 fi
 
 # create /usr/local/bin if it doesn't exist
@@ -474,7 +484,7 @@ fi
 # check for powerline-go
 if ! [[ -f /usr/local/bin/powerline-go ]]; then
   echo "Installing powerline-go..."
-  POWERLINE_GO_URL=$(github_api 'https://api.github.com/repos/justjanne/powerline-go/releases/latest' | jq -r ".assets[] | select(.name==\"powerline-go-darwin-$ARCH\").browser_download_url")
+  POWERLINE_GO_URL=$(github_api 'https://api.github.com/repos/justjanne/powerline-go/releases/latest' | jq -r ".assets[] | select(.name==\"powerline-go-darwin-$ARCH\").browser_download_url" 2>/dev/null)
   if [ -z "$POWERLINE_GO_URL" ]; then
     echo "Warning: could not determine powerline-go download URL (GitHub API rate limit?), skipping"
   else
