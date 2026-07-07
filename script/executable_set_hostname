@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\n\t'
+shopt -s nullglob nocaseglob
+
+if [[ $# -ne 1 ]]; then
+  echo "Usage: $(basename "$0") <hostname>"
+  exit 1
+fi
+
+HOSTNAME_NEW="$1"
+
+if [[ "$(uname)" == "Darwin" ]]; then
+  sudo scutil --set ComputerName "$HOSTNAME_NEW"
+  sudo scutil --set LocalHostName "$HOSTNAME_NEW"
+  sudo scutil --set HostName "$HOSTNAME_NEW"
+  sudo dscacheutil -flushcache
+  sudo killall -HUP mDNSResponder
+elif [[ "$(uname)" == "Linux" ]]; then
+  sudo hostnamectl set-hostname "$HOSTNAME_NEW"
+else
+  echo "Unsupported OS: $(uname)"
+  exit 1
+fi
+
+echo "Hostname set to $HOSTNAME_NEW"
+
+exit 0
