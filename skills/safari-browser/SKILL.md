@@ -37,8 +37,9 @@ The path contains a space, so it must be double-quoted (not backslash-escaped) �
 ## Standard workflow
 
 ```
-create_tab(url)                      # or navigate_to_url if a tab already exists
-set_viewport_size(1440, 900)         # see "Viewport" below — do this early, once
+create_tab()                         # bare — don't pass url yet
+set_viewport_size(1440, 2200)        # ALWAYS, even for a one-shot page read — see "Viewport" below
+navigate_to_url(url)                 # now load the page
 get_page_content()                   # read; note the uid=N on elements you need
 page_interactions([...])             # click/type using those uids, batched
 get_page_content()                   # re-read if the diff wasn't enough context
@@ -47,15 +48,15 @@ close_tab(handle)                    # clean up when done
 
 Reach for `evaluate_javascript` or `screenshot` only when text extraction can't express what you need (a computed value, visual layout, a chart). `get_page_content` is cheaper and more reliable for reading.
 
-## Viewport — set it early
+## Viewport — always set it, even for a quick one-off lookup
 
-The default viewport is cramped (measured **1024×641** via `window.innerWidth/innerHeight` on a fresh tab) — small enough that responsive layouts render in a mobile/tablet breakpoint you probably don't want. Call `set_viewport_size` once, right after opening the first tab:
+The default viewport is cramped (measured **1024×641** via `window.innerWidth/innerHeight` on a fresh tab) — small enough that responsive layouts render in a mobile/tablet breakpoint you probably don't want. **This is not an optional step for "complex" tasks** — set it on every session, including a single-page read like "check the weather at this URL." Skipping it for a "basic" request is exactly how it gets skipped. Call `set_viewport_size` right after opening the first tab, before navigating anywhere:
 
 ```
-set_viewport_size(width: 1440, height: 900)
+set_viewport_size(width: 1440, height: 2200)
 ```
 
-This is a **browser-window-level** setting, not per-tab — verified by creating a second tab after setting it and finding the new tab already at the wider width. Set it once per session, before your first real interaction. Note the effective `innerHeight` will be somewhat less than what you request (browser chrome eats ~50–130px in testing) — that's normal, not a bug.
+1440×2200 is the preferred size for this project — tall enough to capture most pages (including long dashboards and stat pages) without scrolling. This is a **browser-window-level** setting, not per-tab — verified by creating a second tab after setting it and finding the new tab already at the wider size. Set it once per session, before your first `navigate_to_url` or `create_tab(url: ...)`. Note the effective `innerHeight` will be somewhat less than what you request (browser chrome eats ~130–200px in testing at this size) — that's normal, not a bug.
 
 ## Debugging a URL that won't load
 
