@@ -1,6 +1,6 @@
 ---
 name: safari-browser
-description: General-purpose browser automation via the safari-mcp-stp MCP server (Safari Technology Preview) — navigate URLs, read page content, click/type/fill forms, take screenshots, and debug page loads via network requests and console messages. Use for browsing, scraping, form-filling, visual verification, or debugging a URL that won't load, a blank page, a failed request, or a JS console error.
+description: General-purpose browser automation via the safari-mcp-stp MCP server (Safari Technology Preview) — navigate URLs, read page content, click/type/fill forms, take screenshots, and debug page loads via network requests and console messages. Reach for this any time an actual browser would settle the question, not just when the user says "browser": checking whether a URL or link is reachable/valid, verifying a UI or frontend change actually renders and works before reporting it done, reproducing a bug the user describes seeing on a page, reading/scraping a live webpage, filling out or submitting a form, or debugging a blank page, failed request, redirect loop, or JS console error.
 ---
 
 # Safari Browser Skill
