@@ -3,6 +3,10 @@
 {{-   $raw := output "/opt/local/bin/python3" "--version" | trim -}}
 {{-   $python_vers = regexReplaceAll "Python (\\d+\\.\\d+).*" $raw "${1}" -}}
 {{- end -}}
+# The guard covers only static, cwd-independent exports. When a nested shell
+# inherits the guard it can safely skip this block: plain exports survive in
+# the environment. direnv resolution runs below, OUTSIDE the guard, because it
+# depends on $PWD and must re-run in every fresh shell.
 if [[ -z "$_BASH_ENV_GUARD" ]]; then
   export _BASH_ENV_GUARD=1
 
@@ -14,18 +18,49 @@ if [[ -z "$_BASH_ENV_GUARD" ]]; then
 {{ output "cat" $extraEnv | trim }}
 {{ end -}}
 
-  # `direnv export bash` is stateful (diffs against its own prior invocation) and
-  # unreliable in a cold, one-shot, non-interactive shell - it can silently no-op
-  # regardless of how many times it's retried. Bypass it: run `direnv exec` to fully
-  # resolve the environment for this directory (handles .envrc discovery, parent
-  # search, and the allow check the same as export would), then re-export everything
-  # it produces directly. Skip any key that isn't a valid identifier (some system
-  # daemons - e.g. Nexthink - set malformed env vars with literal quotes baked in).
-  if command -v direnv &>/dev/null; then
-    while IFS= read -r -d '' _direnv_kv; do
-      _direnv_key=${_direnv_kv%%=*}
-      [[ $_direnv_key =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]] && export "$_direnv_kv"
-    done < <(direnv exec . env -0 2>/dev/null)
-    unset _direnv_kv _direnv_key
-  fi
+fi
+
+# `direnv export bash` is stateful (diffs against its own prior invocation) and
+# unreliable in a cold, one-shot, non-interactive shell - it can silently no-op
+# regardless of how many times it's retried. Bypass it: run `direnv exec` to fully
+# resolve the environment for this directory (handles .envrc discovery, parent
+# search, allow check, and revert of a previously loaded .envrc via the
+# re-exported DIRENV_DIFF), then mirror the result into this shell.
+#
+# `env -u BASH_ENV` is the recursion breaker: direnv evaluates .envrc with a
+# plain `bash -c` (rc.go), which would re-source this file and fork-bomb.
+# Stripping BASH_ENV from direnv's whole process tree closes that path.
+#
+# The identifier regex skips malformed env vars (some system daemons - e.g.
+# Nexthink - bake literal quotes into names) and exported bash functions.
+if command -v direnv &>/dev/null; then
+  _direnv_resolve() {
+    local _kv _key _out_keys=$'\n' _n=0
+    while IFS= read -r -d '' _kv; do
+      _key=${_kv%%=*}
+      [[ $_key =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]] || continue
+      export "$_kv"
+      _out_keys+="$_key"$'\n'
+      _n=$((_n + 1))
+    done < <(env -u BASH_ENV direnv exec . env -0 2>/dev/null)
+    # direnv exec hard-fails with no output at all when .envrc is blocked or
+    # errors; silently ending up with no credentials is undebuggable, so warn.
+    if [[ $_n -eq 0 ]]; then
+      echo "bash_env: direnv failed to resolve env for $PWD (blocked .envrc? run 'direnv allow')" >&2
+      return 0
+    fi
+    # The export loop is additive; also unset anything direnv unloaded
+    # (present in this shell but absent from the resolved environment).
+    while IFS= read -r -d '' _kv; do
+      _key=${_kv%%=*}
+      [[ $_key =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]] || continue
+      [[ $_key == BASH_ENV ]] && continue
+      [[ $_out_keys == *$'\n'"$_key"$'\n'* ]] || unset "$_key" 2>/dev/null
+    done < <(env -0)
+  }
+  # Non-interactive shells have no direnv hook, and BASH_ENV runs before any
+  # in-command `cd`; wrap cd so `cd repo && git push` picks up repo/.envrc
+  # (and drops the previous directory's) the way an interactive shell would.
+  cd() { builtin cd "$@" && _direnv_resolve; }
+  _direnv_resolve
 fi
