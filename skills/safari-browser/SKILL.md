@@ -24,6 +24,16 @@ Drives Safari (via the `safari-mcp-stp` MCP server / WebKit Inspector) for gener
 | `browser_dialogs` | List/accept/dismiss JS `alert`/`confirm`/`prompt` |
 | `wait_for_navigation` | Block until in-flight navigation finishes |
 
+## If the MCP tools aren't responding
+
+`safari-mcp-stp` needs Safari Technology Preview actually running to have anything to attach to. If a call to one of the tools above errors out or times out as if the server were offline, launch the app with the Bash tool, then retry the same MCP call:
+
+```bash
+open "/Applications/Safari Technology Preview.app"
+```
+
+The path contains a space, so it must be double-quoted (not backslash-escaped) — this is a plain `open` invocation, not an MCP tool call. Give the app a moment to finish launching before retrying; if the first retry still fails, the MCP server itself (not just the app) may need attention — say so rather than silently giving up.
+
 ## Standard workflow
 
 ```
