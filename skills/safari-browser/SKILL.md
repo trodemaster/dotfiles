@@ -103,6 +103,16 @@ For loads that "succeed" but render wrong (blank page, error banner, wrong conte
 - **Don't trust a site's visible nav links to predict real page URLs.** On `guide.macports.org`, the left-nav `<a>` tags pointed at paths like `/2`, `/3` that 404'd — the actual per-section pages lived under `/chunked/<slug>.html`, discoverable only by loading `/chunked/index.html` and reading its link list. Separately, the bare root URL (`/`) rendered as the *entire* multi-hundred-KB guide in one long scroll (contentSize height in the 100,000px+ range), not just its first visual section — check the reported `contentSize` before assuming a page is scoped to what its title suggests.
 - **Don't use this to bulk-mirror an entire multi-page work (a whole docs site, a whole book/guide) into a pile of local files.** Fetching and saving *one* bounded page (or a couple, for a demo) is a normal dev-reference task; mechanically walking every section of something like a full project guide and writing out the complete text is reproducing the whole copyrighted work and should be avoided even when the source is free to read online. If a user wants a full local copy of a multi-page guide, point them at the site's own bulk-download option (single-page view, EPUB/PDF export) instead of reconstructing it page-by-page.
 
+### PDFs specifically
+
+Tested against a `.pdf` URL loaded directly in Safari's built-in PDF viewer (a slide-deck-style investor presentation):
+
+- **`navigate_to_url` alone returns empty content for a PDF.** Unlike HTML pages, the initial navigation result doesn't carry extracted text. Always follow up with an explicit `get_page_content` call.
+- Once called explicitly, extraction worked well and pulled the complete document text with no truncation — PDF text tends to come as short fragments (slide bullets, captions) that don't hit the `maxWordsPerParagraph` ceiling the way HTML prose does. Still worth setting it high defensively if the PDF has dense paragraphs (e.g. a contract or report rather than slides).
+- **`format: "markdown"` and `format: "text"` return the same thing for a PDF** — no `#` headers, no `**bold**`, no real structure. WebKit's PDF text layer has no DOM/semantic tags for a markdown formatter to hang structure on, so a PDF "converted to markdown" is really just plain text saved with a `.md` extension. Don't expect heading/table reconstruction the way you might manually do for an HTML page.
+- No page chrome to strip (no nav/footer/sidebar) — that HTML-specific gotcha doesn't apply here.
+- The `savePath` JSON-envelope issue above applies the same way to PDFs.
+
 ## Gotchas
 
 - **`browser_console_messages` clears on read by default.** `clear` defaults to `true`, so a call drains the buffer — a second call (even with a different `level_filter`) right after will come back empty. If you need to inspect the same batch multiple ways, pass `clear: false` on the read(s) you don't want to be final, and let the last one clear.
