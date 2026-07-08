@@ -83,6 +83,26 @@ For loads that "succeed" but render wrong (blank page, error banner, wrong conte
 4. **`browser_console_messages`** — JS errors and browser-logged resource failures (e.g. resource 404s auto-log as `"Failed to load resource: the server responded with a status of 404 ()"` at `level: "error"`, no explicit `console.error` call needed).
 5. **`screenshot`** — only once the above hasn't explained it; confirms *what it looks like*, not *why*.
 
+## Saving a page as clean markdown
+
+`get_page_content(format: "markdown", savePath: ...)` looks like it writes ready-to-use markdown to disk. It doesn't, out of the box — verified against `guide.macports.org` and `code.claude.com/docs`:
+
+- **`savePath` writes the whole JSON response envelope, not just the extracted text.** The file ends up as `{"url": "...", "content": "...", "format": "markdown", "title": "..."}` with the real newlines escaped as `\n` and slashes as `\/`. Always post-process: parse the file as JSON and write out just the `content` field.
+
+  ```python
+  import json
+  with open(path) as f:
+      data = json.load(f)
+  with open(path, 'w') as f:
+      f.write(data['content'])
+  ```
+
+- **`maxWordsPerParagraph` defaults to 15 and silently truncates almost every paragraph with `…`.** This is the single biggest cause of "the markdown looks broken" — full sentences get chopped mid-clause. For a save-to-file task (as opposed to a quick skim), set it high (300–500+) so paragraphs come through intact.
+- **The extraction is not scoped to the article body.** It includes the full page chrome — sidebar nav, header, footer, cookie/legal links, "was this helpful" widgets, chat-assistant boilerplate. Expect to manually strip this after fetching; there's no tool option to exclude it.
+- **HTML `<table>`s do not become markdown pipe tables.** They flatten into a loose sequence of cell text with no `|` or row structure. If the page has a real table you want preserved, reconstruct it by hand from the flattened cells — don't expect the raw output to be usable as-is.
+- **Don't trust a site's visible nav links to predict real page URLs.** On `guide.macports.org`, the left-nav `<a>` tags pointed at paths like `/2`, `/3` that 404'd — the actual per-section pages lived under `/chunked/<slug>.html`, discoverable only by loading `/chunked/index.html` and reading its link list. Separately, the bare root URL (`/`) rendered as the *entire* multi-hundred-KB guide in one long scroll (contentSize height in the 100,000px+ range), not just its first visual section — check the reported `contentSize` before assuming a page is scoped to what its title suggests.
+- **Don't use this to bulk-mirror an entire multi-page work (a whole docs site, a whole book/guide) into a pile of local files.** Fetching and saving *one* bounded page (or a couple, for a demo) is a normal dev-reference task; mechanically walking every section of something like a full project guide and writing out the complete text is reproducing the whole copyrighted work and should be avoided even when the source is free to read online. If a user wants a full local copy of a multi-page guide, point them at the site's own bulk-download option (single-page view, EPUB/PDF export) instead of reconstructing it page-by-page.
+
 ## Gotchas
 
 - **`browser_console_messages` clears on read by default.** `clear` defaults to `true`, so a call drains the buffer — a second call (even with a different `level_filter`) right after will come back empty. If you need to inspect the same batch multiple ways, pass `clear: false` on the read(s) you don't want to be final, and let the last one clear.
