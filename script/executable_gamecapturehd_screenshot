@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+# Screenshot the Game Capture HD app window, so another agent can inspect
+# the display output the software is showing.
+#
+# Usage: gamecapturehd_screenshot [output-path]
+set -euo pipefail
+
+if [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ]; then
+  cat <<'EOF'
+gamecapturehd_screenshot [output-path]
+
+Captures the current window content of the Elgato "Game Capture HD" app
+(macOS) to a PNG, so an agent can inspect the HDMI feed it's displaying.
+
+Args:
+  output-path   Optional. Where to write the PNG. Defaults to
+                "$TMPDIR/game-capture-hd-<timestamp>.png".
+
+Stdout (on success):
+  The absolute path to the written PNG file. Nothing else is printed.
+
+Exit codes:
+  0   Success. Path to PNG printed on stdout.
+  1   Game Capture HD is not running (must be launched first), or it has
+      no window currently on screen. Message printed on stderr.
+
+Notes for automation:
+  - Capture is by CGWindowID (screencapture -l), not by screen region, so
+    it grabs the composited window content even if occluded by other
+    windows or positioned off-screen / on a disconnected display.
+  - Does not require Accessibility permission. Does require the calling
+    process to have Screen Recording permission (System Settings >
+    Privacy & Security > Screen Recording), same as any screencapture use.
+  - Idempotent and read-only: does not launch, focus, or modify the app.
+    Launch the app yourself first if it isn't running (exit code 1 covers
+    this case explicitly so callers can distinguish it from other errors).
+EOF
+  exit 0
+fi
+
+APP_NAME="Game Capture HD"
+OUT="${1:-$TMPDIR/game-capture-hd-$(date +%Y%m%d-%H%M%S).png}"
+
+if ! osascript -e "application \"$APP_NAME\" is running" >/dev/null 2>&1; then
+  echo "Error: $APP_NAME is not running. Launch it first." >&2
+  exit 1
+fi
+
+# System Events' "id of window" accessibility property isn't populated for
+# this app, so look up the real CGWindowID via CoreGraphics through JXA
+# instead. Capturing by window id (screencapture -l) grabs the composited
+# window content directly, even if it's occluded or off-screen.
+WINDOW_ID=$(osascript -l JavaScript -e '
+ObjC.import("CoreGraphics");
+const options = $.kCGWindowListOptionOnScreenOnly | $.kCGWindowListExcludeDesktopElements;
+const list = $.CGWindowListCopyWindowInfo(options, $.kCGNullWindowID);
+const count = $.CFArrayGetCount(list);
+let id = "";
+for (let i = 0; i < count; i++) {
+  const dict = ObjC.castRefToObject($.CFArrayGetValueAtIndex(list, i));
+  const owner = dict.objectForKey("kCGWindowOwnerName").js;
+  if (owner === "'"$APP_NAME"'") {
+    id = dict.objectForKey("kCGWindowNumber").js;
+    break;
+  }
+}
+id;
+')
+
+if [ -z "$WINDOW_ID" ]; then
+  echo "Error: $APP_NAME has no window on screen." >&2
+  exit 1
+fi
+
+screencapture -x -o -l "$WINDOW_ID" "$OUT"
+echo "$OUT"
