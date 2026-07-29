@@ -1,7 +1,7 @@
 ---
 name: screenshot-window
 description: Capture a screenshot of a specific named app window by listing its windows, targeting one by ID, and reading the result. Use when asked to "screenshot X", "show me the X window", "capture the Y app", or "what does the Z window look like".
-allowed-tools: Bash(~/.claude/skills/screenshot-window/bin/wincap *), Read
+allowed-tools: Bash(~/.claude/skills/screenshot-window/bin/wincap *), Bash(make -C ~/.claude/skills/screenshot-window *), Read
 ---
 
 # Screenshot Window Skill
@@ -10,7 +10,7 @@ Captures a specific on-screen window by name using `wincap`, a native Swift/Scre
 built for this skill. **macOS 26+, Apple Silicon (arm64) only.**
 
 **Binary:** `~/.claude/skills/screenshot-window/bin/wincap` (source in `Sources/wincap/`,
-`Package.swift`).
+`Package.swift`). The binary is **not committed to git** — it's built on demand and gitignored.
 
 Everything is JSON on stdout by default — parse it directly, don't ask the user to read raw output.
 
@@ -18,8 +18,24 @@ Everything is JSON on stdout by default — parse it directly, don't ask the use
 
 ## Prerequisites
 
-The calling terminal app needs **Screen Recording** permission (actual pixel capture shells out to
-Apple's `screencapture`, which inherits the grant from the parent terminal — the same requirement
+**Binary present?** Before the first command below, check:
+
+```bash
+test -x ~/.claude/skills/screenshot-window/bin/wincap
+```
+
+If missing (fresh checkout, or after a source update), build it:
+
+```bash
+make -C ~/.claude/skills/screenshot-window build
+```
+
+This runs `swift build -c release` and copies the result into `bin/wincap`. Takes a few seconds.
+If it fails with sandbox-style "Operation not permitted" errors writing to Swift's module cache,
+that's a Claude Code sandbox restriction, not a real error — retry with the sandbox disabled.
+
+The calling terminal app also needs **Screen Recording** permission (actual pixel capture shells out
+to Apple's `screencapture`, which inherits the grant from the parent terminal — the same requirement
 the previous version of this skill had).
 
 Check/fix: **System Settings → Privacy & Security → Screen Recording** → enable your terminal
@@ -107,6 +123,7 @@ Use the `Read` tool on the returned `path` to view the window contents.
 ## Agent workflow
 
 ```
+0. If bin/wincap is missing, run `make -C ~/.claude/skills/screenshot-window build` first
 1. Ask user which app (and optionally which window title/label), if not already clear
 2. Try `capture --app <name> [--title <substr>]` directly
 3. If ambiguous_match comes back, show the candidate titles and either ask the user
