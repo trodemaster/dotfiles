@@ -15,3 +15,8 @@ Library/
 {{- if eq .chezmoi.os "darwin" }}
 
 {{ end }}
+
+# skip if machine-cfg/aws hasn't been populated on this checkout yet
+{{- if not (stat (printf "%s/Developer/machine-cfg/aws/config" .chezmoi.homeDir)) }}
+.aws/config
+{{- end }}
