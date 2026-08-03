@@ -13,9 +13,15 @@ if [[ -z "$_BASH_ENV_GUARD" ]]; then
 {{ if eq .chezmoi.os "darwin" -}}
   export PATH="/opt/local/bin:/opt/local/sbin:/opt/local/Library/Frameworks/Python.framework/Versions/{{ $python_vers }}/bin:/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin:/usr/local/go/bin:{{ .chezmoi.homeDir }}/Developer/go/bin:{{ .chezmoi.homeDir }}/Library/Python/{{ $python_vers }}/bin:{{ .chezmoi.homeDir }}/.local/bin:{{ .chezmoi.homeDir }}/script:{{ .chezmoi.homeDir }}/Developer/machine-cfg/scripts:{{ .chezmoi.homeDir }}/Developer/machine-cfg/{{ .chezmoi.hostname }}/scripts"
 {{ end -}}
-{{- $extraEnv := joinPath .chezmoi.homeDir "Developer/machine-cfg/bash_env" -}}
-{{- if stat $extraEnv -}}
-{{ output "cat" $extraEnv | trim }}
+{{ if (stat (joinPath .chezmoi.homeDir "Developer/machine-cfg/bash_env")) }}
+  # Hash for {{ (joinPath .chezmoi.homeDir "Developer/machine-cfg/bash_env") }} {{ include (joinPath .chezmoi.homeDir "Developer/machine-cfg/bash_env") | sha256sum }}
+  # Added content from {{ (joinPath .chezmoi.homeDir "Developer/machine-cfg/bash_env") }}
+{{ include (joinPath .chezmoi.homeDir "Developer/machine-cfg/bash_env") }}
+{{ end -}}
+{{ if (stat (joinPath .chezmoi.homeDir "Developer/machine-cfg/" .chezmoi.hostname "/bash_env")) }}
+  # Hash for {{ (joinPath .chezmoi.homeDir "Developer/machine-cfg/" .chezmoi.hostname "/bash_env") }} {{ include (joinPath .chezmoi.homeDir "Developer/machine-cfg/" .chezmoi.hostname "/bash_env") | sha256sum }}
+  # Added content from {{ (joinPath .chezmoi.homeDir "Developer/machine-cfg/" .chezmoi.hostname "/bash_env") }}
+{{ include (joinPath .chezmoi.homeDir "Developer/machine-cfg/" .chezmoi.hostname "/bash_env") }}
 {{ end -}}
 
 fi
