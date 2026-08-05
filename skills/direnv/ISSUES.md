@@ -1,10 +1,14 @@
 # Open issue: `_direnv_resolve: command not found` on this host, sandboxed
 
-Status: **unresolved, actively being debugged**. Written up for a second
-opinion / fresh pair of eyes. Everything below is empirical findings from
-one investigation session — verify claims before trusting them, especially
-anything about Claude Code's internal shell mechanics, which was reverse
-engineered from observed behavior, not from source.
+Status: **unresolved, actively being debugged — round 2**. Root mechanism is
+now confirmed (see "Update (round 2)" below) via official docs and upstream
+GitHub issues, not just local inference. The open question is narrower now:
+*why does this host trigger it and the known-good host doesn't*, given both
+run identical CLI version `2.1.222`. Everything in the original write-up
+below (pre-"Update" section) is empirical findings from the first
+investigation session — still believed accurate, but was reverse engineered
+from observed behavior, not from source, so verify claims before trusting
+them where it matters.
 
 ## Symptom
 
@@ -441,3 +445,188 @@ differentiator except `enableWeakerNestedSandbox`, which was ruled out.
 $ claude --version
 2.1.222 (Claude Code)
 ```
+
+## Update (round 2): confirmed as an upstream Claude Code CLI bug — settings.json avenue mostly ruled out
+
+### Confirmed: this is an already-filed upstream bug, not a local misconfiguration
+
+[GitHub issue #55816](https://github.com/anthropics/claude-code/issues/55816)
+and [#40602](https://github.com/anthropics/claude-code/issues/40602)
+independently document exactly the pattern found in this file's round 1:
+Claude Code's shell-snapshot builder
+(`~/.claude/shell-snapshots/snapshot-bash-*.sh`) systematically drops
+functions with a single leading underscore (`_direnv_resolve`, `_encode`,
+`_lazy_load_chruby`, etc.) while preserving double-underscore and
+plain-named functions — including the `cd()` wrapper that calls
+`_direnv_resolve`. This is a defect in the CLI itself, confirmed via
+official docs/issue tracker research, not just inferred locally.
+
+### Settings.json hypotheses tested this round — all ruled out (or backwards)
+
+Before accepting the round-1 diff of the two hosts' `sandbox` blocks as the
+explanation, pulled authoritative behavior for the specific flags involved
+(via Claude Code's own `sandboxing.md` docs) rather than continuing to
+guess from the config diff alone:
+
+- **`sandbox.excludedCommands` missing wildcards** (round 1 flagged that the
+  broken host's `"gh"`, `"lima"`, `"limactl"`, etc. lack the trailing ` *`
+  that the known-good host's equivalent entries have). Weaker evidence than
+  first presented — bare tokens likely still prefix-match in practice per
+  behavior reported in
+  [anthropics/claude-code#40831](https://github.com/anthropics/claude-code/issues/40831),
+  and this setting's matching semantics are largely undocumented/buggy in
+  general
+  ([#53012](https://github.com/anthropics/claude-code/issues/53012)).
+  More importantly: `"direnv *"` — the one pattern that actually matters
+  for *this* bug — is correctly wildcarded and present on **both** hosts
+  already, so wildcard-ness was never the differentiator for this specific
+  symptom regardless of the general matching-semantics question.
+- **`sandbox.allowUnsandboxedCommands`**: defaults to `true` (confirmed via
+  official docs). It gates the `dangerouslyDisableSandbox` retry-escape-hatch,
+  not whether `excludedCommands` has any effect at all (that was an
+  incorrect guess made mid-investigation). Both hosts are effectively `true`
+  either way. Ruled out.
+- **`sandbox.failIfUnavailable`**: defaults to `false`. When false/unset, a
+  sandbox-init failure causes Claude Code to silently fall back to
+  **unsandboxed** execution — which, per this file's own round-1 A/B test,
+  is the condition that does *not* exhibit the bug. So this flag being unset
+  on the broken host would point away from causing the failure, not toward
+  it, if it were relevant at all. Ruled out.
+
+**Conclusion: stop pursuing settings.json reconfiguration as the primary
+fix.** The mechanism is a CLI defect, not a config gap on either host. The
+open question is now specifically **why one host triggers it and the other
+doesn't**, given both run the identical CLI build (see below).
+
+### Both hosts confirmed to be running the exact same build
+
+Not just the same version string — checked `claude doctor` on both:
+
+```
+Running: native (2.1.222)
+Commit: fbf49312c284
+Platform: darwin-arm64
+Config install method: native
+Auto-update channel: latest
+Last update attempt: success → 2.1.222 (2026-08-04)
+```
+
+Identical on both hosts, including the commit hash and last-update date.
+Rules out "different npm package / build channel" as an explanation —
+this is genuinely the same compiled binary on both machines.
+
+### Repro re-verified NOT to occur on the known-good host (nextbook, work Mac)
+
+Ran the exact repro from this file's round 1, freshly, fully sandboxed
+(no `dangerouslyDisableSandbox`):
+
+```
+$ mkdir -p ~/scratch/direnvtest && printf 'export FOO=bar\n' > ~/scratch/direnvtest/.envrc
+   # (required disabling sandbox just for this one file-write step —
+   # ~/scratch isn't in this host's sandbox.filesystem.allowWrite)
+$ cd ~/scratch/direnvtest && direnv allow
+   # separate tool call — standard direnv-allow-then-retry-in-a-new-call pattern
+$ cd ~/scratch/direnvtest && echo "FOO=$FOO"
+   # separate, fully sandboxed tool call — the actual repro
+FOO=bar
+```
+
+No "command not found," `_direnv_resolve` fired correctly both times
+(gracefully warning on the first `cd` since `.envrc` wasn't allowed yet,
+then correctly resolving `FOO=bar` on the second). Confirms, again, this
+host isn't affected.
+
+**New observation, possibly relevant:** both `cd` calls into
+`~/scratch/direnvtest` produced an extra line of tool output that no
+command in the chain actually printed:
+
+```
+Shell cwd was reset to /Users/blake/Developer/dotfiles
+```
+
+This appears to be the Claude Code harness itself (not bash, not direnv)
+reporting that it moved this session's tracked working directory back to
+the primary project directory after the call. This sits structurally close
+to the suspected mechanism (a harness-level cd/state-restore step adjacent
+to the shell-snapshot restore) — but it fired here with **no error**, so
+its mere presence isn't sufficient on its own to trigger the bug, at
+minimum. Worth checking whether this same message appears in the broken
+host's repro output, and if so, its exact timing relative to the crash.
+
+### SSH-based checks on the broken host (umac.local) — config/baseline confirmed current, but can't reproduce the actual bug this way
+
+Connected via `ssh umac` to check live state without going through an
+actual Claude Code session there (important caveat: **plain SSH command
+execution does not go through Claude Code's Bash-tool sandbox/snapshot
+machinery at all** — it can only verify static state, not reproduce the
+bug itself):
+
+- **`settings.json` matches what's pasted earlier in this file** —
+  `sandbox.allowUnsandboxedCommands: true` and the rest of the `sandbox`
+  block are confirmed current on disk right now, not a stale snapshot from
+  round 1.
+- **New side-finding, worth fixing independently of this bug:**
+  `permissions.allow` on this host has a blanket `"Bash(direnv *)"` entry.
+  The work host instead has `permissions.deny` entries for
+  `Bash(direnv export*)` / `exec*` / `dump*` specifically to stop Claude
+  from ever invoking direnv directly as a literal command (it would dump
+  resolved secrets into the transcript — see this skill's "Settings.json
+  Requirements" section). This host has no such deny rule at all. Unrelated
+  to the crash, but a real gap worth closing regardless.
+- **Baseline `~/.bash_env` confirmed correct outside Claude Code entirely**
+  (matches round 1's finding exactly, re-verified fresh):
+  ```
+  $ env BASH_ENV=$HOME/.bash_env bash -c 'type _direnv_resolve; type cd'
+  _direnv_resolve is a function
+  ...
+  cd is a function
+  cd () { builtin cd "$@" && _direnv_resolve }
+  ```
+  The template/rendered file itself has never been the problem.
+- `~/scratch/direnvtest/.envrc` from round 1 is still present and intact.
+
+**Dead end, don't retry: headless remote repro via `claude -p` over SSH.**
+Attempted `ssh umac "claude -p '...'"` to spawn a one-shot headless Claude
+Code session and drive the actual Bash-tool/sandbox/snapshot path remotely
+without an interactive session. Failed immediately: `Not logged in ·
+Please run /login`. Headless mode on that host isn't authenticated
+independently of whatever session/credentials the interactive app uses —
+this isn't a viable path for remote reproduction and shouldn't be
+re-attempted the same way.
+
+### Where this leaves things for whoever picks this up on `umac` directly
+
+1. Re-run the exact repro (`cd ~/scratch/direnvtest && echo $FOO`, fresh
+   session/new shell-snapshot, no `dangerouslyDisableSandbox`) and confirm
+   it still fails the same way, to rule out anything having changed since
+   round 1.
+2. Check whether the `Shell cwd was reset to ...` harness message (see
+   above) also appears in this host's repro output, and if so, look at its
+   exact ordering relative to the `command not found` error — before,
+   after, or interleaved with the crash?
+3. Given the root mechanism is now a confirmed upstream CLI bug (not
+   fixable via settings.json), the open question is specifically **why
+   this host triggers it and the known-good host doesn't**, despite
+   identical CLI build. Candidate angles not yet tested:
+   - Total number/size of bash-completion scripts sourced into the
+     interactive shell that seeds the snapshot (this host has many — 1Password
+     `op`, `limactl`, `autopkg`, `dbus-send`, `hdiutil`, etc. — possibly
+     enough to hit a size-based cutoff or ordering issue alongside the
+     name-based filter).
+   - Whether the two hosts' actual live `~/.bash_env` are truly identical
+     right now — confirm with a live diff/hash between the two hosts, not
+     an assumption based on "should be, per the shared dotfiles repo."
+   - Whether frequency/pattern of `cd` usage in this host's typical
+     workflow exercises the buggy early-snapshot path more than it does on
+     the known-good host.
+4. If root-caused further, consider commenting on
+   [anthropics/claude-code#55816](https://github.com/anthropics/claude-code/issues/55816)
+   or [#40602](https://github.com/anthropics/claude-code/issues/40602) with
+   these findings — the sandboxed-vs-`dangerouslyDisableSandbox` A/B test
+   and the cross-host non-reproduction from this investigation is genuinely
+   useful data that doesn't seem to be on either issue yet.
+5. The defensive `cd()` fix drafted in round 1 (guard the call with
+   `declare -F _direnv_resolve`) is still on the table as a workaround if
+   root-causing further doesn't pan out — but the current direction is to
+   prefer understanding/reporting the actual cause over a host-specific
+   code workaround if at all avoidable.
