@@ -34,12 +34,24 @@ This runs `swift build -c release` and copies the result into `bin/wincap`. Take
 If it fails with sandbox-style "Operation not permitted" errors writing to Swift's module cache,
 that's a Claude Code sandbox restriction, not a real error — retry with the sandbox disabled.
 
-The calling terminal app also needs **Screen Recording** permission (actual pixel capture shells out
-to Apple's `screencapture`, which inherits the grant from the parent terminal — the same requirement
-the previous version of this skill had).
+`list` (and thus `capture`, which calls it internally for `--app`/`--title` resolution) talks to
+`tccd` over XPC via ScreenCaptureKit's `SCShareableContent`. Under the Claude Code sandbox this XPC
+call hangs indefinitely instead of failing fast — no error, just a timeout. **This is not a
+permissions problem**; it's the sandbox blocking mach/XPC lookups. Fixed by adding wincap's path to
+`sandbox.excludedCommands` in `settings.json` (see machine-cfg's `claude/settings.json` for the
+working entry: `"~/.claude/skills/screenshot-window/bin/wincap *"`) — this exempts wincap invocations
+from the sandbox entirely, and no session restart is required for it to take effect. If a `wincap`
+call hangs past ~30s, that's the signal: check the `excludedCommands` entry is present, or fall back
+to a one-off `dangerouslyDisableSandbox: true` for that call.
 
-Check/fix: **System Settings → Privacy & Security → Screen Recording** → enable your terminal
-(Ghostty, Terminal, etc.).
+wincap also needs its own **Screen Recording** grant (`SCShareableContent` requires a grant on the
+*calling binary itself*, not just the parent terminal). Add the binary directly:
+**System Settings → Privacy & Security → Screen Recording → +** → resolve the wincap symlink to its
+real path first (`realpath ~/.claude/skills/screenshot-window/bin/wincap`, since TCC keys off the
+underlying file, not the chezmoi-managed symlink) and add that. Actual pixel capture separately
+shells out to Apple's `screencapture`, which inherits the grant from the parent terminal app (the
+same requirement the previous JXA-based version of this skill had) — so the terminal app (Ghostty,
+Terminal, etc.) needs Screen Recording too.
 
 If `wincap capture` returns `"error": "no_matching_window"` even though the window is visibly open,
 the app name likely doesn't match — app names are matched case-insensitively as a substring against
