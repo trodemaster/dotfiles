@@ -1,14 +1,15 @@
-# Open issue: `_direnv_resolve: command not found` on this host, sandboxed
+# Resolved issue: `_direnv_resolve: command not found` on sandboxed `Bash` calls
 
-Status: **unresolved, actively being debugged — round 2**. Root mechanism is
-now confirmed (see "Update (round 2)" below) via official docs and upstream
-GitHub issues, not just local inference. The open question is narrower now:
-*why does this host trigger it and the known-good host doesn't*, given both
-run identical CLI version `2.1.222`. Everything in the original write-up
-below (pre-"Update" section) is empirical findings from the first
-investigation session — still believed accurate, but was reverse engineered
-from observed behavior, not from source, so verify claims before trusting
-them where it matters.
+Status: **RESOLVED** (round 4). Root cause was an upstream Claude Code CLI
+bug — the shell-snapshot mechanism drops single-leading-underscore function
+names ([#55816](https://github.com/anthropics/claude-code/issues/55816),
+[#40602](https://github.com/anthropics/claude-code/issues/40602)). Fix:
+renamed `_direnv_resolve` to `__direnv_resolve` (double leading underscore)
+in `dot_bash_env.tmpl`, confirmed working on both hosts. See "Update (round
+4)" near the end for the closing confirmation; everything above it is the
+investigation trail that got there — kept intact since the empirical
+snapshot-inspection findings (rounds 1–2) are the actual evidence the fix
+rests on.
 
 ## Symptom
 
@@ -723,3 +724,37 @@ size-based, or specific to something about how `_direnv_resolve` in
 particular got captured), and the investigation should go back to the open
 questions in round 2's write-up rather than assuming double-underscore is
 a universal escape hatch.
+
+## Update (round 4): confirmed fixed on `umac` — status: RESOLVED
+
+Pulled the rename via `chezmoi update` (already current — `~/.local/share/chezmoi`
+was at `6e82a25`), confirmed `~/.bash_env` re-rendered with `__direnv_resolve`
+throughout (`grep direnv_resolve ~/.bash_env` shows the function def, the
+`cd()` call, and the standalone call all using the double-underscore name).
+
+After a full session restart, reran the exact repro fully sandboxed (no
+`dangerouslyDisableSandbox`), twice, with different commands chained after
+the `cd`:
+
+```
+$ cd ~/scratch/direnvtest && echo "FOO=$FOO"
+FOO=bar
+
+$ cd /Users/blake/Developer/dotfiles && git log --oneline -1
+6e82a25 direnv: rename _direnv_resolve to __direnv_resolve (double underscore)
+```
+
+No `command not found` error either time. This is the first clean sandboxed
+`cd` on `umac` across the entire investigation (rounds 1–3 reproduced the
+crash on essentially every sandboxed `cd`-involving call).
+
+**Status: resolved.** The rename is the actual fix, confirmed on both
+hosts now — not a workaround, not something requiring settings.json
+changes. Per round 3's note, `dot_bash_env.tmpl` has no other
+single-leading-underscore function names left to worry about
+(`_BASH_ENV_GUARD` is a variable, not a function, and isn't subject to
+this filter). No further action needed on this file unless the bug
+resurfaces or someone wants to file the corroborating cross-host A/B
+evidence from this investigation against the upstream issues
+([#55816](https://github.com/anthropics/claude-code/issues/55816),
+[#40602](https://github.com/anthropics/claude-code/issues/40602)).
