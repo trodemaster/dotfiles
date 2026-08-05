@@ -23,7 +23,9 @@ fi
 
 Firing #1 ran the whole file and correctly set `GH_CONFIG_DIR` via direnv. Firing #2 (same PID) hit the guard and skipped the `direnv` line — but the **unguarded baseline `export GH_CONFIG_DIR=...gh-work` above it ran again**, silently clobbering the correct value firing #1 had just computed. Net effect: `GH_CONFIG_DIR` (and any other per-repo override) was *always* wrong at the end of the call, no matter what the direnv logic did, because the last write always won and the last write was always the unguarded default.
 
-**The fix: put the entire file's body inside the guard**, not just the direnv call. See `dot_bash_env.tmpl` — `PATH`, the machine-cfg baseline vars, and the direnv resolution are all inside one `if [[ -z "$_BASH_ENV_GUARD" ]]; then ... fi` block now. A second same-PID sourcing is then a complete no-op, and whatever the first sourcing computed survives.
+**The fix: put the static baseline inside the guard.** See `dot_bash_env.tmpl` — `PATH` and the machine-cfg baseline vars are inside one `if [[ -z "$_BASH_ENV_GUARD" ]]; then ... fi` block. A second same-PID sourcing of that block is then a complete no-op, so the static baseline can never re-clobber anything.
+
+The direnv resolution block (function definitions + the `cd` wrapper, below) is deliberately kept **outside** that guard. Unlike the static baseline, it depends on `$PWD` and needs to re-run whenever the shell's directory changes, not just once per PID. Redefining `_direnv_resolve`/`cd` and re-running the resolve on a same-PID second firing is harmless — function (re)definition is idempotent, and re-resolving against the same directory is a no-op in effect — so leaving it unguarded doesn't reintroduce the bug above. That bug was specifically about *unguarded plain exports* silently overwriting a value direnv had just computed; a function redefinition can't clobber anything the same way.
 
 ## The Core Mechanism
 
@@ -51,21 +53,44 @@ Bash reads `$BASH_ENV` at startup for **every non-interactive shell**, including
 - Verified experimentally that calling it once, twice, or even in a loop-until-empty-diff (up to 4 iterations) in a freshly-sourced `BASH_ENV` context could *still* leave a direnv-set var unresolved — the number of passes needed to converge was not consistent, and sometimes never converged within a handful of tries.
 - Unsetting the inherited `DIRENV_*` tracking vars first did not reliably fix it either.
 
-**Fix: don't use `direnv export bash` at all in this file.** Use `direnv exec . env -0` instead — it fully resolves `.envrc` (handling parent-directory discovery and the allow check exactly like `export` would) and executes the given command in that environment, dumping the *complete resulting environment* rather than an incremental diff. This has been reliable in every test. Re-export it into the current shell:
+**Fix: don't use `direnv export bash` at all in this file.** Use `direnv exec . env -0` instead — it fully resolves `.envrc` (handling parent-directory discovery and the allow check exactly like `export` would) and executes the given command in that environment, dumping the *complete resulting environment* rather than an incremental diff. This has been reliable in every test.
+
+This is the actual implementation in `dot_bash_env.tmpl`, wrapped in a function so it can be re-run from the `cd` wrapper below:
 
 ```bash
 if command -v direnv &>/dev/null; then
-  while IFS= read -r -d '' _direnv_kv; do
-    _direnv_key=${_direnv_kv%%=*}
-    [[ $_direnv_key =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]] && export "$_direnv_kv"
-  done < <(direnv exec . env -0 2>/dev/null)
-  unset _direnv_kv _direnv_key
+  _direnv_resolve() {
+    local _kv _key _out_keys=$'\n' _n=0
+    while IFS= read -r -d '' _kv; do
+      _key=${_kv%%=*}
+      [[ $_key =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]] || continue
+      export "$_kv"
+      _out_keys+="$_key"$'\n'
+      _n=$((_n + 1))
+    done < <(env -u BASH_ENV direnv exec . env -0 2>/dev/null)
+    if [[ $_n -eq 0 ]]; then
+      echo "bash_env: direnv failed to resolve env for $PWD (blocked .envrc? run 'direnv allow')" >&2
+      return 0
+    fi
+    while IFS= read -r -d '' _kv; do
+      _key=${_kv%%=*}
+      [[ $_key =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]] || continue
+      [[ $_key == BASH_ENV ]] && continue
+      [[ $_out_keys == *$'\n'"$_key"$'\n'* ]] || unset "$_key" 2>/dev/null
+    done < <(env -0)
+  }
+  cd() { builtin cd "$@" && _direnv_resolve; }
+  _direnv_resolve
 fi
 ```
 
-Note the identifier check on the key: some system daemons set malformed env vars with literal quote characters baked into the name/value (e.g. `'SOME_VAR'='...'` as the literal string). Re-exporting those blindly throws a "not a valid identifier" error from bash's `export`; skipping non-identifier keys avoids that cosmetically, harmlessly.
+Implementation notes:
 
-Use process substitution (`< <(...)`) for the read loop, not a pipe (`... | while read`) — a pipe puts the loop in a subshell, so `export` inside it would not affect the calling shell at all.
+- **`env -u BASH_ENV`** is the recursion breaker: direnv evaluates `.envrc` with a plain `bash -c` (rc.go), which would re-source `~/.bash_env` and fork-bomb. Stripping `BASH_ENV` from direnv's whole process tree closes that path.
+- **The identifier regex** (`^[A-Za-z_][A-Za-z0-9_]*$`) skips malformed env vars — some system daemons bake literal quote characters into names — and exported bash functions, either of which would otherwise throw a "not a valid identifier" error from bash's `export`.
+- **The zero-output check** (`$_n -eq 0`): `direnv exec` hard-fails with no output at all when `.envrc` is blocked or errors. Silently ending up with no credentials is undebuggable, so this warns to stderr and returns 0 rather than erroring the whole shell.
+- **The second loop unsets anything direnv unloaded** — vars present in this shell but absent from the freshly-resolved environment. This is what makes moving between two directories with different `.envrc` files behave correctly (see "cd and Credentials" below); without it, the first directory's vars would linger after `cd`-ing into a second directory that doesn't set them.
+- Process substitution (`< <(...)`) is used for both read loops, not a pipe (`... | while read`) — a pipe puts the loop in a subshell, so `export`/`unset` inside it would not affect the calling shell at all.
 
 ## Handling `direnv allow`
 

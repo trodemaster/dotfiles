@@ -3,29 +3,8 @@
 {{-   $raw := output "/opt/local/bin/python3" "--version" | trim -}}
 {{-   $python_vers = regexReplaceAll "Python (\\d+\\.\\d+).*" $raw "${1}" -}}
 {{- end -}}
-# ---------------------------------------------------------------------------
-# Claude Code dependency (see machine-cfg/claude/settings.json):
-#
-# - settings.json top-level "env" must set BASH_ENV to this file's rendered
-#   path (~/.bash_env). Without that, Claude's Bash tool gets a bare
-#   non-interactive shell: no PATH additions, no machine-cfg layer, no
-#   direnv resolution - everything below is a no-op.
-# - sandbox.excludedCommands must include "direnv *" so the `direnv exec`
-#   call below always runs unsandboxed. Sandboxed, the sandbox's
-#   filesystem/network allowlists can silently break secret-backed .envrc
-#   files (e.g. credential_process lookups), and direnv resolution fails
-#   with no useful error.
-# - permissions.deny should keep "Bash(direnv export*)", "Bash(direnv
-#   exec*)", "Bash(direnv dump*)". Those block Claude from invoking direnv
-#   directly as a literal Bash tool call (which would dump resolved secrets
-#   into the transcript) - they do NOT block the `direnv exec` call below,
-#   since that runs inside a function sourced via BASH_ENV, not as a literal
-#   tool-call command string.
-# ---------------------------------------------------------------------------
-# The guard covers only static, cwd-independent exports. When a nested shell
-# inherits the guard it can safely skip this block: plain exports survive in
-# the environment. direnv resolution runs below, OUTSIDE the guard, because it
-# depends on $PWD and must re-run in every fresh shell.
+# See dotfiles/skills/direnv/SKILL.md for how this works and what
+# machine-cfg/claude/settings.json needs for it to take effect.
 if [[ -z "$_BASH_ENV_GUARD" ]]; then
   export _BASH_ENV_GUARD=1
 
@@ -45,19 +24,6 @@ if [[ -z "$_BASH_ENV_GUARD" ]]; then
 
 fi
 
-# `direnv export bash` is stateful (diffs against its own prior invocation) and
-# unreliable in a cold, one-shot, non-interactive shell - it can silently no-op
-# regardless of how many times it's retried. Bypass it: run `direnv exec` to fully
-# resolve the environment for this directory (handles .envrc discovery, parent
-# search, allow check, and revert of a previously loaded .envrc via the
-# re-exported DIRENV_DIFF), then mirror the result into this shell.
-#
-# `env -u BASH_ENV` is the recursion breaker: direnv evaluates .envrc with a
-# plain `bash -c` (rc.go), which would re-source this file and fork-bomb.
-# Stripping BASH_ENV from direnv's whole process tree closes that path.
-#
-# The identifier regex skips malformed env vars (some system daemons - e.g.
-# Nexthink - bake literal quotes into names) and exported bash functions.
 if command -v direnv &>/dev/null; then
   _direnv_resolve() {
     local _kv _key _out_keys=$'\n' _n=0
@@ -68,14 +34,10 @@ if command -v direnv &>/dev/null; then
       _out_keys+="$_key"$'\n'
       _n=$((_n + 1))
     done < <(env -u BASH_ENV direnv exec . env -0 2>/dev/null)
-    # direnv exec hard-fails with no output at all when .envrc is blocked or
-    # errors; silently ending up with no credentials is undebuggable, so warn.
     if [[ $_n -eq 0 ]]; then
       echo "bash_env: direnv failed to resolve env for $PWD (blocked .envrc? run 'direnv allow')" >&2
       return 0
     fi
-    # The export loop is additive; also unset anything direnv unloaded
-    # (present in this shell but absent from the resolved environment).
     while IFS= read -r -d '' _kv; do
       _key=${_kv%%=*}
       [[ $_key =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]] || continue
@@ -83,9 +45,6 @@ if command -v direnv &>/dev/null; then
       [[ $_out_keys == *$'\n'"$_key"$'\n'* ]] || unset "$_key" 2>/dev/null
     done < <(env -0)
   }
-  # Non-interactive shells have no direnv hook, and BASH_ENV runs before any
-  # in-command `cd`; wrap cd so `cd repo && git push` picks up repo/.envrc
-  # (and drops the previous directory's) the way an interactive shell would.
   cd() { builtin cd "$@" && _direnv_resolve; }
   _direnv_resolve
 fi
