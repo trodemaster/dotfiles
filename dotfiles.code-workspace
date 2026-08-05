@@ -17,6 +17,9 @@
 		},
 		{
 			"path": "../obsidianghost"
+		},
+		{
+			"path": "../secrets-cli"
 		}
 	],
 	"settings": {}
