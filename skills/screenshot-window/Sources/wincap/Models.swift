@@ -1,13 +1,13 @@
 import Foundation
 
-struct Frame: Codable {
+struct Frame: Codable, Sendable {
     let x: Double
     let y: Double
     let width: Double
     let height: Double
 }
 
-struct WindowInfo: Codable {
+struct WindowInfo: Codable, Sendable {
     let windowID: Int
     let title: String?
     let appName: String
@@ -48,6 +48,7 @@ enum WincapError: Error {
     case ambiguousMatch(candidates: [WindowInfo])
     case capture(message: String)
     case usage(message: String)
+    case timeout(seconds: Double)
 }
 
 let jsonEncoder: JSONEncoder = {
@@ -88,6 +89,11 @@ func printError(_ error: WincapError) {
         output = ErrorOutput(error: "capture_failed", message: message)
     case .usage(let message):
         output = ErrorOutput(error: "usage_error", message: message)
+    case .timeout(let seconds):
+        output = ErrorOutput(
+            error: "timeout",
+            message: "Timed out after \(Int(seconds))s waiting for the system window-sharing service (SCShareableContent). This is a known ScreenCaptureKit flake (Apple's own async bridging occasionally leaks its continuation instead of hanging up cleanly) rather than a wincap bug -- just retry."
+        )
     }
     printJSON(output)
 }

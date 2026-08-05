@@ -34,6 +34,16 @@ This runs `swift build -c release` and copies the result into `bin/wincap`. Take
 If it fails with sandbox-style "Operation not permitted" errors writing to Swift's module cache,
 retry with the sandbox disabled.
 
+**Rebuilding invalidates wincap's own Screen Recording grant unless signed with a stable identity.**
+`swift build` ad-hoc-signs the binary (required just to run on Apple Silicon), and an ad-hoc
+signature embeds a hash of the binary's own bytes as part of its code identity — so every rebuild
+looks like a brand-new app to TCC, and any grant tied to the old build goes stale. To avoid
+re-granting after every `make build`, export `WINCAP_CODESIGN_IDENTITY` to a stable signing identity
+before building — a Developer ID Application identity you own, or a local self-signed Code Signing
+certificate created once via Keychain Access ("Certificate Assistant → Create a Certificate…", type
+Code Signing). Never hardcode an actual identity string in this repo; the env var is the only place
+it should ever live, and it defaults to ad-hoc (`-`) if unset.
+
 **`wincap` must run outside the Claude Code sandbox** — `list` (and `capture`, which calls it
 internally) talks to `tccd` over XPC via `SCShareableContent`, and the sandbox blocks that XPC call
 silently: no error, just an indefinite hang. `sandbox.excludedCommands` in `settings.json` should
@@ -52,6 +62,10 @@ Screen Recording):
 If `wincap capture` returns `"error": "no_matching_window"` even though the window is visibly open,
 the app name likely doesn't match — app names are matched case-insensitively as a substring against
 the name shown in the menu bar / Activity Monitor.
+
+`"error": "timeout"` means `SCShareableContent` (Apple's own window-enumeration API) hung
+internally — a known intermittent ScreenCaptureKit flake, not a wincap bug. `list`/`capture` give up
+after 10s and return this instead of hanging forever; just retry.
 
 ---
 

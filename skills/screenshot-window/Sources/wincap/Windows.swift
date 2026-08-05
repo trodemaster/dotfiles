@@ -1,32 +1,86 @@
 import Foundation
 import ScreenCaptureKit
 
-func fetchWindows(onScreenOnly: Bool) async throws -> [WindowInfo] {
-    let content: SCShareableContent
-    do {
-        content = try await SCShareableContent.excludingDesktopWindows(true, onScreenWindowsOnly: onScreenOnly)
-    } catch {
-        throw WincapError.permission(underlying: error)
+// SCShareableContent's async bridging occasionally leaks its own continuation
+// instead of resuming it (a known ScreenCaptureKit flake, not something in our
+// control -- surfaces as "SWIFT TASK CONTINUATION MISUSE" on stderr and an
+// indefinite hang). A withThrowingTaskGroup-based timeout does NOT help here:
+// structured concurrency waits for every child task to finish before the group
+// itself returns, even after cancelAll(), and a task stuck on a continuation
+// that will never resume never observes cancellation either -- so the "timeout"
+// task group would hang right alongside the leak. Instead, race two detached,
+// never-awaited Tasks against a single continuation we control directly: as
+// soon as either resumes it, withTimeout returns -- the other, if genuinely
+// stuck, is simply abandoned rather than joined.
+private final class ResumeOnce<T: Sendable>: @unchecked Sendable {
+    private let lock = NSLock()
+    private var didResume = false
+    private let continuation: CheckedContinuation<T, Error>
+
+    init(_ continuation: CheckedContinuation<T, Error>) {
+        self.continuation = continuation
     }
 
-    return content.windows.map { window in
-        let app = window.owningApplication
-        return WindowInfo(
-            windowID: Int(window.windowID),
-            title: (window.title?.isEmpty ?? true) ? nil : window.title,
-            appName: app?.applicationName ?? "",
-            bundleIdentifier: app?.bundleIdentifier,
-            pid: app?.processID ?? 0,
-            frame: Frame(
-                x: window.frame.origin.x,
-                y: window.frame.origin.y,
-                width: window.frame.size.width,
-                height: window.frame.size.height
-            ),
-            layer: window.windowLayer,
-            isOnScreen: window.isOnScreen,
-            isActive: window.isActive
-        )
+    func resume(returning value: T) {
+        lock.lock(); defer { lock.unlock() }
+        guard !didResume else { return }
+        didResume = true
+        continuation.resume(returning: value)
+    }
+
+    func resume(throwing error: Error) {
+        lock.lock(); defer { lock.unlock() }
+        guard !didResume else { return }
+        didResume = true
+        continuation.resume(throwing: error)
+    }
+}
+
+func withTimeout<T: Sendable>(seconds: Double, operation: @escaping @Sendable () async throws -> T) async throws -> T {
+    try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<T, Error>) in
+        let once = ResumeOnce(continuation)
+        Task {
+            do {
+                once.resume(returning: try await operation())
+            } catch {
+                once.resume(throwing: error)
+            }
+        }
+        Task {
+            try? await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
+            once.resume(throwing: WincapError.timeout(seconds: seconds))
+        }
+    }
+}
+
+func fetchWindows(onScreenOnly: Bool) async throws -> [WindowInfo] {
+    do {
+        return try await withTimeout(seconds: 10) {
+            let content = try await SCShareableContent.excludingDesktopWindows(true, onScreenWindowsOnly: onScreenOnly)
+            return content.windows.map { window in
+                let app = window.owningApplication
+                return WindowInfo(
+                    windowID: Int(window.windowID),
+                    title: (window.title?.isEmpty ?? true) ? nil : window.title,
+                    appName: app?.applicationName ?? "",
+                    bundleIdentifier: app?.bundleIdentifier,
+                    pid: app?.processID ?? 0,
+                    frame: Frame(
+                        x: window.frame.origin.x,
+                        y: window.frame.origin.y,
+                        width: window.frame.size.width,
+                        height: window.frame.size.height
+                    ),
+                    layer: window.windowLayer,
+                    isOnScreen: window.isOnScreen,
+                    isActive: window.isActive
+                )
+            }
+        }
+    } catch let error as WincapError {
+        throw error
+    } catch {
+        throw WincapError.permission(underlying: error)
     }
 }
 
