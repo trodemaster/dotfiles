@@ -25,7 +25,7 @@ if [[ -z "$_BASH_ENV_GUARD" ]]; then
 fi
 
 if command -v direnv &>/dev/null; then
-  _direnv_resolve() {
+  __direnv_resolve() {
     local _kv _key _out_keys=$'\n' _n=0
     while IFS= read -r -d '' _kv; do
       _key=${_kv%%=*}
@@ -45,6 +45,6 @@ if command -v direnv &>/dev/null; then
       [[ $_out_keys == *$'\n'"$_key"$'\n'* ]] || unset "$_key" 2>/dev/null
     done < <(env -0)
   }
-  cd() { builtin cd "$@" && _direnv_resolve; }
-  _direnv_resolve
+  cd() { builtin cd "$@" && __direnv_resolve; }
+  __direnv_resolve
 fi

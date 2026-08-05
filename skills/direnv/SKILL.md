@@ -25,7 +25,7 @@ Firing #1 ran the whole file and correctly set `GH_CONFIG_DIR` via direnv. Firin
 
 **The fix: put the static baseline inside the guard.** See `dot_bash_env.tmpl` — `PATH` and the machine-cfg baseline vars are inside one `if [[ -z "$_BASH_ENV_GUARD" ]]; then ... fi` block. A second same-PID sourcing of that block is then a complete no-op, so the static baseline can never re-clobber anything.
 
-The direnv resolution block (function definitions + the `cd` wrapper, below) is deliberately kept **outside** that guard. Unlike the static baseline, it depends on `$PWD` and needs to re-run whenever the shell's directory changes, not just once per PID. Redefining `_direnv_resolve`/`cd` and re-running the resolve on a same-PID second firing is harmless — function (re)definition is idempotent, and re-resolving against the same directory is a no-op in effect — so leaving it unguarded doesn't reintroduce the bug above. That bug was specifically about *unguarded plain exports* silently overwriting a value direnv had just computed; a function redefinition can't clobber anything the same way.
+The direnv resolution block (function definitions + the `cd` wrapper, below) is deliberately kept **outside** that guard. Unlike the static baseline, it depends on `$PWD` and needs to re-run whenever the shell's directory changes, not just once per PID. Redefining `__direnv_resolve`/`cd` and re-running the resolve on a same-PID second firing is harmless — function (re)definition is idempotent, and re-resolving against the same directory is a no-op in effect — so leaving it unguarded doesn't reintroduce the bug above. That bug was specifically about *unguarded plain exports* silently overwriting a value direnv had just computed; a function redefinition can't clobber anything the same way.
 
 ## The Core Mechanism
 
@@ -59,7 +59,7 @@ This is the actual implementation in `dot_bash_env.tmpl`, wrapped in a function 
 
 ```bash
 if command -v direnv &>/dev/null; then
-  _direnv_resolve() {
+  __direnv_resolve() {
     local _kv _key _out_keys=$'\n' _n=0
     while IFS= read -r -d '' _kv; do
       _key=${_kv%%=*}
@@ -79,8 +79,8 @@ if command -v direnv &>/dev/null; then
       [[ $_out_keys == *$'\n'"$_key"$'\n'* ]] || unset "$_key" 2>/dev/null
     done < <(env -0)
   }
-  cd() { builtin cd "$@" && _direnv_resolve; }
-  _direnv_resolve
+  cd() { builtin cd "$@" && __direnv_resolve; }
+  __direnv_resolve
 fi
 ```
 
@@ -91,6 +91,7 @@ Implementation notes:
 - **The zero-output check** (`$_n -eq 0`): `direnv exec` hard-fails with no output at all when `.envrc` is blocked or errors. Silently ending up with no credentials is undebuggable, so this warns to stderr and returns 0 rather than erroring the whole shell.
 - **The second loop unsets anything direnv unloaded** — vars present in this shell but absent from the freshly-resolved environment. This is what makes moving between two directories with different `.envrc` files behave correctly (see "cd and Credentials" below); without it, the first directory's vars would linger after `cd`-ing into a second directory that doesn't set them.
 - Process substitution (`< <(...)`) is used for both read loops, not a pipe (`... | while read`) — a pipe puts the loop in a subshell, so `export`/`unset` inside it would not affect the calling shell at all.
+- **The function is named `__direnv_resolve` (double leading underscore), not `_direnv_resolve` (single).** This isn't stylistic — Claude Code's Bash tool restores prior shell state into each fresh invocation from a cached snapshot (`~/.claude/shell-snapshots/snapshot-bash-*.sh`), and that snapshot-capture step silently drops any function with exactly one leading underscore while preserving double-underscore and plain-named functions (confirmed via `anthropics/claude-code` issues [#55816](https://github.com/anthropics/claude-code/issues/55816) and [#40602](https://github.com/anthropics/claude-code/issues/40602), and independently reproduced in this skill's `ISSUES.md`). A single-underscore name here means `cd()`'s call to it can fail with `command not found` on a sandboxed `Bash` tool call, even though the file that defines it is completely correct. Do not rename it back to a single underscore.
 
 ## Handling `direnv allow`
 
@@ -199,7 +200,7 @@ After creating or editing an `.envrc`, run `direnv allow` once to approve it.
    ```
    This stops Claude from ever invoking direnv directly as a literal Bash tool call (which would dump resolved secrets into the transcript). It does not block `~/.bash_env`'s own internal `direnv exec` call, since that one runs via sourcing, not as a literal tool-call command string.
 
-If direnv-backed env vars ("_direnv_resolve: command not found", a wrong `GH_CONFIG_DIR`, etc.) work on one fork/box but not another, check this checklist against that fork's `settings.json` before assuming the `dot_bash_env.tmpl` logic itself is at fault — a missing/incomplete `env.BASH_ENV` or a settings.json that predates one of these fixes is a more likely culprit than a logic bug in a file that's identical across forks.
+If direnv-backed env vars ("__direnv_resolve: command not found", a wrong `GH_CONFIG_DIR`, etc.) work on one fork/box but not another, check this checklist against that fork's `settings.json` before assuming the `dot_bash_env.tmpl` logic itself is at fault — a missing/incomplete `env.BASH_ENV` or a settings.json that predates one of these fixes is a more likely culprit than a logic bug in a file that's identical across forks.
 
 ## direnv.toml Whitelist
 

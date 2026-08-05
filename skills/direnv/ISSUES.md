@@ -641,3 +641,85 @@ re-attempted the same way.
    root-causing further doesn't pan out — but the current direction is to
    prefer understanding/reporting the actual cause over a host-specific
    code workaround if at all avoidable.
+
+## Update (round 3): renamed `_direnv_resolve` → `__direnv_resolve` (double leading underscore) — tested on the known-good host, needs testing on `umac`
+
+Since the snapshot-capture filter provably preserves double-underscore
+functions (round 2's confirmed upstream issues, plus round 1's own snapshot
+inventory — `__op_handle_word`, `__limactl_debug`, etc. all survive every
+time) while dropping single-underscore ones, the direct test is simply: do
+the double-underscore variant actually survive too, and does that make the
+`cd()`-triggered failure go away? Renamed `_direnv_resolve` to
+`__direnv_resolve` everywhere in `dot_bash_env.tmpl` (the function
+definition, the `cd()` wrapper's call, and the standalone call at the end
+of the block) and in `SKILL.md`'s matching code/prose.
+
+**Tested on the known-good host (nextbook) — passed, with one important
+caveat about *when* to retest.** First attempt was invalidated by session
+staleness, not a real result: edited the file mid-session (via the
+fast-iteration `~/.local/share/chezmoi/dot_bash_env.tmpl` + `chezmoi apply`
+loop), then immediately reran the repro — it failed with `_direnv_resolve:
+command not found` (note: the *old* single-underscore name in the error).
+That's because this session's shell-snapshot was captured *before* the
+edit, so its cached `cd()` still called the now-nonexistent old name. This
+is itself a useful, independent confirmation of the "stale/early snapshot
+`cd()` invoked before `~/.bash_env`'s real per-call firing" mechanism —
+same failure shape as the upstream bug, just caused by a self-inflicted
+mid-session mismatch instead of the snapshot filter.
+
+After a full session restart (fresh shell-snapshot, new filename), reran
+the exact repro:
+
+```
+$ cd ~/scratch/direnvtest && echo "FOO=$FOO"
+FOO=bar
+```
+
+No error. Then directly confirmed (not just inferred from the absence of an
+error) that `__direnv_resolve` is actually present in the fresh snapshot,
+by extracting and base64-decoding every captured function from
+`~/.claude/shell-snapshots/snapshot-bash-<latest>.sh`:
+
+```
+__direnv_resolve
+__expand_tilde_by_ref
+__limactl_debug
+... (all double-underscore completion functions)
+cd
+dequote
+exitssh
+killsshhost
+quote
+quote_readline
+```
+
+`__direnv_resolve` sits right alongside the other double-underscore
+functions that have survived every snapshot inspected across both rounds
+of this investigation — matching the theory exactly.
+
+**Important: this is not proof the rename fixes the bug on `umac`.** This
+host never reproduced the bug in the first place (round 1 and round 2 both
+confirmed that), so this test only shows the rename doesn't break anything
+here and behaves as expected given the confirmed filter rule. **The actual
+test that matters is rerunning the exact repro on `umac`, in a fresh
+session (new shell-snapshot — `/exit` and reconnect, or equivalent), after
+pulling this rename.** If `__direnv_resolve` survives the snapshot there
+too (it should, per the same filter rule, assuming the rule is really
+"exactly one leading underscore" and not something more specific to this
+particular function/host), the `command not found` error should simply
+stop occurring — no defensive `cd()` code needed, no settings.json changes
+needed, just the rename.
+
+**If it works on `umac`:** this becomes the actual fix, not a workaround —
+`_direnv_resolve` and `_BASH_ENV_GUARD`-adjacent naming conventions
+elsewhere in `dot_bash_env.tmpl` should probably be reviewed too in case
+anything else picks up a single-underscore name later (currently nothing
+else does — `_BASH_ENV_GUARD` is a variable, not a function, and isn't
+subject to this filter).
+
+**If it doesn't work on `umac`:** that would mean the filter rule inferred
+from round 1/round 2 isn't the whole story (e.g. maybe it's positional,
+size-based, or specific to something about how `_direnv_resolve` in
+particular got captured), and the investigation should go back to the open
+questions in round 2's write-up rather than assuming double-underscore is
+a universal escape hatch.
