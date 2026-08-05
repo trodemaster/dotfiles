@@ -565,14 +565,25 @@ bug itself):
   `sandbox.allowUnsandboxedCommands: true` and the rest of the `sandbox`
   block are confirmed current on disk right now, not a stale snapshot from
   round 1.
-- **New side-finding, worth fixing independently of this bug:**
-  `permissions.allow` on this host has a blanket `"Bash(direnv *)"` entry.
-  The work host instead has `permissions.deny` entries for
-  `Bash(direnv export*)` / `exec*` / `dump*` specifically to stop Claude
-  from ever invoking direnv directly as a literal command (it would dump
-  resolved secrets into the transcript — see this skill's "Settings.json
-  Requirements" section). This host has no such deny rule at all. Unrelated
-  to the crash, but a real gap worth closing regardless.
+- **Correction to a side-finding above, verified directly on `umac` in a
+  live session (not over SSH) immediately after round 2 landed:** the claim
+  that "this host has no such deny rule at all" is wrong as of right now —
+  `permissions.deny` on this host already has
+  `Bash(direnv export*)` / `exec*` / `dump*`, added during round 1 of this
+  same investigation (it's the block pasted earlier in this file, under
+  "Relevant sandbox config from both hosts"). The blanket
+  `permissions.allow: "Bash(direnv *)"` entry does still coexist alongside
+  it, which is fine — `deny` takes precedence over `allow` in Claude Code's
+  permission model, so the narrower `deny` rules already block the literal
+  `direnv export/exec/dump` invocations regardless of the broader `allow`
+  entry. Either the SSH check above ran before round 1's edit had been
+  saved, or it mis-read the block. Not a real gap; no action needed here.
+  Separately, this session also independently re-confirmed round 2's
+  `allowUnsandboxedCommands` conclusion: added it explicitly, did a full
+  session restart (new shell-snapshot filename
+  `snapshot-bash-1785909876813-43xrjv.sh`), verified it was `true` in the
+  live resolved config, and the bug still reproduced identically — same
+  "ruled out" result round 2 reached via docs research.
 - **Baseline `~/.bash_env` confirmed correct outside Claude Code entirely**
   (matches round 1's finding exactly, re-verified fresh):
   ```
