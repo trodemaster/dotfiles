@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\n\t'
+shopt -s nullglob nocaseglob
+
+if [[ "$(uname)" != "Darwin" ]]; then
+  echo "restart: this script only works on macOS (Darwin)." >&2
+  exit 1
+fi
+
+if ! command -v fdesetup &>/dev/null; then
+  echo "restart: fdesetup not found." >&2
+  exit 1
+fi
+
+if ! fdesetup isactive &>/dev/null; then
+  echo "FileVault is off; performing a normal reboot."
+  exec sudo shutdown -r now
+fi
+
+if [[ "$(fdesetup supportsauthrestart)" != "true" ]]; then
+  echo "This Mac doesn't support authenticated restart; performing a normal reboot." >&2
+  echo "You'll need your disk-encryption password to log back in." >&2
+  exec sudo shutdown -r now
+fi
+
+TOKEN_STATUS="$(sysadminctl -secureTokenStatus "$(whoami)" 2>&1 || true)"
+if [[ "$TOKEN_STATUS" != *ENABLED* ]]; then
+  echo "Warning: $(whoami) does not have a Secure Token; authenticated restart may fail." >&2
+fi
+
+echo "Restarting with an authenticated restart (bypasses the FileVault login screen on the way back up)..."
+exec sudo fdesetup authrestart
