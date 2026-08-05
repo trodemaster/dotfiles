@@ -52,7 +52,7 @@ This applies to all repos that use `.envrc` for credential switching.
 
 ## Key Files
 
-- `dot_bash_env.tmpl` → `~/.bash_env` — non-interactive shell env; used by Claude via `BASH_ENV`; runs `direnv export bash`
+- `dot_bash_env.tmpl` → `~/.bash_env` — non-interactive shell env; used by Claude via `BASH_ENV` (must be set in `machine-cfg/claude/settings.json`'s `env.BASH_ENV`); resolves direnv via `direnv exec` (not `direnv export bash`, which is unreliable in cold non-interactive shells)
 - `dot_bash_profile.tmpl` → `~/.bash_profile` — interactive shell setup; runs `direnv hook bash`
 - `dot_claude/symlink_settings.json.tmpl` → `~/.claude/settings.json` symlink into `machine-cfg/claude/`
 - `dot_claude/symlink_settings.local.json.tmpl` → `~/.claude/settings.local.json` symlink into `machine-cfg/claude/`

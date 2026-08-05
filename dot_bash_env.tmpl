@@ -3,6 +3,25 @@
 {{-   $raw := output "/opt/local/bin/python3" "--version" | trim -}}
 {{-   $python_vers = regexReplaceAll "Python (\\d+\\.\\d+).*" $raw "${1}" -}}
 {{- end -}}
+# ---------------------------------------------------------------------------
+# Claude Code dependency (see machine-cfg/claude/settings.json):
+#
+# - settings.json top-level "env" must set BASH_ENV to this file's rendered
+#   path (~/.bash_env). Without that, Claude's Bash tool gets a bare
+#   non-interactive shell: no PATH additions, no machine-cfg layer, no
+#   direnv resolution - everything below is a no-op.
+# - sandbox.excludedCommands must include "direnv *" so the `direnv exec`
+#   call below always runs unsandboxed. Sandboxed, the sandbox's
+#   filesystem/network allowlists can silently break secret-backed .envrc
+#   files (e.g. credential_process lookups), and direnv resolution fails
+#   with no useful error.
+# - permissions.deny should keep "Bash(direnv export*)", "Bash(direnv
+#   exec*)", "Bash(direnv dump*)". Those block Claude from invoking direnv
+#   directly as a literal Bash tool call (which would dump resolved secrets
+#   into the transcript) - they do NOT block the `direnv exec` call below,
+#   since that runs inside a function sourced via BASH_ENV, not as a literal
+#   tool-call command string.
+# ---------------------------------------------------------------------------
 # The guard covers only static, cwd-independent exports. When a nested shell
 # inherits the guard it can safely skip this block: plain exports survive in
 # the environment. direnv resolution runs below, OUTSIDE the guard, because it
