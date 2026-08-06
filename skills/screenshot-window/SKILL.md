@@ -38,7 +38,7 @@ retry with the sandbox disabled.
 `swift build` ad-hoc-signs the binary (required just to run on Apple Silicon), and an ad-hoc
 signature embeds a hash of the binary's own bytes as part of its code identity — so every rebuild
 looks like a brand-new app to TCC, and any grant tied to the old build goes stale. To avoid
-re-granting after every `make build`, export `WINCAP_CODESIGN_IDENTITY` to a stable signing identity
+re-granting after every `make build`, export `PERSONAL_CODESIGN_IDENTITY` to a stable signing identity
 before building — a Developer ID Application identity you own, or a local self-signed Code Signing
 certificate created once via Keychain Access ("Certificate Assistant → Create a Certificate…", type
 Code Signing). Never hardcode an actual identity string in this repo; the env var is the only place
@@ -63,9 +63,16 @@ If `wincap capture` returns `"error": "no_matching_window"` even though the wind
 the app name likely doesn't match — app names are matched case-insensitively as a substring against
 the name shown in the menu bar / Activity Monitor.
 
-`"error": "timeout"` means `SCShareableContent` (Apple's own window-enumeration API) hung
-internally — a known intermittent ScreenCaptureKit flake, not a wincap bug. `list`/`capture` give up
-after 10s and return this instead of hanging forever; just retry.
+**Always run `wincap` directly in the foreground. Never wrap it in a backgrounded
+watchdog pattern** like `(wincap ... & pid=$!; (sleep 15; kill -9 $pid) & wait $pid)`.
+`wincap` already has its own internal 10s timeout on the `SCShareableContent` call — it cannot hang
+your shell — so an external hang-guard is unnecessary. Worse, it's actively harmful: backgrounding
+the process this way (bash job control puts it in its own process group) was confirmed, via a
+multi-session debugging investigation, to reliably prevent `SCShareableContent`'s async completion
+from ever being delivered back to the process, guaranteeing the internal timeout fires every single
+time. Running the exact same command directly, un-backgrounded, in the same session succeeds
+instantly. If you see `"error": "timeout"` and your invocation wasn't backgrounded, it's a genuine
+ScreenCaptureKit flake — just retry as-is.
 
 ---
 
