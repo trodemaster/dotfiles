@@ -12,6 +12,13 @@ import ScreenCaptureKit
 // never-awaited Tasks against a single continuation we control directly: as
 // soon as either resumes it, withTimeout returns -- the other, if genuinely
 // stuck, is simply abandoned rather than joined.
+let wincapDebugEnabled = ProcessInfo.processInfo.environment["WINCAP_DEBUG"] != nil
+
+func debugLog(_ message: @autoclosure () -> String) {
+    guard wincapDebugEnabled else { return }
+    FileHandle.standardError.write("[wincap debug +\(String(format: "%.3f", ProcessInfo.processInfo.systemUptime))s] \(message())\n".data(using: .utf8)!)
+}
+
 private final class ResumeOnce<T: Sendable>: @unchecked Sendable {
     private let lock = NSLock()
     private var didResume = false
@@ -23,31 +30,47 @@ private final class ResumeOnce<T: Sendable>: @unchecked Sendable {
 
     func resume(returning value: T) {
         lock.lock(); defer { lock.unlock() }
-        guard !didResume else { return }
+        guard !didResume else {
+            debugLog("ResumeOnce: ignored LATE returning-resume (already resumed)")
+            return
+        }
         didResume = true
+        debugLog("ResumeOnce: resuming with SUCCESS")
         continuation.resume(returning: value)
     }
 
     func resume(throwing error: Error) {
         lock.lock(); defer { lock.unlock() }
-        guard !didResume else { return }
+        guard !didResume else {
+            debugLog("ResumeOnce: ignored LATE throwing-resume (already resumed): \(error)")
+            return
+        }
         didResume = true
+        debugLog("ResumeOnce: resuming with ERROR: \(error)")
         continuation.resume(throwing: error)
     }
 }
 
 func withTimeout<T: Sendable>(seconds: Double, operation: @escaping @Sendable () async throws -> T) async throws -> T {
-    try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<T, Error>) in
+    debugLog("withTimeout: entered, seconds=\(seconds)")
+    return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<T, Error>) in
         let once = ResumeOnce(continuation)
+        debugLog("withTimeout: spawning operation task")
         Task {
             do {
-                once.resume(returning: try await operation())
+                debugLog("operation task: calling operation()")
+                let value = try await operation()
+                debugLog("operation task: operation() returned successfully")
+                once.resume(returning: value)
             } catch {
+                debugLog("operation task: operation() threw: \(error)")
                 once.resume(throwing: error)
             }
         }
+        debugLog("withTimeout: spawning timer task")
         Task {
             try? await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
+            debugLog("timer task: sleep elapsed, resuming with timeout")
             once.resume(throwing: WincapError.timeout(seconds: seconds))
         }
     }
