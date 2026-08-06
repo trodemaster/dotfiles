@@ -44,12 +44,25 @@ certificate created once via Keychain Access ("Certificate Assistant → Create 
 Code Signing). Never hardcode an actual identity string in this repo; the env var is the only place
 it should ever live, and it defaults to ad-hoc (`-`) if unset.
 
-**`wincap` must run outside the Claude Code sandbox** — `list` (and `capture`, which calls it
-internally) talks to `tccd` over XPC via `SCShareableContent`, and the sandbox blocks that XPC call
-silently: no error, just an indefinite hang. `sandbox.excludedCommands` in `settings.json` should
-already contain `"~/.claude/skills/screenshot-window/bin/wincap *"` (see machine-cfg's
-`claude/settings.json`). If a call ever hangs past ~30s, that entry is missing or a different
-invocation path is being used — add it, or fall back to `dangerouslyDisableSandbox: true`.
+**`wincap` MUST be listed in `sandbox.excludedCommands` in `settings.json` — this is not optional.**
+`list` (and `capture`, which calls it internally) talks to `tccd` over XPC via `SCShareableContent`,
+and the Claude Code sandbox blocks that XPC call outright: no clean error, just a block that
+manifests as either an indefinite hang or a fast `"error": "timeout"` (wincap's own internal timeout
+firing because the sandboxed call never got a chance to complete). Running under the sandbox is
+never a "sometimes works" situation for this tool — every invocation. Before ever running `wincap`,
+verify the exact entry is present:
+
+```bash
+grep -F '~/.claude/skills/screenshot-window/bin/wincap' ~/Developer/machine-cfg/claude/settings.json
+```
+
+It must match exactly `"~/.claude/skills/screenshot-window/bin/wincap *"` — a different literal
+invocation string (a relative path like `./bin/wincap`, `cd`-then-relative, or the
+`~/Developer/dotfiles/...` working-copy path instead of `~/.claude/skills/...`) will **not** match
+this pattern and will silently fall back to running inside the sandbox, breaking every single time
+regardless of anything else being correctly configured. If the entry is missing or you can't confirm
+the invocation matches it exactly, pass `dangerouslyDisableSandbox: true` on the call instead of
+guessing.
 
 Two separate **Screen Recording** grants are required (System Settings → Privacy & Security →
 Screen Recording):
