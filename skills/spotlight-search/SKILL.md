@@ -121,6 +121,19 @@ done
 
 Bare multi-word queries default to AND (intersection), not OR — `mdfind "Vault Teleport"` behaves like `Vault AND Teleport`. Use explicit `||` for OR.
 
+## Targeted Reindex (single file or directory, no sudo)
+
+`sudo mdutil -E /` (see Tips below) rebuilds the *entire volume's* index — overkill and slow if you only care about one repo or folder being stale. `mdutil -E` itself only accepts volumes/mount points, not arbitrary subdirectories (confirmed: `mdutil -E ~/some/subdir` fails with "Error: unknown indexing state").
+
+For a scoped refresh, use `mdimport -i` instead — it re-imports a specific file or recursively walks a directory, with no sudo required:
+
+```bash
+mdimport -i ~/daneel/Tools/some-file.md      # single file
+mdimport -i ~/daneel                          # recursively reimport one repo/folder
+```
+
+Verified behavior: editing a file's content and re-running `mdimport -i <file>` immediately makes the new content searchable via `mdfind` and drops the stale content — no wait for background indexing. This is the right tool when you just changed a batch of files and want Spotlight caught up on exactly that tree, not the whole disk.
+
 ## Useful Metadata Keys
 
 | Key | Description |
