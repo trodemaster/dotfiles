@@ -189,6 +189,29 @@ if [[ "$HAS_DESKTOP_SESSION" == true ]]; then
   fi
 fi
 
+# install visual studio code if a desktop session is available
+if [[ "$HAS_DESKTOP_SESSION" == true ]]; then
+  if ! dpkg -s code &>/dev/null; then
+    echo "Installing visual studio code..."
+    VSCODE_OS=$([[ "$ARCH" == "arm64" ]] && echo "linux-deb-arm64" || echo "linux-deb-x64")
+    VSCODE_DEB="${TMPDIR}/vscode-${ARCH}.deb"
+    wget -q -O "$VSCODE_DEB" "https://code.visualstudio.com/sha/download?build=stable&os=${VSCODE_OS}"
+    # code's postinst prompts (whiptail) to add the MS apt repo; noninteractive
+    # frontend takes the default (yes) without blocking on a tty
+    sudo DEBIAN_FRONTEND=noninteractive apt-get install -y "$VSCODE_DEB"
+    rm -f "$VSCODE_DEB"
+  fi
+fi
+
+# bump idle-lock timeout - default 5 min (300s) is too aggressive for active
+# desktop use; requires an active session dbus, so warn (not fatal) if run
+# before first graphical login
+if [[ "$HAS_DESKTOP_SESSION" == true ]]; then
+  if ! gsettings set org.gnome.desktop.session idle-delay 1800 2>/dev/null; then
+    echo "Warning: could not set idle-delay (no active desktop session?), skipping"
+  fi
+fi
+
 {{ end }}
 {{ end }}
 
