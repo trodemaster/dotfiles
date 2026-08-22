@@ -31,7 +31,7 @@ SHELL_TYPE="terminal"
 
 # prompt and friends
 export PS1="\[\e[;34m\]\u\[\e[1;37m\]@\h\[\e[;32m\]:\W$ \[\e[0m\]"
-if [ "$TERM" != "linux" ]; then
+if [[ $- == *i* ]] && [ -z "$DISPLAY" ] && [ "$TERM" != "linux" ]; then
   export DISPLAY=:0
 fi
 
