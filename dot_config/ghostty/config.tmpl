@@ -1,10 +1,11 @@
 theme = Nocturnal Winter
-font-family = SauceCodeProNerdFontMono-Regular
 {{- if eq .chezmoi.os "darwin" }}
+font-family = SauceCodeProNerdFontMono-Regular
 font-size = 18
-{{- else if (index . "isDesktop") }}
-font-size = 14
 {{- else }}
+# Linux/fontconfig matches by the font's actual family name, not the
+# filename-derived PostScript name that works on macOS/CoreText.
+font-family = "SauceCodePro Nerd Font Mono"
 font-size = 14
 {{- end }}
 
