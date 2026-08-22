@@ -14,6 +14,15 @@ TMPDIR="${TMPDIR:-/var/tmp}"
 ARCH=$(dpkg --print-architecture)
 ARCH_LONG=${ARCH/arm64/aarch64}
 
+# detect whether a desktop session is installed (any DE/WM - checks for
+# xsessions/wayland-sessions entries rather than gnome-session specifically,
+# since e.g. Ubuntu Budgie has no gnome-session binary). Used to gate
+# desktop-only installs (ghostty, chrome, etc.) below.
+HAS_DESKTOP_SESSION=false
+if compgen -G "/usr/share/xsessions/*.desktop" >/dev/null || compgen -G "/usr/share/wayland-sessions/*.desktop" >/dev/null; then
+  HAS_DESKTOP_SESSION=true
+fi
+
 # add hashicorp gpg key
 if ! [[ -f /usr/share/keyrings/hashicorp-archive-keyring.gpg ]]; then
   echo "Adding Hashicorp GPG key..."
@@ -156,13 +165,27 @@ if ! [[ -f /usr/bin/fastfetch ]]; then
   fi
 fi
 
-# install ghostty if a desktop session is available (any DE/WM - checks for
-# xsessions/wayland-sessions entries rather than gnome-session specifically,
-# since e.g. Ubuntu Budgie has no gnome-session binary)
-if compgen -G "/usr/share/xsessions/*.desktop" >/dev/null || compgen -G "/usr/share/wayland-sessions/*.desktop" >/dev/null; then
+# install ghostty if a desktop session is available
+if [[ "$HAS_DESKTOP_SESSION" == true ]]; then
   if ! command -v ghostty &>/dev/null; then
     echo "Installing ghostty..."
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/mkasberg/ghostty-ubuntu/HEAD/install.sh)"
+  fi
+fi
+
+# install google chrome if a desktop session is available (amd64 only -
+# google doesn't publish an arm64 desktop .deb)
+if [[ "$HAS_DESKTOP_SESSION" == true ]]; then
+  if ! dpkg -s google-chrome-stable &>/dev/null; then
+    if [[ "$ARCH" == "amd64" ]]; then
+      echo "Installing google chrome..."
+      CHROME_DEB="${TMPDIR}/google-chrome-stable_current_amd64.deb"
+      wget -q -O "$CHROME_DEB" "https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb"
+      sudo apt-get install -y "$CHROME_DEB"
+      rm -f "$CHROME_DEB"
+    else
+      echo "Warning: google chrome has no official $ARCH .deb, skipping"
+    fi
   fi
 fi
 
