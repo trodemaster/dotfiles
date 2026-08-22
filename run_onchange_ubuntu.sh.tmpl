@@ -156,6 +156,16 @@ if ! [[ -f /usr/bin/fastfetch ]]; then
   fi
 fi
 
+# install ghostty if a desktop session is available (any DE/WM - checks for
+# xsessions/wayland-sessions entries rather than gnome-session specifically,
+# since e.g. Ubuntu Budgie has no gnome-session binary)
+if ls /usr/share/xsessions/*.desktop /usr/share/wayland-sessions/*.desktop &>/dev/null; then
+  if ! command -v ghostty &>/dev/null; then
+    echo "Installing ghostty..."
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/mkasberg/ghostty-ubuntu/HEAD/install.sh)"
+  fi
+fi
+
 {{ end }}
 {{ end }}
 
