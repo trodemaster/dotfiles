@@ -1,6 +1,6 @@
 ---
 name: spotlight-search
-description: Search local files using macOS Spotlight (mdfind). Fast indexed search across PDFs, Office docs, and plain text by filename, content, file type, or date — faster than grep/rg for broad filesystem-wide lookups. Use when asked to find a file by name or content, locate documents modified recently, or search across the whole filesystem rather than one known repo/directory. Note: dot-prefixed directories (e.g. `.scout/`, `.git/`) are excluded from the Spotlight index by default — see the Local Learnings section for a worked example.
+description: "Search local files using macOS Spotlight (mdfind). Fast indexed search across PDFs, Office docs, and plain text by filename, content, file type, or date — faster than grep/rg for broad filesystem-wide lookups. Use when asked to find a file by name or content, locate documents modified recently, or search across the whole filesystem rather than one known repo/directory. Note: dot-prefixed directories (e.g. `.scout/`, `.git/`) are excluded from the Spotlight index by default — see the Local Learnings section for a worked example."
 allowed-tools: [Bash, Read]
 ---
 

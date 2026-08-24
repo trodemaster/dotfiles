@@ -24,7 +24,9 @@ Claude Code skills live in two places depending on scope:
 | `dotfiles/skills/<name>/` | Common — applies on all systems (work and personal) | cross-environment tools |
 | `machine-cfg/skills/<name>/` | Work- or personal-focused — machine-cfg has separate upstreams per system type | Adobe-specific, infra tools |
 
-`run_everytime_skills.sh.tmpl` runs on every `chezmoi apply` and syncs both sources into `~/.claude/skills/` and `~/.codex/skills/` as symlinks. machine-cfg skills are applied first; dotfiles skills add to but cannot override them.
+`run_everytime_skills.sh.tmpl` runs on every `chezmoi apply` and syncs both sources into `~/.claude/skills/`, `~/.codex/skills/`, and `~/.copilot/skills/` as symlinks. machine-cfg skills are applied first; dotfiles skills add to but cannot override them. Copilot projects only reviewed local skills that do not require credentials or unavailable hosted MCP connectors.
+
+All cross-agent skill entry files must be named exactly `SKILL.md`, including case. Claude may tolerate other casing, but Copilot does not.
 
 **Chezmoi source vs working repo:** `~/Developer/dotfiles` is the working git repo where edits are made. Chezmoi's actual source directory is `~/.local/share/chezmoi` — a separate copy. `chezmoi apply` reads from `~/.local/share/chezmoi`, not from `~/Developer/dotfiles` directly.
 

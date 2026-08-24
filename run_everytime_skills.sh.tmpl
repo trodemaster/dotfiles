@@ -5,6 +5,7 @@ MACHINE_SKILLS_SRC="{{ .chezmoi.homeDir }}/Developer/machine-cfg/skills"
 DOTFILES_SKILLS_SRC="{{ .chezmoi.sourceDir }}/skills"
 CLAUDE_SKILLS_DST="{{ .chezmoi.homeDir }}/.claude/skills"
 CODEX_SKILLS_DST="{{ .chezmoi.homeDir }}/.codex/skills"
+COPILOT_SKILLS_DST="{{ .chezmoi.homeDir }}/.copilot/skills"
 
 # Skip if ~/.claude is still a symlink — migration hasn't happened yet
 if [ -L "{{ .chezmoi.homeDir }}/.claude" ]; then
@@ -12,11 +13,11 @@ if [ -L "{{ .chezmoi.homeDir }}/.claude" ]; then
   exit 0
 fi
 
-# sync_skills <src_dir> <dst_dir>
+# sync_skills <src_dir> <dst_dir> [excluded_names]
 # Creates symlinks in dst for each skill dir in src; removes stale symlinks
 # that originated from this src (won't touch links pointing elsewhere).
 sync_skills() {
-  local src="$1" dst="$2"
+  local src="$1" dst="$2" excluded_names="${3:-}"
   [ -d "$src" ] || return 0
   mkdir -p "$dst"
   for skill_dir in "$src"/*/; do
@@ -24,6 +25,12 @@ sync_skills() {
     local skill_name link_path
     skill_name=$(basename "$skill_dir")
     link_path="$dst/$skill_name"
+    if [[ " $excluded_names " == *" $skill_name "* ]]; then
+      if [ -L "$link_path" ] && [[ "$(readlink "$link_path")" == "$src/"* ]]; then
+        rm "$link_path"
+      fi
+      continue
+    fi
     if [ -L "$link_path" ] && [ "$(readlink "$link_path")" != "$skill_dir" ]; then
       rm "$link_path"
     fi
@@ -49,6 +56,12 @@ sync_skills "$MACHINE_SKILLS_SRC" "$CLAUDE_SKILLS_DST"
 sync_skills "$DOTFILES_SKILLS_SRC" "$CLAUDE_SKILLS_DST"
 sync_skills "$MACHINE_SKILLS_SRC" "$CODEX_SKILLS_DST"
 sync_skills "$DOTFILES_SKILLS_SRC" "$CODEX_SKILLS_DST"
+
+# Copilot cannot enforce hard user-level denials around credential helpers.
+# Project only local skills that do not require credentials or unavailable MCPs.
+COPILOT_EXCLUDED_SKILLS="ats-cloud-s3 aws-cli close-security-ticket daily-priorities disabled firefly-diagram github hf-cli iamportal jira meeting-prep office365 weekly-status wiki wiz"
+sync_skills "$MACHINE_SKILLS_SRC" "$COPILOT_SKILLS_DST" "$COPILOT_EXCLUDED_SKILLS"
+sync_skills "$DOTFILES_SKILLS_SRC" "$COPILOT_SKILLS_DST" "$COPILOT_EXCLUDED_SKILLS"
 
 # Obsidian plugins — link machine-cfg/obsisian/plugins/* into any vault that exists
 OBSIDIAN_PLUGINS_SRC="{{ .chezmoi.homeDir }}/Developer/machine-cfg/obsisian/plugins"
