@@ -59,7 +59,7 @@ sync_skills "$DOTFILES_SKILLS_SRC" "$CODEX_SKILLS_DST"
 
 # Copilot cannot enforce hard user-level denials around credential helpers.
 # Project only local skills that do not require credentials or unavailable MCPs.
-COPILOT_EXCLUDED_SKILLS="close-security-ticket daily-priorities disabled firefly-diagram github hf-cli iamportal jira meeting-prep office365 weekly-status wiki wiz"
+COPILOT_EXCLUDED_SKILLS="close-security-ticket daily-priorities disabled firefly-diagram meeting-prep office365 weekly-status wiz"
 sync_skills "$MACHINE_SKILLS_SRC" "$COPILOT_SKILLS_DST" "$COPILOT_EXCLUDED_SKILLS"
 sync_skills "$DOTFILES_SKILLS_SRC" "$COPILOT_SKILLS_DST" "$COPILOT_EXCLUDED_SKILLS"
 

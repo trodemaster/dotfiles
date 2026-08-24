@@ -47,6 +47,11 @@
 		"chat.tools.global.autoApprove": false,
 		"chat.tools.terminal.autoApprove": {
 			"/(^|[;&|]\\s*)(/usr/local/bin/)?aws\\s+configure\\s+export-credentials(\\s|$)/": false,
+			"/(^|[;&|]\\s*)direnv\\s+(export|dump)(\\s|$)/": false,
+			"/(^|[;&|]\\s*)direnv\\s+exec\\s+\\.\\s+(env|printenv)(\\s|$)/": false,
+			"/(^|[;&|]\\s*)gh\\s+auth\\s+token(\\s|$)/": false,
+			"/(^|[;&|]\\s*)git\\s+credential(-store|-cache)?\\s+(fill|get)(\\s|$)/": false,
+			"/(^|[;&|]\\s*)hf\\s+auth\\s+token(\\s|$)/": false,
 			"/(^|[;&|]\\s*)(env|printenv)(\\s|$)/": false,
 			"/(^|[;&|]\\s*)op\\s+read(\\s|$)/": false,
 			"/(^|[;&|]\\s*)ps\\s+[^;&|]*\\be([a-z]*)?(\\s|$)/": false,
