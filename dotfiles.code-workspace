@@ -46,6 +46,7 @@
 		"chat.permissions.default": "default",
 		"chat.tools.global.autoApprove": false,
 		"chat.tools.terminal.autoApprove": {
+			"/(^|[;&|]\\s*)(/usr/local/bin/)?aws\\s+configure\\s+export-credentials(\\s|$)/": false,
 			"/(^|[;&|]\\s*)(env|printenv)(\\s|$)/": false,
 			"/(^|[;&|]\\s*)op\\s+read(\\s|$)/": false,
 			"/(^|[;&|]\\s*)ps\\s+[^;&|]*\\be([a-z]*)?(\\s|$)/": false,
