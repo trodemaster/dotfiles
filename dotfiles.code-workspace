@@ -23,6 +23,7 @@
 		}
 	],
 	"settings": {
+		"chat.agentHost.byokModels.enabled": true,
 		"chat.agent.sandbox.allowUnsandboxedCommands": false,
 		"chat.agent.sandbox.enabled": "on",
 		"chat.agent.sandbox.fileSystem.mac": {
