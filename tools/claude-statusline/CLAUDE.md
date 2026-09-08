@@ -32,8 +32,12 @@ with `go env GOPATH`).
 
 - Pure stdlib (`encoding/json`, `os/exec` for `git branch --show-current`,
   etc.) — no third-party dependencies, no machine- or org-specific config.
-- Line 1: session name, model, cwd, project dir (if different from cwd),
-  added dirs, git branch.
+- Line 1: session name, model, short session identifier, cwd, project dir
+  (if different from cwd), added dirs, git branch. The identifier is the
+  derived peer-messaging agent name (e.g. `@daneel-cf`, addressable via
+  `SendMessage`) looked up from `~/.claude/sessions/*.json` by matching
+  `session_id`; falls back to `#<first 8 chars of session_id>` if no match
+  is found.
 - Line 2: context-usage thermometer, cost, session duration, effort level,
   thinking indicator, cache token counts, 200k+ warning, 5h/7d rate-limit
   thermometers.

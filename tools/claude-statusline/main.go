@@ -50,6 +50,7 @@ type StatusData struct {
 		FiveHour *RateWindow `json:"five_hour"`
 		SevenDay *RateWindow `json:"seven_day"`
 	} `json:"rate_limits"`
+	SessionID         *string   `json:"session_id"`
 	SessionName       *string   `json:"session_name"`
 	Effort            *Effort   `json:"effort"`
 	Thinking          *Thinking `json:"thinking"`
@@ -89,6 +90,41 @@ func abbreviateHome(path string) string {
 		}
 	}
 	return path
+}
+
+// lookupAgentName finds the derived peer-messaging name (e.g. "daneel-cf")
+// for a session by scanning ~/.claude/sessions/*.json for a matching
+// sessionId. That name is what other sessions use to address this one via
+// SendMessage, unlike the raw session_id from the statusLine payload.
+func lookupAgentName(sessionID string) string {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return ""
+	}
+	entries, err := os.ReadDir(filepath.Join(home, ".claude", "sessions"))
+	if err != nil {
+		return ""
+	}
+	for _, e := range entries {
+		if e.IsDir() {
+			continue
+		}
+		raw, err := os.ReadFile(filepath.Join(home, ".claude", "sessions", e.Name()))
+		if err != nil {
+			continue
+		}
+		var s struct {
+			SessionID string `json:"sessionId"`
+			Name      string `json:"name"`
+		}
+		if err := json.Unmarshal(raw, &s); err != nil {
+			continue
+		}
+		if s.SessionID == sessionID && s.Name != "" {
+			return s.Name
+		}
+	}
+	return ""
 }
 
 func formatTokens(n int64) string {
@@ -152,6 +188,21 @@ func main() {
 		sessionPrefix = fmt.Sprintf("%s\U0001F3F7\uFE0F %s%s | ", cyan, *data.SessionName, reset)
 	}
 
+	// Short session identifier — prefer the derived peer-messaging agent
+	// name (addressable via SendMessage), fall back to a truncated session_id.
+	shortSessionSuffix := ""
+	if data.SessionID != nil && *data.SessionID != "" {
+		if name := lookupAgentName(*data.SessionID); name != "" {
+			shortSessionSuffix = fmt.Sprintf(" %s@%s%s", cyan, name, reset)
+		} else {
+			id := *data.SessionID
+			if len(id) > 8 {
+				id = id[:8]
+			}
+			shortSessionSuffix = fmt.Sprintf(" %s#%s%s", cyan, id, reset)
+		}
+	}
+
 	// Project dir suffix (only when it differs from cwd)
 	projectSuffix := ""
 	if data.Workspace.ProjectDir != "" {
@@ -170,9 +221,9 @@ func main() {
 		addedDirsSuffix = fmt.Sprintf(" +[%s]", strings.Join(names, ","))
 	}
 
-	// Line 1: session, model, dir, project, added dirs, git branch
-	fmt.Printf("%s%s[%s]%s \U0001F4C1 %s%s%s%s\n",
-		sessionPrefix, cyan, model, reset, dir, projectSuffix, addedDirsSuffix, branch)
+	// Line 1: session, model, short session id, dir, project, added dirs, git branch
+	fmt.Printf("%s%s[%s]%s%s \U0001F4C1 %s%s%s%s\n",
+		sessionPrefix, cyan, model, reset, shortSessionSuffix, dir, projectSuffix, addedDirsSuffix, branch)
 
 	// Line 2: context bar | cost | duration | effort | thinking | 200k+ | rate limits
 	ctxBar := thermometer(ctxPct, 10)

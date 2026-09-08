@@ -30,13 +30,7 @@ All cross-agent skill entry files must be named exactly `SKILL.md`, including ca
 
 **Chezmoi source vs working repo:** `~/Developer/dotfiles` is the working git repo where edits are made. Chezmoi's actual source directory is `~/.local/share/chezmoi` — a separate copy. `chezmoi apply` reads from `~/.local/share/chezmoi`, not from `~/Developer/dotfiles` directly.
 
-**To add or move a skill — correct workflow:**
-1. Create/move the skill directory (`SKILL.md` inside) in the appropriate source repo
-2. **Commit and push** from `~/Developer/dotfiles` (as two separate commands — see git section below)
-3. Run `chezmoi update` — pulls from the remote and refreshes `~/.local/share/chezmoi`
-4. Run `chezmoi apply` — `run_everytime_skills.sh.tmpl` creates the symlink in `~/.claude/skills/`
-
-Do not manually create symlinks in `~/.claude/skills/` — chezmoi owns that directory.
+**To add or move a skill:** see the `manage-skills` skill for the correct commit/chezmoi-update/chezmoi-apply workflow — don't manually symlink into `~/.claude/skills/`.
 
 ## Git / gh Commands — Always cd First
 

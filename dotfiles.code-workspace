@@ -43,7 +43,12 @@
 			"~/.claude/skills": false,
 			"~/.copilot/skills": true
 		},
-		"chat.mcp.discovery.enabled": false,
+		"chat.mcp.discovery.enabled": {
+			"claude-desktop": false,
+			"windsurf": false,
+			"cursor-global": false,
+			"cursor-workspace": false
+		},
 		"chat.permissions.default": "default",
 		"chat.tools.global.autoApprove": false,
 		"chat.tools.terminal.autoApprove": {
