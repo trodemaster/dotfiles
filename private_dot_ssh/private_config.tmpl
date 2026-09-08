@@ -1,15 +1,18 @@
-{{- $devDir := "code" -}}
-{{- if eq .chezmoi.os "darwin" -}}
-{{- $devDir = "Developer" -}}
+{{- /* machine-cfg normally lives at ~/Developer/machine-cfg. Some Linux hosts
+       are mid-migration from ~/code and still keep it there; detect that and
+       stay on ~/code until they're moved. macOS never used ~/code. */ -}}
+{{- $devDir := "Developer" -}}
+{{- if (stat (joinPath .chezmoi.homeDir "code" "machine-cfg")) -}}
+{{-   $devDir = "code" -}}
 {{- end -}}
 # chezmoi managed file
+
+# If {{ .chezmoi.homeDir }}/{{ $devDir }}/machine-cfg/{{ .chezmoi.hostname }}/ssh_config exists, it is included here first (host-specific entries win under SSH first-match-wins)
+{{ if (stat (joinPath .chezmoi.homeDir $devDir "machine-cfg/" .chezmoi.hostname "/ssh_config")) }}
+{{ include (joinPath .chezmoi.homeDir $devDir "machine-cfg/" .chezmoi.hostname "/ssh_config") }}
+{{ end }}
 
 # If {{ .chezmoi.homeDir }}/{{ $devDir }}/machine-cfg/ssh_config exists, it will be included here
 {{ if (stat (joinPath .chezmoi.homeDir $devDir "machine-cfg/ssh_config")) }}
 {{ include (joinPath .chezmoi.homeDir $devDir "machine-cfg/ssh_config") }}
-{{ end }}
-
-# If {{ .chezmoi.homeDir }}/{{ $devDir }}/machine-cfg/{{ .chezmoi.hostname }}/ssh_config exists, it will be included here
-{{ if (stat (joinPath .chezmoi.homeDir $devDir "machine-cfg/" .chezmoi.hostname "/ssh_config")) }}
-{{ include (joinPath .chezmoi.homeDir $devDir "machine-cfg/" .chezmoi.hostname "/ssh_config") }}
 {{ end }}
