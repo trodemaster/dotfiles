@@ -17,14 +17,28 @@ command -v jq >/dev/null 2>&1 || { echo "vscode-copilot-settings: jq not found, 
 
 [ -f "$TARGET" ] || echo '{}' > "$TARGET"
 
+# VS Code writes settings.json as JSONC — it can leave a trailing comma before the
+# final closing brace, which strict JSON (jq) rejects. Strip only that one trailing
+# comma, at that one anchored position, rather than a blanket comment/comma strip
+# that could mangle string values containing "//" (e.g. URL keys).
+CLEANED="$(mktemp)"
+python3 -c "
+import re, sys
+with open(sys.argv[1]) as f:
+    content = f.read()
+content = re.sub(r',(\s*)\}\s*\Z', r'\1}', content, count=1)
+sys.stdout.write(content)
+" "$TARGET" > "$CLEANED"
+
 # Deep-merge the Copilot agent policy fragment into global VS Code user settings,
 # overlaying only the fragment's own keys and preserving everything else already there.
 # Note: this only ever adds/overwrites fragment keys — a key removed from the fragment
 # stays in TARGET until manually cleaned up.
 TMP="$(mktemp)"
-if jq -s '.[0] * .[1]' "$TARGET" "$FRAGMENT" > "$TMP" 2>/dev/null; then
+if jq -s '.[0] * .[1]' "$CLEANED" "$FRAGMENT" > "$TMP" 2>/dev/null; then
   mv "$TMP" "$TARGET"
 else
   echo "vscode-copilot-settings: failed to merge into $TARGET (invalid JSON?), left unchanged" >&2
   rm -f "$TMP"
 fi
+rm -f "$CLEANED"
