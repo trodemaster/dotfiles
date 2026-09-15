@@ -22,51 +22,5 @@
 			"path": "../secrets-cli"
 		}
 	],
-	"settings": {
-		"chat.agentHost.byokModels.enabled": true,
-		"chat.agent.sandbox.allowUnsandboxedCommands": false,
-		"chat.agent.sandbox.enabled": "on",
-		"chat.agent.sandbox.fileSystem.mac": {
-			"denyRead": [
-				"~/.aws/credentials",
-				"~/.azure",
-				"~/.config/op",
-				"~/.copilot-quarantine",
-				"~/Library/Keychains"
-			]
-		},
-		"chat.agentSkillsLocations": {
-			".agents/skills": true,
-			".claude/skills": true,
-			".github/skills": true,
-			"~/.agents/skills": true,
-			"~/.claude/skills": false,
-			"~/.copilot/skills": true
-		},
-		"chat.mcp.discovery.enabled": {
-			"claude-desktop": false,
-			"windsurf": false,
-			"cursor-global": false,
-			"cursor-workspace": false
-		},
-		"chat.permissions.default": "default",
-		"chat.tools.global.autoApprove": false,
-		"chat.tools.terminal.autoApprove": {
-			"/(^|[;&|]\\s*)(/usr/local/bin/)?aws\\s+configure\\s+export-credentials(\\s|$)/": false,
-			"/(^|[;&|]\\s*)direnv\\s+(export|dump)(\\s|$)/": false,
-			"/(^|[;&|]\\s*)direnv\\s+exec\\s+\\.\\s+(env|printenv)(\\s|$)/": false,
-			"/(^|[;&|]\\s*)gh\\s+auth\\s+token(\\s|$)/": false,
-			"/(^|[;&|]\\s*)git\\s+credential(-store|-cache)?\\s+(fill|get)(\\s|$)/": false,
-			"/(^|[;&|]\\s*)hf\\s+auth\\s+token(\\s|$)/": false,
-			"/(^|[;&|]\\s*)(env|printenv)(\\s|$)/": false,
-			"/(^|[;&|]\\s*)op\\s+read(\\s|$)/": false,
-			"/(^|[;&|]\\s*)ps\\s+[^;&|]*\\be([a-z]*)?(\\s|$)/": false,
-			"/(^|[;&|]\\s*)security\\s+find-generic-password(\\s|$)/": false,
-			"/(^|[;&|]\\s*)secrets\\s+(keychain|1pass)\\s+(get|export)(\\s|$)/": false,
-			"/(^|[;&|]\\s*)vault\\s+token\\s+lookup(\\s|$)/": false
-		},
-		"chat.useAgentSkills": true,
-		"chat.useAgentsMdFile": true,
-		"chat.useClaudeMdFile": true
-	}
+	"settings": {}
 }

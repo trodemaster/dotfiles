@@ -1,0 +1,30 @@
+#!/bin/bash
+set -e
+
+FRAGMENT="{{ .chezmoi.homeDir }}/Developer/machine-cfg/copilot/vscode-agent-settings.json"
+[ -f "$FRAGMENT" ] || exit 0
+
+{{ if eq .chezmoi.os "darwin" -}}
+TARGET="{{ .chezmoi.homeDir }}/Library/Application Support/Code/User/settings.json"
+{{ else -}}
+TARGET="{{ .chezmoi.homeDir }}/.config/Code/User/settings.json"
+{{ end -}}
+
+# Skip if VS Code has never been run (no user settings dir yet) — don't create it ourselves.
+[ -d "$(dirname "$TARGET")" ] || exit 0
+
+command -v jq >/dev/null 2>&1 || { echo "vscode-copilot-settings: jq not found, skipping" >&2; exit 0; }
+
+[ -f "$TARGET" ] || echo '{}' > "$TARGET"
+
+# Deep-merge the Copilot agent policy fragment into global VS Code user settings,
+# overlaying only the fragment's own keys and preserving everything else already there.
+# Note: this only ever adds/overwrites fragment keys — a key removed from the fragment
+# stays in TARGET until manually cleaned up.
+TMP="$(mktemp)"
+if jq -s '.[0] * .[1]' "$TARGET" "$FRAGMENT" > "$TMP" 2>/dev/null; then
+  mv "$TMP" "$TARGET"
+else
+  echo "vscode-copilot-settings: failed to merge into $TARGET (invalid JSON?), left unchanged" >&2
+  rm -f "$TMP"
+fi
