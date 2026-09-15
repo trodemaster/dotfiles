@@ -30,12 +30,10 @@ content = re.sub(r',(\s*)\}\s*\Z', r'\1}', content, count=1)
 sys.stdout.write(content)
 " "$TARGET" > "$CLEANED"
 
-# Deep-merge the Copilot agent policy fragment into global VS Code user settings,
-# overlaying only the fragment's own keys and preserving everything else already there.
-# Note: this only ever adds/overwrites fragment keys — a key removed from the fragment
-# stays in TARGET until manually cleaned up.
+# VS Code reads MCP servers from its dedicated mcp.json. Remove legacy server
+# settings here, while preserving chat.mcp.discovery.enabled from the policy fragment.
 TMP="$(mktemp)"
-if jq -s '.[0] * .[1]' "$CLEANED" "$FRAGMENT" > "$TMP" 2>/dev/null; then
+if jq -s '(.[0] | del(.mcp, .["mcp.servers"])) * .[1]' "$CLEANED" "$FRAGMENT" > "$TMP" 2>/dev/null; then
   mv "$TMP" "$TARGET"
 else
   echo "vscode-copilot-settings: failed to merge into $TARGET (invalid JSON?), left unchanged" >&2
