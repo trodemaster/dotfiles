@@ -239,6 +239,56 @@ if [[ "$HAS_DESKTOP_SESSION" == true ]]; then
     gsettings set org.gnome.desktop.input-sources xkb-options "$NEW_XKB_OPTIONS"
   fi
 fi
+
+# F-key app launch shortcuts, mirroring the skhd F-key scheme on umac
+# (machine-cfg/umac/skhdrc), adapted to whatever's actually installed here.
+# Declarative: re-running this always sets custom0-6 to this exact list, so
+# it's the source of truth (like skhdrc is on umac) rather than a one-time
+# seed.
+if [[ "$HAS_DESKTOP_SESSION" == true ]]; then
+  MK_BASE="/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings"
+  MK_NAMES=(
+    "Ghostty"
+    "Xfce Terminal"
+    "VS Code"
+    "Obsidian"
+    "Google Chrome"
+    "Thunderbird"
+    "1Password"
+  )
+  MK_COMMANDS=(
+    "/usr/bin/ghostty --gtk-single-instance=true"
+    "xfce4-terminal"
+    "code"
+    "obsidian"
+    "google-chrome-stable"
+    "thunderbird"
+    "1password"
+  )
+  MK_BINDINGS=(
+    "F1"
+    "<Alt>F1"
+    "F2"
+    "<Alt>F2"
+    "F3"
+    "F4"
+    "F6"
+  )
+
+  MK_PATHS="["
+  for i in "${!MK_NAMES[@]}"; do
+    MK_PATH="${MK_BASE}/custom${i}/"
+    MK_PATHS+="'${MK_PATH}', "
+    gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:"${MK_PATH}" name "${MK_NAMES[$i]}" 2>/dev/null
+    gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:"${MK_PATH}" command "${MK_COMMANDS[$i]}" 2>/dev/null
+    gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:"${MK_PATH}" binding "${MK_BINDINGS[$i]}" 2>/dev/null
+  done
+  MK_PATHS="${MK_PATHS%, }]"
+
+  if ! gsettings set org.gnome.settings-daemon.plugins.media-keys custom-keybindings "$MK_PATHS" 2>/dev/null; then
+    echo "Warning: could not set F-key app shortcuts (no active desktop session?), skipping"
+  fi
+fi
 {{ end }}
 
 {{ end }}
