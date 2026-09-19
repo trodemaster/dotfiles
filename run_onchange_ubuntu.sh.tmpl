@@ -212,6 +212,35 @@ if [[ "$HAS_DESKTOP_SESSION" == true ]]; then
   fi
 fi
 
+# always start sessions with numlock on, and don't let it drift based on
+# whatever state it was left in at last logout
+if [[ "$HAS_DESKTOP_SESSION" == true ]]; then
+  if ! gsettings set org.gnome.desktop.peripherals.keyboard numlock-state true 2>/dev/null; then
+    echo "Warning: could not set numlock-state (no active desktop session?), skipping"
+  fi
+  gsettings set org.gnome.desktop.peripherals.keyboard remember-numlock-state false 2>/dev/null
+fi
+
+{{ if eq .chezmoi.hostname "darkstar" }}
+# Mac keyboard on Mac hardware: map Command (reported as Super/Win) to Ctrl
+# via the XKB altwin:ctrl_win option, so Cmd+C/Cmd+V etc. work as copy/paste.
+# The physical Ctrl key keeps working too (this adds Command as an additional
+# Ctrl, it doesn't replace it).
+if [[ "$HAS_DESKTOP_SESSION" == true ]]; then
+  CURRENT_XKB_OPTIONS=$(gsettings get org.gnome.desktop.input-sources xkb-options 2>/dev/null)
+  if [[ -z "$CURRENT_XKB_OPTIONS" ]]; then
+    echo "Warning: could not read xkb-options (no active desktop session?), skipping Command-key remap"
+  elif [[ "$CURRENT_XKB_OPTIONS" != *"altwin:ctrl_win"* ]]; then
+    if [[ "$CURRENT_XKB_OPTIONS" == "@as []" || "$CURRENT_XKB_OPTIONS" == "[]" ]]; then
+      NEW_XKB_OPTIONS="['altwin:ctrl_win']"
+    else
+      NEW_XKB_OPTIONS="${CURRENT_XKB_OPTIONS%]}, 'altwin:ctrl_win']"
+    fi
+    gsettings set org.gnome.desktop.input-sources xkb-options "$NEW_XKB_OPTIONS"
+  fi
+fi
+{{ end }}
+
 {{ end }}
 {{ end }}
 
