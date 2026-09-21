@@ -245,8 +245,33 @@ fi
 # Declarative: re-running this always sets custom0-6 to this exact list, so
 # it's the source of truth (like skhdrc is on umac) rather than a one-time
 # seed.
+#
+# Ubuntu Budgie's Wayland session runs on labwc, not Mutter, and has no
+# gsd-media-keys process at all - global shortcuts are bridged from
+# gsettings into labwc's rc.xml by labwc_bridge.py
+# (/usr/libexec/budgie-desktop/labwc_bridge.py), which is a live service
+# (watches for gsettings changes and re-runs `labwc -r`). Critically, it
+# reads the *Budgie-forked* schema org.buddiesofbudgie.settings-daemon.plugins.media-keys,
+# not the standard org.gnome.settings-daemon.plugins.media-keys - the two
+# have the same key names but different dconf paths, so setting the GNOME
+# one (as an earlier version of this script did) is silently ignored.
+#
+# Alt+F2 here overrides Budgie's built-in "Run Dialog" quick-launcher
+# (also bound to Alt+F2) - a deliberate choice to mirror the Mac layout
+# exactly, confirmed with the user.
 if [[ "$HAS_DESKTOP_SESSION" == true ]]; then
-  MK_BASE="/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings"
+  # clean up inert entries from the wrong (GNOME) schema, if present from
+  # before this was fixed
+  gsettings reset org.gnome.settings-daemon.plugins.media-keys custom-keybindings 2>/dev/null
+  for i in 0 1 2 3 4 5 6; do
+    OLD_MK_PATH="/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom${i}/"
+    gsettings reset "org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:${OLD_MK_PATH}" name 2>/dev/null
+    gsettings reset "org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:${OLD_MK_PATH}" command 2>/dev/null
+    gsettings reset "org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:${OLD_MK_PATH}" binding 2>/dev/null
+  done
+
+  MK_BASE="/org/buddiesofbudgie/settings-daemon/plugins/media-keys/custom-keybindings"
+  MK_SCHEMA_ITEM="org.buddiesofbudgie.settings-daemon.plugins.media-keys.custom-keybinding"
   MK_NAMES=(
     "Ghostty"
     "Xfce Terminal"
@@ -279,13 +304,13 @@ if [[ "$HAS_DESKTOP_SESSION" == true ]]; then
   for i in "${!MK_NAMES[@]}"; do
     MK_PATH="${MK_BASE}/custom${i}/"
     MK_PATHS+="'${MK_PATH}', "
-    gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:"${MK_PATH}" name "${MK_NAMES[$i]}" 2>/dev/null
-    gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:"${MK_PATH}" command "${MK_COMMANDS[$i]}" 2>/dev/null
-    gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:"${MK_PATH}" binding "${MK_BINDINGS[$i]}" 2>/dev/null
+    gsettings set "${MK_SCHEMA_ITEM}:${MK_PATH}" name "${MK_NAMES[$i]}" 2>/dev/null
+    gsettings set "${MK_SCHEMA_ITEM}:${MK_PATH}" command "${MK_COMMANDS[$i]}" 2>/dev/null
+    gsettings set "${MK_SCHEMA_ITEM}:${MK_PATH}" binding "${MK_BINDINGS[$i]}" 2>/dev/null
   done
   MK_PATHS="${MK_PATHS%, }]"
 
-  if ! gsettings set org.gnome.settings-daemon.plugins.media-keys custom-keybindings "$MK_PATHS" 2>/dev/null; then
+  if ! gsettings set org.buddiesofbudgie.settings-daemon.plugins.media-keys custom-keybindings "$MK_PATHS" 2>/dev/null; then
     echo "Warning: could not set F-key app shortcuts (no active desktop session?), skipping"
   fi
 fi
