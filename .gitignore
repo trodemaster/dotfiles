@@ -19,6 +19,11 @@
 
 # Go workspace file
 go.work
+
+# Local build artifacts for the statusline tools (installed via `make install`
+# into $GOPATH/bin instead)
+tools/claude-statusline/claude-statusline
+tools/copilot-statusline/copilot-statusline
 .DS_Store
 bin/
 .env
