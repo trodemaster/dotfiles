@@ -260,6 +260,14 @@ fi
 # (also bound to Alt+F2) - a deliberate choice to mirror the Mac layout
 # exactly, confirmed with the user.
 if [[ "$HAS_DESKTOP_SESSION" == true ]]; then
+  # wlrctl (wlr-foreign-toplevel-management) is used by darkstar/scripts/
+  # ghostty-activate below to focus an existing Ghostty window instead of
+  # always opening a new one - Ghostty's own --gtk-single-instance doesn't
+  # do this, it always opens a new window on activation.
+  if ! dpkg -s wlrctl &>/dev/null; then
+    sudo apt-get install -y wlrctl
+  fi
+
   # clean up inert entries from the wrong (GNOME) schema, if present from
   # before this was fixed
   gsettings reset org.gnome.settings-daemon.plugins.media-keys custom-keybindings 2>/dev/null
@@ -282,7 +290,7 @@ if [[ "$HAS_DESKTOP_SESSION" == true ]]; then
     "1Password"
   )
   MK_COMMANDS=(
-    "/usr/bin/ghostty --gtk-single-instance=true"
+    "{{ .chezmoi.homeDir }}/Developer/machine-cfg/darkstar/scripts/ghostty-activate"
     "xfce4-terminal"
     "code"
     "obsidian"
