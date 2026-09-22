@@ -1,10 +1,10 @@
-.PHONY: build install test clean
-
-build:
-	go build -o copilot-statusline .
+.PHONY: install build test clean
 
 install:
 	go install .
+
+build:
+	go build -o copilot-statusline .
 
 test:
 	go test ./...
