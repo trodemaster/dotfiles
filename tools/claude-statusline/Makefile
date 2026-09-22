@@ -1,10 +1,10 @@
 .PHONY: install build clean
 
 install:
-	go install .
+	GOWORK=off go install .
 
 build:
-	go build -o claude-statusline .
+	GOWORK=off go build -o claude-statusline .
 
 clean:
 	rm -f claude-statusline

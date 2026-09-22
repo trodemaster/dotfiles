@@ -1,13 +1,13 @@
 .PHONY: install build test clean
 
 install:
-	go install .
+	GOWORK=off go install .
 
 build:
-	go build -o copilot-statusline .
+	GOWORK=off go build -o copilot-statusline .
 
 test:
-	go test ./...
+	GOWORK=off go test ./...
 
 clean:
 	rm -f copilot-statusline
