@@ -5,7 +5,7 @@ struct ParsedArgs {
     var flags: Set<String> = []
 }
 
-func parseArgs(_ args: [String], boolFlags: Set<String>) throws -> ParsedArgs {
+func parseArgs(_ args: [String], valueOptions: Set<String>, boolFlags: Set<String>) throws -> ParsedArgs {
     var result = ParsedArgs()
     var i = 0
     while i < args.count {
@@ -18,6 +18,9 @@ func parseArgs(_ args: [String], boolFlags: Set<String>) throws -> ParsedArgs {
             result.flags.insert(name)
             i += 1
             continue
+        }
+        guard valueOptions.contains(name) else {
+            throw WincapError.usage(message: "Unknown option --\(name).")
         }
         guard i + 1 < args.count else {
             throw WincapError.usage(message: "Missing value for --\(name).")
@@ -42,7 +45,11 @@ func printPrettyTable(_ windows: [WindowInfo]) {
 }
 
 func runList(_ args: [String]) async throws {
-    let parsed = try parseArgs(args, boolFlags: ["include-offscreen", "all-layers", "pretty"])
+    let parsed = try parseArgs(
+        args,
+        valueOptions: ["app"],
+        boolFlags: ["include-offscreen", "all-layers", "pretty"]
+    )
     let onScreenOnly = !parsed.flags.contains("include-offscreen")
     let windows = try await fetchWindows(onScreenOnly: onScreenOnly)
 
@@ -66,7 +73,11 @@ func runList(_ args: [String]) async throws {
 }
 
 func runCapture(_ args: [String]) async throws {
-    let parsed = try parseArgs(args, boolFlags: [])
+    let parsed = try parseArgs(
+        args,
+        valueOptions: ["window-id", "app", "title", "out", "format"],
+        boolFlags: []
+    )
     let format = parsed.values["format"] ?? "png"
 
     let windowID: Int
@@ -102,7 +113,7 @@ func printUsage() {
       wincap capture --app <name> [--title <substr>] [--out <path>] [--format png|jpg|tiff]
 
     All output is JSON on stdout unless --pretty is passed to `list`.
-    Requires Screen Recording permission for the calling terminal app.
+    Requires Screen Recording permission for wincap and the calling terminal app.
     """)
 }
 

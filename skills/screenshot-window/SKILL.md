@@ -1,7 +1,8 @@
 ---
 name: screenshot-window
-description: Capture a screenshot of a specific named app window by listing its windows, targeting one by ID, and reading the result. Use when asked to "screenshot X", "show me the X window", "capture the Y app", or "what does the Z window look like".
-allowed-tools: Bash(~/.claude/skills/screenshot-window/bin/wincap *), Bash(make -C ~/.claude/skills/screenshot-window *), Read
+description: "Capture and inspect a specific macOS app window. Use when asked to screenshot, show, capture, view, or analyze an app window, including requests like 'screenshot X', 'show me the X window', or 'what does the Z window look like'."
+compatibility: Requires macOS 26 or later on Apple Silicon and Screen Recording access.
+allowed-tools: Bash(test -x ~/.claude/skills/screenshot-window/bin/wincap), Bash(make -C ~/.claude/skills/screenshot-window *), Bash(grep -F * ~/Developer/machine-cfg/claude/settings.json), Bash(realpath ~/.claude/skills/screenshot-window/bin/wincap), Bash(~/.claude/skills/screenshot-window/bin/wincap *), Read
 ---
 
 # Screenshot Window Skill
@@ -44,13 +45,11 @@ certificate created once via Keychain Access ("Certificate Assistant → Create 
 Code Signing). Never hardcode an actual identity string in this repo; the env var is the only place
 it should ever live, and it defaults to ad-hoc (`-`) if unset.
 
-**`wincap` MUST be listed in `sandbox.excludedCommands` in `settings.json` — this is not optional.**
-`list` (and `capture`, which calls it internally) talks to `tccd` over XPC via `SCShareableContent`,
-and the Claude Code sandbox blocks that XPC call outright: no clean error, just a block that
-manifests as either an indefinite hang or a fast `"error": "timeout"` (wincap's own internal timeout
-firing because the sandboxed call never got a chance to complete). Running under the sandbox is
-never a "sometimes works" situation for this tool — every invocation. Before ever running `wincap`,
-verify the exact entry is present:
+**Do not run `wincap` in a sandbox.** `list` (and `capture`, which calls it internally) talks to
+`tccd` over XPC via `SCShareableContent`. Sandboxes that block this XPC call cause an `"error":
+"timeout"` response. Use the client-specific mechanism for running the command outside its sandbox.
+
+For Claude Code, `wincap` must be listed in `sandbox.excludedCommands` in `settings.json`:
 
 ```bash
 grep -F '~/.claude/skills/screenshot-window/bin/wincap' ~/Developer/machine-cfg/claude/settings.json
@@ -59,10 +58,8 @@ grep -F '~/.claude/skills/screenshot-window/bin/wincap' ~/Developer/machine-cfg/
 It must match exactly `"~/.claude/skills/screenshot-window/bin/wincap *"` — a different literal
 invocation string (a relative path like `./bin/wincap`, `cd`-then-relative, or the
 `~/Developer/dotfiles/...` working-copy path instead of `~/.claude/skills/...`) will **not** match
-this pattern and will silently fall back to running inside the sandbox, breaking every single time
-regardless of anything else being correctly configured. If the entry is missing or you can't confirm
-the invocation matches it exactly, pass `dangerouslyDisableSandbox: true` on the call instead of
-guessing.
+this pattern and will run inside the sandbox. If the exclusion is absent, use Claude Code's
+per-command sandbox bypass rather than guessing.
 
 Two separate **Screen Recording** grants are required (System Settings → Privacy & Security →
 Screen Recording):
@@ -76,16 +73,12 @@ If `wincap capture` returns `"error": "no_matching_window"` even though the wind
 the app name likely doesn't match — app names are matched case-insensitively as a substring against
 the name shown in the menu bar / Activity Monitor.
 
-**Always run `wincap` directly in the foreground. Never wrap it in a backgrounded
-watchdog pattern** like `(wincap ... & pid=$!; (sleep 15; kill -9 $pid) & wait $pid)`.
+**Always run `wincap` directly in the foreground. Never use shell backgrounding or an external
+watchdog.**
 `wincap` already has its own internal 10s timeout on the `SCShareableContent` call — it cannot hang
-your shell — so an external hang-guard is unnecessary. Worse, it's actively harmful: backgrounding
-the process this way (bash job control puts it in its own process group) was confirmed, via a
-multi-session debugging investigation, to reliably prevent `SCShareableContent`'s async completion
-from ever being delivered back to the process, guaranteeing the internal timeout fires every single
-time. Running the exact same command directly, un-backgrounded, in the same session succeeds
-instantly. If you see `"error": "timeout"` and your invocation wasn't backgrounded, it's a genuine
-ScreenCaptureKit flake — just retry as-is.
+your shell. Backgrounding the process can prevent `SCShareableContent`'s async completion from being
+delivered, guaranteeing that the internal timeout fires. If a foreground invocation returns
+`"error": "timeout"`, retry it once unchanged.
 
 ---
 
@@ -158,7 +151,7 @@ On success:
 
 ## Step 3 — Read the image
 
-Use the `Read` tool on the returned `path` to view the window contents.
+Use the available image/file reading tool on the returned `path` to view the window contents.
 
 ---
 
@@ -171,7 +164,7 @@ Use the `Read` tool on the returned `path` to view the window contents.
 3. If ambiguous_match comes back, show the candidate titles and either ask the user
    or pick the best match by title, then retry with --window-id
 4. If no_matching_window comes back, run `list --app <name>` to sanity-check the app name/spelling
-5. Read the returned path with the Read tool
+5. Read the returned image path
 6. Describe / analyze the window contents
 ```
 
