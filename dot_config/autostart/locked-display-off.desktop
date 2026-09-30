@@ -1,0 +1,5 @@
+[Desktop Entry]
+Type=Application
+Name=Blank display when locked
+Comment=Turn displays off after 10 idle minutes while swaylock is running (Budgie's own swayidle handles the logged-in 2h timeout via idle-delay)
+Exec=swayidle -w timeout 600 'pgrep -x swaylock >/dev/null && wlopm --off "*"' resume 'wlopm --on "*"'
