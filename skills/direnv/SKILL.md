@@ -1,9 +1,9 @@
 ---
 name: direnv
-description: Reference for how direnv is wired into Claude Code's bash shell via BASH_ENV and chezmoi. Use when asked about .envrc files, BASH_ENV, direnv behavior in Claude sessions, environment variable inheritance in Bash tool calls, or why Claude picks up different env vars in different repos. Also use when debugging missing env vars, credential switches not taking effect, settings.json's sandbox/env config for direnv, or any question about how the shell environment works inside Claude.
+description: Reference for how direnv is wired into Claude Code and VS Code Copilot SDK Bash shells via BASH_ENV and chezmoi. Use when asked about .envrc files, BASH_ENV, direnv behavior in agent sessions, environment variable inheritance in Bash tool calls, or why agents pick up different env vars in different repos. Also use when debugging missing env vars, credential switches not taking effect, settings.json's sandbox/env config for direnv, or any question about how the shell environment works inside Claude or the VS Code Copilot SDK.
 ---
 
-# direnv + Claude Code Integration
+# direnv + Agent Shell Integration
 
 ## One Process Per Tool Call — But `BASH_ENV` Can Fire Twice Within It
 
@@ -42,9 +42,33 @@ Bash reads `$BASH_ENV` at startup for **every non-interactive shell**, including
 | Context | Mechanism | File |
 |---------|-----------|------|
 | Claude Bash tool calls | `BASH_ENV` read at shell start | `~/.bash_env` |
+| VS Code Copilot SDK shell commands | SDK init sources `~/.bashrc`, which exports and sources `BASH_ENV` | `~/.bashrc` -> `~/.bash_env` |
 | Interactive terminal sessions | `direnv hook bash` in `PROMPT_COMMAND` | `~/.bash_profile` |
 
 **This `env.BASH_ENV` setting lives in `machine-cfg/claude/settings.json`, not in dotfiles.** `machine-cfg` has a separate upstream per system type (work vs. personal) — see `dotfiles/CLAUDE.md`. Each fork's `settings.json` needs this wiring independently; it does not propagate between forks. See "Settings.json Requirements" below for the full checklist to replicate on a new fork.
+
+### VS Code Copilot SDK startup
+
+For local VS Code Copilot SDK sessions, enable this User setting through
+`machine-cfg/copilot/vscode-agent-settings.json`:
+
+```json
+{
+  "chat.agentHost.shellTool.initScript.enabled": true
+}
+```
+
+VS Code sources `~/.bashrc` before each SDK shell command. Its non-interactive
+branch exports `BASH_ENV="$HOME/.bash_env"` and sources that file before returning.
+This reuses the managed baseline and `__direnv_resolve`/`cd` wrapper without
+loading interactive aliases, completion, or prompt setup. Exporting `BASH_ENV`
+also initializes child Bash processes at their own starting directories.
+Interactive shells keep their existing `~/.bash_profile` startup path.
+
+Deploy `dot_bashrc` through chezmoi and sync the managed VS Code User setting.
+Verify a fresh local SDK session by checking only `BASH_ENV` and `GH_CONFIG_DIR`
+at startup and after changing repositories; never dump the full environment.
+Shell initialization does not change terminal approvals or sandbox policy.
 
 ## `direnv export bash` Is Unreliable in a Cold, One-Shot Shell — Use `direnv exec` Instead
 

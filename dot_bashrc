@@ -1,9 +1,12 @@
-# ~/.bashrc: executed by bash(1) for non-login interactive shells.
+# ~/.bashrc: loaded by non-login interactive shells and VS Code SDK shell init.
 
-# If not running interactively, don't do anything
 case $- in
     *i*) ;;
-      *) return;;
+      *)
+        export BASH_ENV="${HOME}/.bash_env"
+        source "$BASH_ENV"
+        return
+        ;;
 esac
 
 # Ubuntu system bash completion
