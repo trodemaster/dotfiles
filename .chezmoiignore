@@ -13,6 +13,7 @@ Library/
 
 # ignore these files on mac
 {{- if eq .chezmoi.os "darwin" }}
+.config/autostart/
 
 {{ end }}
 
