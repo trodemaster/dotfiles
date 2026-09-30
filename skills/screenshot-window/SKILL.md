@@ -2,7 +2,7 @@
 name: screenshot-window
 description: "Capture and inspect a specific macOS app window. Use when asked to screenshot, show, capture, view, or analyze an app window, including requests like 'screenshot X', 'show me the X window', or 'what does the Z window look like'."
 compatibility: Requires macOS 26 or later on Apple Silicon and Screen Recording access.
-allowed-tools: Bash(test -x ~/.claude/skills/screenshot-window/bin/wincap), Bash(make -C ~/.claude/skills/screenshot-window *), Bash(grep -F * ~/Developer/machine-cfg/claude/settings.json), Bash(realpath ~/.claude/skills/screenshot-window/bin/wincap), Bash(~/.claude/skills/screenshot-window/bin/wincap *), Read
+allowed-tools: Bash(make -C ~/.claude/skills/screenshot-window *), Bash(grep -F * ~/Developer/machine-cfg/claude/settings.json), Bash(realpath ~/.claude/skills/screenshot-window/bin/wincap), Bash(~/.claude/skills/screenshot-window/bin/wincap *), Read
 ---
 
 # Screenshot Window Skill
@@ -17,15 +17,10 @@ Everything is JSON on stdout by default — parse it directly, don't ask the use
 
 ---
 
-## Prerequisites
+## Build fallback
 
-**Binary present?** Before the first command below, check:
-
-```bash
-test -x ~/.claude/skills/screenshot-window/bin/wincap
-```
-
-If missing (fresh checkout, or after a source update), build it:
+Invoke `wincap` directly without checking whether the binary exists first. Only if the shell reports
+that the binary is missing or not executable, build it and retry the original command once:
 
 ```bash
 make -C ~/.claude/skills/screenshot-window build
@@ -158,14 +153,14 @@ Use the available image/file reading tool on the returned `path` to view the win
 ## Agent workflow
 
 ```
-0. If bin/wincap is missing, run `make -C ~/.claude/skills/screenshot-window build` first
 1. Ask user which app (and optionally which window title/label), if not already clear
-2. Try `capture --app <name> [--title <substr>]` directly
-3. If ambiguous_match comes back, show the candidate titles and either ask the user
+2. Try `capture --app <name> [--title <substr>]` directly without a preliminary existence check
+3. If the shell says wincap is missing or not executable, build it and retry the command once
+4. If ambiguous_match comes back, show the candidate titles and either ask the user
    or pick the best match by title, then retry with --window-id
-4. If no_matching_window comes back, run `list --app <name>` to sanity-check the app name/spelling
-5. Read the returned image path
-6. Describe / analyze the window contents
+5. If no_matching_window comes back, run `list --app <name>` to sanity-check the app name/spelling
+6. Read the returned image path
+7. Describe / analyze the window contents
 ```
 
 If any command returns `"error": "capture_failed"` mentioning permissions, stop and tell the user

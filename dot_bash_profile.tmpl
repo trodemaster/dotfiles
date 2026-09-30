@@ -150,6 +150,37 @@ killsshhost() {
   /usr/bin/sed -i "/$1/d" ~/.ssh/known_hosts
 }
 
+# Chezmoi executes temporary scripts; only wrap it when /tmp is noexec.
+if command -v findmnt >/dev/null 2>&1; then
+  _chezmoi_tmp_options=$(findmnt -n -o OPTIONS -T /tmp 2>/dev/null)
+  if [[ ",$_chezmoi_tmp_options," == *,noexec,* ]]; then
+    chezmoi() {
+      local temp_dir="${HOME}/.cache/chezmoi/tmp"
+      local temp_options
+      if [ -n "${TMPDIR:-}" ]; then
+        if ! temp_options=$(findmnt -n -o OPTIONS -T "$TMPDIR" 2>/dev/null); then
+          printf 'chezmoi: cannot inspect temporary directory %s\n' "$TMPDIR" >&2
+          return 1
+        fi
+        if [[ ",$temp_options," != *,noexec,* ]]; then
+          command chezmoi "$@"
+          return
+        fi
+      fi
+      if ! mkdir -p -m 700 "$temp_dir" || [ -L "$temp_dir" ] || [ ! -O "$temp_dir" ] || ! chmod 700 "$temp_dir"; then
+        printf 'chezmoi: cannot use private temporary directory %s\n' "$temp_dir" >&2
+        return 1
+      fi
+      if ! temp_options=$(findmnt -n -o OPTIONS -T "$temp_dir" 2>/dev/null) || [[ ",$temp_options," == *,noexec,* ]]; then
+        printf 'chezmoi: temporary directory %s is not executable\n' "$temp_dir" >&2
+        return 1
+      fi
+      TMPDIR="$temp_dir" command chezmoi "$@"
+    }
+  fi
+  unset _chezmoi_tmp_options
+fi
+
 # Powerline-go
 function _update_ps1() {
   PS1="$(/usr/local/bin/powerline-go -error $? -jobs $(jobs -p | wc -l))"

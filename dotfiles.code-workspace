@@ -20,7 +20,25 @@
 		},
 		{
 			"path": "../secrets-cli"
+		},
+		{
+			"path": "../nono"
 		}
 	],
-	"settings": {}
+	"settings": {
+		"chat.agentHost.sdkSandbox.enabled": true,
+		"chat.agent.sandbox.fileSystem.mac": {
+			"allowRead": [
+				"/Users/blake/Developer/dotfiles",
+				"/Users/blake/Developer/machine-cfg"
+			],
+			"allowWrite": [
+				"/Users/blake/Developer/dotfiles",
+				"/Users/blake/Developer/machine-cfg"
+			]
+		},
+		"chat.tools.terminal.autoApprove": {
+			"agent-telephone": true
+		}
+	}
 }

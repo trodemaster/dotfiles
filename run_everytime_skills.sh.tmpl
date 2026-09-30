@@ -1,7 +1,8 @@
 #!/bin/bash
 set -e
 
-MACHINE_SKILLS_SRC="{{ .chezmoi.homeDir }}/Developer/machine-cfg/skills"
+MACHINE_CFG_DIR="{{ .chezmoi.homeDir }}/Developer/machine-cfg"
+MACHINE_SKILLS_SRC="$MACHINE_CFG_DIR/skills"
 DOTFILES_SKILLS_SRC="{{ .chezmoi.sourceDir }}/skills"
 CLAUDE_SKILLS_DST="{{ .chezmoi.homeDir }}/.claude/skills"
 CODEX_SKILLS_DST="{{ .chezmoi.homeDir }}/.codex/skills"
@@ -57,14 +58,16 @@ sync_skills "$DOTFILES_SKILLS_SRC" "$CLAUDE_SKILLS_DST"
 sync_skills "$MACHINE_SKILLS_SRC" "$CODEX_SKILLS_DST"
 sync_skills "$DOTFILES_SKILLS_SRC" "$CODEX_SKILLS_DST"
 
-# Copilot cannot enforce hard user-level denials around credential helpers.
-# Project only local skills that do not require credentials or unavailable MCPs.
+# Copilot cannot enforce hard user-level denials around direct credential helpers.
+# Credentialed skills must use an approved MCP or opaque helper boundary.
 COPILOT_EXCLUDED_SKILLS="close-security-ticket disabled meeting-prep wiz"
-sync_skills "$MACHINE_SKILLS_SRC" "$COPILOT_SKILLS_DST" "$COPILOT_EXCLUDED_SKILLS"
-sync_skills "$DOTFILES_SKILLS_SRC" "$COPILOT_SKILLS_DST" "$COPILOT_EXCLUDED_SKILLS"
+if [ -d "$MACHINE_CFG_DIR/copilot" ]; then
+  sync_skills "$MACHINE_SKILLS_SRC" "$COPILOT_SKILLS_DST" "$COPILOT_EXCLUDED_SKILLS"
+  sync_skills "$DOTFILES_SKILLS_SRC" "$COPILOT_SKILLS_DST" "$COPILOT_EXCLUDED_SKILLS"
+fi
 
 # Obsidian plugins — link machine-cfg/obsisian/plugins/* into any vault that exists
-OBSIDIAN_PLUGINS_SRC="{{ .chezmoi.homeDir }}/Developer/machine-cfg/obsisian/plugins"
+OBSIDIAN_PLUGINS_SRC="$MACHINE_CFG_DIR/obsisian/plugins"
 if [ -d "$OBSIDIAN_PLUGINS_SRC" ]; then
   for vault in orac daneel; do
     vault_plugins="{{ .chezmoi.homeDir }}/$vault/.obsidian/plugins"

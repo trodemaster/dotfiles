@@ -14,6 +14,7 @@ Chezmoi-managed dotfiles repo. `chezmoi apply` renders templates and runs script
 | `run_once_` | Shell script run exactly once (tracked in chezmoi state) |
 
 `machine-cfg` is a separate repo at `~/Developer/machine-cfg` with a different upstream per system type (work vs personal). Many dotfile templates pull in machine-cfg content at render time.
+When that checkout is absent, `.chezmoiignore` skips its symlink targets, and the skills script still syncs dotfiles-owned skills to Claude and Codex but skips Copilot's missing target.
 
 ## Skill System
 
@@ -49,7 +50,7 @@ This applies to all repos that use `.envrc` for credential switching.
 ## Key Files
 
 - `dot_bash_env.tmpl` → `~/.bash_env` — non-interactive shell env; used by Claude via `BASH_ENV` (must be set in `machine-cfg/claude/settings.json`'s `env.BASH_ENV`); resolves direnv via `direnv exec` (not `direnv export bash`, which is unreliable in cold non-interactive shells)
-- `dot_bash_profile.tmpl` → `~/.bash_profile` — interactive shell setup; runs `direnv hook bash`
+- `dot_bash_profile.tmpl` → `~/.bash_profile` — interactive shell setup; runs `direnv hook bash`. Only on Linux with `/tmp` mounted `noexec`, wraps `chezmoi` to use a private executable directory under `~/.cache/chezmoi/`; an explicit executable `TMPDIR` is respected. Other systems leave the command unchanged. For the first update before this profile is installed, set `TMPDIR` to an executable directory for that invocation.
 - `dot_claude/symlink_settings.json.tmpl` → `~/.claude/settings.json` symlink into `machine-cfg/claude/`
 - `dot_claude/symlink_settings.local.json.tmpl` → `~/.claude/settings.local.json` symlink into `machine-cfg/claude/`
 

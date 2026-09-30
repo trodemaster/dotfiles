@@ -16,6 +16,22 @@ Library/
 
 {{ end }}
 
+# machine-cfg-backed symlinks must not point at a missing checkout
+{{- if not (stat (joinPath .chezmoi.homeDir "Developer/machine-cfg")) }}
+.claude/settings.json
+.claude/settings.local.json
+.codex/config.toml
+.config/karabiner
+.skhdrc
+.ssh/darkstar_ssh.pub
+.ssh/umac_ssh.pub
+Library/Application Support/Code/User/mcp.json
+{{- end }}
+
+{{- if not (stat (joinPath .chezmoi.homeDir "Developer/machine-cfg/copilot")) }}
+.copilot
+{{- end }}
+
 # skip if machine-cfg/aws hasn't been populated on this checkout yet
 {{- if not (stat (printf "%s/Developer/machine-cfg/aws/config" .chezmoi.homeDir)) }}
 .aws/config

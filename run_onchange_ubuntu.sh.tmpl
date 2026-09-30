@@ -310,6 +310,9 @@ if [[ "$HAS_DESKTOP_SESSION" == true ]]; then
 
   MK_PATHS="["
   for i in "${!MK_NAMES[@]}"; do
+    if [ "${MK_NAMES[$i]}" = "Ghostty" ] && [ ! -x "${MK_COMMANDS[$i]}" ]; then
+      continue
+    fi
     MK_PATH="${MK_BASE}/custom${i}/"
     MK_PATHS+="'${MK_PATH}', "
     gsettings set "${MK_SCHEMA_ITEM}:${MK_PATH}" name "${MK_NAMES[$i]}" 2>/dev/null
