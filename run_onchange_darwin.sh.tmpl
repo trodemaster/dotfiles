@@ -82,6 +82,9 @@ if ! command -v /opt/local/bin/port &>/dev/null; then
 fi
 
 # configure macports sources
+# These lines change the rendered script when a port tree is cloned, so run_onchange reruns it
+# blakeports present: {{ stat (joinPath .chezmoi.homeDir "Developer/blakeports") | not | not }}
+# blakeports-private present: {{ stat (joinPath .chezmoi.homeDir "Developer/blakeports-private") | not | not }}
 # Always write sources.conf so blakeports-private (private ports) precedes blakeports
 if [[ -d {{ (joinPath .chezmoi.homeDir "Developer/blakeports") }} || -d {{ (joinPath .chezmoi.homeDir "Developer/blakeports-private") }} ]]; then
   echo "Configuring macports /opt/local/etc/macports/sources.conf"
