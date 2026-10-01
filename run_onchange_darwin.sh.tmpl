@@ -32,6 +32,12 @@ if ! [[ -d /Library/Developer/CommandLineTools ]]; then
   softwareupdate -i "$CMDLINE_TOOLS" --verbose
 fi
 
+# accept the xcode license if it hasn't been accepted yet
+if ! xcodebuild -license check >/dev/null 2>&1; then
+  echo "Accepting xcode license..."
+  sudo xcodebuild -license accept || echo "Warning: could not accept xcode license, skipping"
+fi
+
 # create ~/Developer if it doesn't exist
 if [[ ! -d {{ (joinPath .chezmoi.homeDir "Developer") | quote }} ]]; then
   mkdir -p {{ (joinPath .chezmoi.homeDir "Developer") | quote }}
