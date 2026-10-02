@@ -25,6 +25,7 @@ Library/
 .config/karabiner
 .skhdrc
 .ssh/darkstar_ssh.pub
+.ssh/far-star_ssh.pub
 .ssh/umac_ssh.pub
 Library/Application Support/Code/User/mcp.json
 {{- end }}
