@@ -389,11 +389,15 @@ if [[ ! -f /Library/Fonts/SourceCodePro-Medium.otf ]]; then
   rm ~/OTF-source-code-pro.zip
 fi
 
-# check if sauce-code-pro font is already installed
-if ! [[ -f /Library/Fonts/SauceCodeProNerdFontMono-Regular.ttf ]]; then
-  echo "Installing Sauce Code Pro font..."
+# install any missing Sauce Code Pro Nerd Font Mono faces
+sauce_faces=()
+for face in Regular Bold Italic BoldItalic; do
+  [[ -f /Library/Fonts/SauceCodeProNerdFontMono-${face}.ttf ]] || sauce_faces+=("SauceCodeProNerdFontMono-${face}.ttf")
+done
+if (( ${#sauce_faces[@]} )); then
+  echo "Installing Sauce Code Pro font (${sauce_faces[*]})..."
   curl -L -o ${HOME}/SourceCodePro.zip https://github.com/ryanoasis/nerd-fonts/releases/download/v3.2.1/SourceCodePro.zip
-  unzip -o -d /Library/Fonts ${HOME}/SourceCodePro.zip SauceCodeProNerdFontMono-Regular.ttf
+  unzip -o -d /Library/Fonts ${HOME}/SourceCodePro.zip "${sauce_faces[@]}"
   rm ${HOME}/SourceCodePro.zip
 fi
 
