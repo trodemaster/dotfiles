@@ -1,33 +1,30 @@
 #!/usr/bin/env bash
+# Reboot the machine; on macOS with FileVault, do an authenticated restart so the
+# disk unlocks without a password prompt at the login window.
+# Usage: restart [reboot|restart]   (both are the same action)
+#   macOS: sudo fdesetup authrestart (falls back to shutdown -r if FileVault is off)
+#   Linux: sudo systemctl reboot
 set -euo pipefail
-IFS=$'\n\t'
-shopt -s nullglob nocaseglob
 
-if [[ "$(uname)" != "Darwin" ]]; then
-  echo "restart: this script only works on macOS (Darwin)." >&2
-  exit 1
-fi
+case "${1:-reboot}" in
+    reboot|restart) ;;
+    -h|--help) sed -n '2,6p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    *) echo "usage: ${0##*/} [reboot|restart]" >&2; exit 2 ;;
+esac
 
-if ! command -v fdesetup &>/dev/null; then
-  echo "restart: fdesetup not found." >&2
-  exit 1
-fi
-
-if ! fdesetup isactive &>/dev/null; then
-  echo "FileVault is off; performing a normal reboot."
-  exec sudo shutdown -r now
-fi
-
-if [[ "$(fdesetup supportsauthrestart)" != "true" ]]; then
-  echo "This Mac doesn't support authenticated restart; performing a normal reboot." >&2
-  echo "You'll need your disk-encryption password to log back in." >&2
-  exec sudo shutdown -r now
-fi
-
-TOKEN_STATUS="$(sysadminctl -secureTokenStatus "$(whoami)" 2>&1 || true)"
-if [[ "$TOKEN_STATUS" != *ENABLED* ]]; then
-  echo "Warning: $(whoami) does not have a Secure Token; authenticated restart may fail." >&2
-fi
-
-echo "Restarting with an authenticated restart (bypasses the FileVault login screen on the way back up)..."
-exec sudo fdesetup authrestart
+case "$(uname -s)" in
+    Darwin)
+        if fdesetup status | grep -q 'FileVault is On'; then
+            exec sudo fdesetup authrestart
+        fi
+        echo "FileVault is off; doing a plain restart" >&2
+        exec sudo shutdown -r now
+        ;;
+    Linux)
+        exec sudo systemctl reboot
+        ;;
+    *)
+        echo "unsupported OS: $(uname -s)" >&2
+        exit 1
+        ;;
+esac
