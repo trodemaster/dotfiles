@@ -1,1 +1,7 @@
-{{ .chezmoi.homeDir }}/Developer/machine-cfg/claude/settings.json
+{{- $base := joinPath .chezmoi.homeDir "Developer/machine-cfg" -}}
+{{- $host := joinPath $base .chezmoi.hostname "claude/settings.json" -}}
+{{- if stat $host -}}
+{{ $host }}
+{{- else -}}
+{{ $base }}/claude/settings.json
+{{- end }}
