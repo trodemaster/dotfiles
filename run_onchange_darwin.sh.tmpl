@@ -32,6 +32,17 @@ if ! [[ -d /Library/Developer/CommandLineTools ]]; then
   softwareupdate -i "$CMDLINE_TOOLS" --verbose
 fi
 
+# accept the xcode license if it hasn't been accepted yet
+if ! xcodebuild -license check >/dev/null 2>&1; then
+  echo "Accepting xcode license..."
+  sudo xcodebuild -license accept || echo "Warning: could not accept xcode license, skipping"
+fi
+
+# create ~/Developer if it doesn't exist
+if [[ ! -d {{ (joinPath .chezmoi.homeDir "Developer") | quote }} ]]; then
+  mkdir -p {{ (joinPath .chezmoi.homeDir "Developer") | quote }}
+fi
+
 # determine CPU architecture
 ARCH=$(uname -m)
 ARCH=${ARCH/x86_64/amd64}
@@ -71,6 +82,9 @@ if ! command -v /opt/local/bin/port &>/dev/null; then
 fi
 
 # configure macports sources
+# These lines change the rendered script when a port tree is cloned, so run_onchange reruns it
+# blakeports present: {{ stat (joinPath .chezmoi.homeDir "Developer/blakeports") | not | not }}
+# blakeports-private present: {{ stat (joinPath .chezmoi.homeDir "Developer/blakeports-private") | not | not }}
 # Always write sources.conf so blakeports-private (private ports) precedes blakeports
 if [[ -d {{ (joinPath .chezmoi.homeDir "Developer/blakeports") }} || -d {{ (joinPath .chezmoi.homeDir "Developer/blakeports-private") }} ]]; then
   echo "Configuring macports /opt/local/etc/macports/sources.conf"
@@ -375,11 +389,15 @@ if [[ ! -f /Library/Fonts/SourceCodePro-Medium.otf ]]; then
   rm ~/OTF-source-code-pro.zip
 fi
 
-# check if sauce-code-pro font is already installed
-if ! [[ -f /Library/Fonts/SauceCodeProNerdFontMono-Regular.ttf ]]; then
-  echo "Installing Sauce Code Pro font..."
+# install any missing Sauce Code Pro Nerd Font Mono faces
+sauce_faces=()
+for face in Regular Bold Italic BoldItalic; do
+  [[ -f /Library/Fonts/SauceCodeProNerdFontMono-${face}.ttf ]] || sauce_faces+=("SauceCodeProNerdFontMono-${face}.ttf")
+done
+if (( ${#sauce_faces[@]} )); then
+  echo "Installing Sauce Code Pro font (${sauce_faces[*]})..."
   curl -L -o ${HOME}/SourceCodePro.zip https://github.com/ryanoasis/nerd-fonts/releases/download/v3.2.1/SourceCodePro.zip
-  unzip -o -d /Library/Fonts ${HOME}/SourceCodePro.zip SauceCodeProNerdFontMono-Regular.ttf
+  unzip -o -d /Library/Fonts ${HOME}/SourceCodePro.zip "${sauce_faces[@]}"
   rm ${HOME}/SourceCodePro.zip
 fi
 
@@ -454,27 +472,6 @@ fi
 if [[ -e /opt/local/bin/chezmoi ]]; then
   if [[ -e ~/bin/chezmoi ]]; then
     rm -r ~/bin
-  fi
-fi
-
-# install cliclick from github
-if ! [[ -f /usr/local/bin/cliclick ]]; then
-  echo "Installing cliclick..."
-  CLICLICK_RELEASE=$(github_api https://api.github.com/repos/BlueM/cliclick/releases/latest | grep tag_name | cut -d '"' -f 4)
-  if [ -z "$CLICLICK_RELEASE" ]; then
-    echo "Warning: could not determine cliclick release (GitHub API rate limit?), skipping"
-  else
-    CLICLICK_RELEASE_NUMBER=${CLICLICK_RELEASE#v}
-    CLICLICK_URL="https://github.com/BlueM/cliclick/releases/download/${CLICLICK_RELEASE_NUMBER}/cliclick.zip"
-    echo "Downloading latest version of cliclick ${CLICLICK_URL}..."
-    curl -L -o ${TMPDIR}cliclick.zip $CLICLICK_URL
-    if ! unzip -p ${TMPDIR}cliclick.zip cliclick/cliclick >${TMPDIR}cliclick 2>/dev/null; then
-      echo "Warning: cliclick.zip download was not a valid archive, skipping"
-    else
-      sudo mv ${TMPDIR}cliclick /usr/local/bin/cliclick
-      sudo chmod +x /usr/local/bin/cliclick
-    fi
-    rm -f ${TMPDIR}cliclick.zip
   fi
 fi
 
