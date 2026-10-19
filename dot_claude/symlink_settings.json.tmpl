@@ -1,1 +1,7 @@
+{{- /* Per-host settings when machine-cfg has machine-cfg/<hostname>/claude/settings.json, so machines stop sharing one file; otherwise the shared machine-cfg/claude/settings.json (e.g. work machines). */ -}}
+{{- $hostSettings := joinPath .chezmoi.homeDir "Developer/machine-cfg" .chezmoi.hostname "claude/settings.json" -}}
+{{- if stat $hostSettings -}}
+{{ $hostSettings }}
+{{- else -}}
 {{ .chezmoi.homeDir }}/Developer/machine-cfg/claude/settings.json
+{{- end }}
