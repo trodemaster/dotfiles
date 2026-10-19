@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -17,8 +18,16 @@ type RateWindow struct {
 }
 
 type CurrentUsage struct {
+	InputTokens              int64 `json:"input_tokens"`
 	CacheCreationInputTokens int64 `json:"cache_creation_input_tokens"`
 	CacheReadInputTokens     int64 `json:"cache_read_input_tokens"`
+}
+
+type ContextWindow struct {
+	ContextWindowSize int64         `json:"context_window_size"`
+	TotalInputTokens  *int64        `json:"total_input_tokens"`
+	UsedPercentage    *float64      `json:"used_percentage"`
+	CurrentUsage      *CurrentUsage `json:"current_usage"`
 }
 
 type Effort struct {
@@ -31,6 +40,7 @@ type Thinking struct {
 
 type StatusData struct {
 	Model struct {
+		ID          string `json:"id"`
 		DisplayName string `json:"display_name"`
 	} `json:"model"`
 	Workspace struct {
@@ -42,11 +52,8 @@ type StatusData struct {
 		TotalCostUSD    float64 `json:"total_cost_usd"`
 		TotalDurationMS int64   `json:"total_duration_ms"`
 	} `json:"cost"`
-	ContextWindow struct {
-		UsedPercentage *float64      `json:"used_percentage"`
-		CurrentUsage   *CurrentUsage `json:"current_usage"`
-	} `json:"context_window"`
-	RateLimits *struct {
+	ContextWindow ContextWindow `json:"context_window"`
+	RateLimits    *struct {
 		FiveHour *RateWindow `json:"five_hour"`
 		SevenDay *RateWindow `json:"seven_day"`
 	} `json:"rate_limits"`
@@ -54,6 +61,7 @@ type StatusData struct {
 	SessionName       *string   `json:"session_name"`
 	Effort            *Effort   `json:"effort"`
 	Thinking          *Thinking `json:"thinking"`
+	FastMode          bool      `json:"fast_mode"`
 	Exceeds200kTokens bool      `json:"exceeds_200k_tokens"`
 }
 
@@ -64,6 +72,19 @@ const (
 	red    = "\033[31m"
 	reset  = "\033[0m"
 )
+
+var claudeModelID = regexp.MustCompile(`^claude-(opus|sonnet|haiku)-([0-9]+(?:[-.][0-9]{1,2})?)(?:-(?:[0-9]{8}|latest))?(?:\[[^\]]+\])?$`)
+
+func modelName(displayName, id string) string {
+	if displayName == "" {
+		return id
+	}
+	match := claudeModelID.FindStringSubmatch(id)
+	if match == nil || !strings.EqualFold(displayName, match[1]) {
+		return displayName
+	}
+	return displayName + " " + strings.ReplaceAll(match[2], "-", ".")
+}
 
 func thermometer(pct float64, width int) string {
 	filled := int(math.Round(pct * float64(width) / 100))
@@ -128,10 +149,31 @@ func lookupAgentName(sessionID string) string {
 }
 
 func formatTokens(n int64) string {
+	if n >= 1_000_000 {
+		return fmt.Sprintf("%.1fM", float64(n)/1_000_000)
+	}
 	if n >= 1000 {
 		return fmt.Sprintf("%.1fk", float64(n)/1000)
 	}
 	return fmt.Sprintf("%d", n)
+}
+
+func contextDetail(context ContextWindow) string {
+	if context.ContextWindowSize <= 0 {
+		return ""
+	}
+	capacity := formatTokens(context.ContextWindowSize)
+	if context.UsedPercentage != nil {
+		if usage := context.CurrentUsage; usage != nil {
+			// Match Claude's input-only percentage; output tokens are excluded.
+			used := usage.InputTokens + usage.CacheCreationInputTokens + usage.CacheReadInputTokens
+			return fmt.Sprintf(" (%s/%s)", formatTokens(used), capacity)
+		}
+		if context.TotalInputTokens != nil {
+			return fmt.Sprintf(" (%s/%s)", formatTokens(*context.TotalInputTokens), capacity)
+		}
+	}
+	return fmt.Sprintf(" (%s ctx)", capacity)
 }
 
 func timeUntil(unixSecs int64) string {
@@ -154,14 +196,17 @@ func timeUntil(unixSecs int64) string {
 	}
 }
 
-func main() {
-	var data StatusData
-	if err := json.NewDecoder(os.Stdin).Decode(&data); err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
+func render(data StatusData, branch string) string {
+	model := modelName(data.Model.DisplayName, data.Model.ID)
+	if data.Effort != nil && data.Effort.Level != "" {
+		model += " \u26A1" + data.Effort.Level
 	}
-
-	model := data.Model.DisplayName
+	if data.Thinking != nil && data.Thinking.Enabled {
+		model += " \U0001F4AD"
+	}
+	if data.FastMode {
+		model += " fast"
+	}
 	dir := abbreviateHome(data.Workspace.CurrentDir)
 
 	ctxPct := 0.0
@@ -175,11 +220,9 @@ func main() {
 	secs := (durationMS % 60000) / 1000
 
 	// Git branch
-	branch := ""
-	if out, err := exec.Command("git", "branch", "--show-current").Output(); err == nil {
-		if b := strings.TrimSpace(string(out)); b != "" {
-			branch = " | \U0001F33F " + b
-		}
+	branchSuffix := ""
+	if branch != "" {
+		branchSuffix = " | \U0001F33F " + branch
 	}
 
 	// Session name prefix
@@ -221,22 +264,14 @@ func main() {
 		addedDirsSuffix = fmt.Sprintf(" +[%s]", strings.Join(names, ","))
 	}
 
-	// Line 1: session, model, short session id, dir, project, added dirs, git branch
-	fmt.Printf("%s%s[%s]%s%s \U0001F4C1 %s%s%s%s\n",
-		sessionPrefix, cyan, model, reset, shortSessionSuffix, dir, projectSuffix, addedDirsSuffix, branch)
+	// Line 1: session, model and modes, short session id, dirs, git branch
+	line1 := fmt.Sprintf("%s%s[%s]%s%s \U0001F4C1 %s%s%s%s",
+		sessionPrefix, cyan, model, reset, shortSessionSuffix, dir, projectSuffix, addedDirsSuffix, branchSuffix)
 
-	// Line 2: context bar | cost | duration | effort | thinking | 200k+ | rate limits
+	// Line 2: context usage/capacity | cost | duration | cache | 200k+ | rate limits
 	ctxBar := thermometer(ctxPct, 10)
-	line2 := fmt.Sprintf("%s %d%% | %s$%.2f%s | \u23F1\uFE0F %dm%ds",
-		ctxBar, int(ctxPct), yellow, cost, reset, mins, secs)
-
-	if data.Effort != nil && data.Effort.Level != "" {
-		line2 += fmt.Sprintf(" | \u26A1%s", data.Effort.Level)
-	}
-
-	if data.Thinking != nil && data.Thinking.Enabled {
-		line2 += " | \U0001F4AD"
-	}
+	line2 := fmt.Sprintf("%s %d%%%s | %s$%.2f%s | \u23F1\uFE0F %dm%ds",
+		ctxBar, int(ctxPct), contextDetail(data.ContextWindow), yellow, cost, reset, mins, secs)
 
 	if data.ContextWindow.CurrentUsage != nil {
 		cu := data.ContextWindow.CurrentUsage
@@ -268,5 +303,19 @@ func main() {
 		}
 	}
 
-	fmt.Println(line2)
+	return line1 + "\n" + line2
+}
+
+func main() {
+	var data StatusData
+	if err := json.NewDecoder(os.Stdin).Decode(&data); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+
+	branch := ""
+	if out, err := exec.Command("git", "branch", "--show-current").Output(); err == nil {
+		branch = strings.TrimSpace(string(out))
+	}
+	fmt.Println(render(data, branch))
 }
