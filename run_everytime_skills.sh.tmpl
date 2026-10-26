@@ -39,9 +39,10 @@ sync_skills() {
       ln -s "$skill_dir" "$link_path"
     fi
   done
-  # Only remove links that point into this src (leave links from other sources alone)
-  for link in "$dst"/*/; do
-    link="${link%/}"
+  # Only remove links that point into this src (leave links from other sources alone).
+  # Glob without a trailing slash: "$dst"/*/ only matches links that still resolve to a
+  # directory, so links to a removed skill would never be seen.
+  for link in "$dst"/*; do
     [ -L "$link" ] || continue
     local target
     target=$(readlink "$link")
