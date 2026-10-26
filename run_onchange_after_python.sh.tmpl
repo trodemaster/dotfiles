@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\n\t'
+
+{{ if ne .chezmoi.os "darwin" }}
+# not Darwin, the distro (apt) picks python
+exit 0
+{{ end }}
+# MacPorts python {{ .python_vers }} (pinned in .chezmoi.toml.tmpl); this script reruns when the pin changes
+
+[[ -x /opt/local/bin/port ]] || exit 0
+
+PYTHON3VERSION="{{ .python_vers }}"
+PYTHON3VERSION_MPORTS="{{ .python_vers_ports }}"
+
+# macports packages to install
+PORT_PACKAGES=(
+  "python${PYTHON3VERSION_MPORTS}"
+  "py${PYTHON3VERSION_MPORTS}-pip"
+  "py${PYTHON3VERSION_MPORTS}-virtualenv"
+)
+
+for PORT_PACKAGE in "${PORT_PACKAGES[@]}"; do
+  if ! /opt/local/bin/port -q installed "$PORT_PACKAGE" | grep -q .; then
+    echo "Installing $PORT_PACKAGE..."
+    sudo /opt/local/bin/port -q install "$PORT_PACKAGE"
+  fi
+done
+
+# make the pinned version the default for the unversioned commands
+select_default() {
+  local group=$1 target=$2
+  if ! /opt/local/bin/port select --show "$group" | grep -q "'${target}'"; then
+    sudo /opt/local/bin/port select --set "$group" "$target" >/dev/null
+  fi
+}
+
+if [[ -e /opt/local/bin/python${PYTHON3VERSION} ]]; then
+  select_default python     "python${PYTHON3VERSION_MPORTS}"
+  select_default python3    "python${PYTHON3VERSION_MPORTS}"
+  select_default virtualenv "virtualenv${PYTHON3VERSION_MPORTS}"
+  select_default pip        "pip${PYTHON3VERSION_MPORTS}"
+  select_default pip3       "pip${PYTHON3VERSION_MPORTS}"
+fi
+
+exit 0

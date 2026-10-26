@@ -51,14 +51,17 @@ This applies to all repos that use `.envrc` for credential switching.
 
 - `dot_bash_env.tmpl` → `~/.bash_env` — non-interactive shell env; used by Claude via `BASH_ENV` (must be set in `machine-cfg/claude/settings.json`'s `env.BASH_ENV`); resolves direnv via `direnv exec` (not `direnv export bash`, which is unreliable in cold non-interactive shells)
 - `dot_bash_profile.tmpl` → `~/.bash_profile` — interactive shell setup; runs `direnv hook bash`. Only on Linux with `/tmp` mounted `noexec`, wraps `chezmoi` to use a private executable directory under `~/.cache/chezmoi/`; an explicit executable `TMPDIR` is respected. Other systems leave the command unchanged. For the first update before this profile is installed, set `TMPDIR` to an executable directory for that invocation.
-- `dot_claude/symlink_settings.json.tmpl` → `~/.claude/settings.json` symlink into `machine-cfg/claude/`
+- `dot_claude/symlink_settings.json.tmpl` → `~/.claude/settings.json` symlink to `machine-cfg/<hostname>/claude/settings.json` when that exists, else `machine-cfg/claude/settings.json`
 - `dot_claude/symlink_settings.local.json.tmpl` → `~/.claude/settings.local.json` symlink into `machine-cfg/claude/`
 
 ## Claude Settings Files
 
 `~/.claude/settings.json` and `~/.claude/settings.local.json` are **symlinks** managed by chezmoi. The real files are:
 
-- `~/Developer/machine-cfg/claude/settings.json` — global Claude settings (permissions, sandbox, model, env)
+- `~/Developer/machine-cfg/<hostname>/claude/settings.json` — this machine's Claude settings (permissions, sandbox, model, env), when machine-cfg has one for the host (`chezmoi execute-template '{{ .chezmoi.hostname }}'` gives the name). Machines sharing one file caused problems, so personal machines each get their own.
+- `~/Developer/machine-cfg/claude/settings.json` — the shared fallback for hosts without one (e.g. work machines)
 - `~/Developer/machine-cfg/claude/settings.local.json` — local overrides
+
+`readlink ~/.claude/settings.json` shows which one is live. A newly added per-host file takes effect at the next `chezmoi apply`.
 
 **Always edit the real paths directly** — the Edit tool refuses to write through symlinks. After editing, commit and push machine-cfg from the terminal.

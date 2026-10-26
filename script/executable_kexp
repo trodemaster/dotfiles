@@ -11,7 +11,7 @@ if (pgrep nrsc5); then
 fi
 
 # check if dogle is local
-echo "connecting to umac.jibb.tv"
-/opt/local/bin/nrsc5 -H umac.jibb.tv:9030 -g 6 90.3 0
+echo "connecting to far-star.jibb.tv"
+/opt/local/bin/nrsc5 -H far-star.jibb.tv:9030 -g 6 90.3 0
 
 exit 0

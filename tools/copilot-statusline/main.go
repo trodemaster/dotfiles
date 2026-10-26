@@ -19,9 +19,6 @@ type Model struct {
 }
 
 type Cost struct {
-	TotalDurationMS      int64 `json:"total_duration_ms"`
-	TotalLinesAdded      int64 `json:"total_lines_added"`
-	TotalLinesRemoved    int64 `json:"total_lines_removed"`
 	TotalPremiumRequests int64 `json:"total_premium_requests"`
 }
 
@@ -49,7 +46,6 @@ type ContextWindow struct {
 
 type StatusData struct {
 	CWD         string  `json:"cwd"`
-	SessionID   string  `json:"session_id"`
 	SessionName *string `json:"session_name"`
 	Model       *Model  `json:"model"`
 	Workspace   *struct {
@@ -109,17 +105,6 @@ func formatTokens(n int64) string {
 	}
 }
 
-func formatDuration(ms int64) string {
-	totalSeconds := ms / 1000
-	hours := totalSeconds / 3600
-	minutes := (totalSeconds % 3600) / 60
-	seconds := totalSeconds % 60
-	if hours > 0 {
-		return fmt.Sprintf("%dh%dm%ds", hours, minutes, seconds)
-	}
-	return fmt.Sprintf("%dm%ds", minutes, seconds)
-}
-
 func workingDir(data StatusData) string {
 	if data.CWD != "" {
 		return data.CWD
@@ -130,6 +115,16 @@ func workingDir(data StatusData) string {
 	return ""
 }
 
+func contextLimit(context *ContextWindow) *float64 {
+	if context == nil {
+		return nil
+	}
+	if context.DisplayedContextLimit != nil {
+		return context.DisplayedContextLimit
+	}
+	return context.ContextWindowSize
+}
+
 func contextPercentage(context *ContextWindow) float64 {
 	if context == nil {
 		return 0
@@ -138,10 +133,7 @@ func contextPercentage(context *ContextWindow) float64 {
 		return *context.CurrentContextUsedPercentage
 	}
 	if context.CurrentContextTokens != nil {
-		limit := context.DisplayedContextLimit
-		if limit == nil {
-			limit = context.ContextWindowSize
-		}
+		limit := contextLimit(context)
 		if limit != nil && *limit > 0 {
 			return *context.CurrentContextTokens * 100 / *limit
 		}
@@ -212,21 +204,24 @@ func modelName(model *Model) string {
 	return strings.Join(parts, " ")
 }
 
-func render(data StatusData, branch string) string {
-	model := modelName(data.Model)
+func modelSegment(data StatusData) string {
+	var parts []string
+	if model := modelName(data.Model); model != "" {
+		parts = append(parts, cyan+model+reset)
+	}
+	if effort := thinkingEffort(data.Model); effort != "" {
+		parts = append(parts, "\u26A1"+effort)
+	}
+	if limit := contextLimit(data.ContextWindow); limit != nil && *limit > 0 {
+		parts = append(parts, formatTokens(int64(*limit)))
+	}
+	return strings.Join(parts, " \u2022 ")
+}
 
+func render(data StatusData, branch string) string {
 	sessionPrefix := ""
 	if data.SessionName != nil && *data.SessionName != "" {
 		sessionPrefix = fmt.Sprintf("%s\U0001F3F7\uFE0F %s%s | ", cyan, *data.SessionName, reset)
-	}
-
-	sessionSuffix := ""
-	if data.SessionID != "" {
-		id := data.SessionID
-		if len(id) > 8 {
-			id = id[:8]
-		}
-		sessionSuffix = fmt.Sprintf(" %s#%s%s", cyan, id, reset)
 	}
 
 	remoteSuffix := ""
@@ -247,29 +242,14 @@ func render(data StatusData, branch string) string {
 	}
 
 	dir := abbreviateHome(workingDir(data))
-	line1 := fmt.Sprintf("%s%s[%s]%s%s \U0001F4C1 %s%s%s",
-		sessionPrefix, cyan, model, reset, sessionSuffix, dir, remoteSuffix, branchSuffix)
+	line1 := fmt.Sprintf("\U0001F4C1 %s%s%s", dir, remoteSuffix, branchSuffix)
+	if segment := modelSegment(data); segment != "" {
+		line1 = segment + " | " + line1
+	}
+	line1 = sessionPrefix + line1
 
 	pct := contextPercentage(data.ContextWindow)
 	line2 := fmt.Sprintf("%s %d%%", thermometer(pct, 10), int(pct))
-
-	if data.AIUsed != nil {
-		credits := data.AIUsed.Formatted
-		if credits == "" && data.AIUsed.TotalNanoAIU != nil {
-			credits = fmt.Sprintf("%.2f", *data.AIUsed.TotalNanoAIU/1_000_000_000)
-		}
-		if credits != "" {
-			line2 += fmt.Sprintf(" | %s%s AI%s", yellow, credits, reset)
-		}
-	}
-
-	if data.Cost != nil {
-		line2 += " | \u23F1\uFE0F " + formatDuration(data.Cost.TotalDurationMS)
-	}
-
-	if effort := thinkingEffort(data.Model); effort != "" {
-		line2 += " | \u26A1" + effort
-	}
 
 	if context := data.ContextWindow; context != nil {
 		cacheRead := context.TotalCacheReadTokens
@@ -287,14 +267,19 @@ func render(data StatusData, branch string) string {
 		}
 	}
 
-	if data.Cost != nil {
-		if data.Cost.TotalLinesAdded != 0 || data.Cost.TotalLinesRemoved != 0 {
-			line2 += fmt.Sprintf(" | %s+%d%s %s-%d%s",
-				green, data.Cost.TotalLinesAdded, reset,
-				red, data.Cost.TotalLinesRemoved, reset)
+	if data.AIUsed != nil {
+		credits := data.AIUsed.Formatted
+		if credits == "" && data.AIUsed.TotalNanoAIU != nil {
+			credits = fmt.Sprintf("%.2f", *data.AIUsed.TotalNanoAIU/1_000_000_000)
 		}
+		if credits != "" {
+			line2 += fmt.Sprintf(" | %s%s \U0001F4B0%s", yellow, credits, reset)
+		}
+	}
+
+	if data.Cost != nil {
 		if data.Cost.TotalPremiumRequests > 0 {
-			line2 += fmt.Sprintf(" | \u2B50 %d", data.Cost.TotalPremiumRequests)
+			line2 += fmt.Sprintf(" | \U0001F4B5 %d", data.Cost.TotalPremiumRequests)
 		}
 	}
 
