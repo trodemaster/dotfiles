@@ -36,5 +36,25 @@ shell-integration-features = cursor,title,sudo,ssh-env,ssh-terminfo
 
 split-divider-color = #910f0f
 
+## split keybinds (arrow-based)
+# Avoids: Rectangle (ctrl+opt+arrows, cmd+opt+left/right, ctrl+shift+left/right),
+# Ghostty jump_to_prompt (cmd+shift+up/down), readline word-nav (alt+left/right),
+# and macOS Mission Control (ctrl+arrows). cmd+d / cmd+shift+d still work.
+# new split:   cmd+ctrl+arrow
+# focus split: cmd+opt+shift+arrow
+# resize:      cmd+ctrl+shift+arrow
+keybind = cmd+ctrl+up=new_split:up
+keybind = cmd+ctrl+down=new_split:down
+keybind = cmd+ctrl+left=new_split:left
+keybind = cmd+ctrl+right=new_split:right
+keybind = cmd+alt+shift+up=goto_split:up
+keybind = cmd+alt+shift+down=goto_split:down
+keybind = cmd+alt+shift+left=goto_split:left
+keybind = cmd+alt+shift+right=goto_split:right
+keybind = cmd+ctrl+shift+up=resize_split:up,40
+keybind = cmd+ctrl+shift+down=resize_split:down,40
+keybind = cmd+ctrl+shift+left=resize_split:left,40
+keybind = cmd+ctrl+shift+right=resize_split:right,40
+
 ## docs
 # https://github.com/ghostty-org/ghostty?tab=readme-ov-file#configuration
