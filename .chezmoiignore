@@ -4,6 +4,7 @@ dotfiles.code-workspace
 .gitignore
 .devcontainer/
 skills/
+docs/
 
 # ignore these files on linux
 {{- if eq .chezmoi.os "linux" }}
