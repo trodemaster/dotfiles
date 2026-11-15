@@ -44,7 +44,9 @@ if command -v direnv &>/dev/null; then
         [[ -z $_d || $_d == / ]] && return 0
         _d=${_d%/*}
       done
-      echo "bash_env: direnv failed to resolve env for $PWD (blocked .envrc? run 'direnv allow')" >&2
+      local _f=$_d/.envrc
+      [[ -e $_f ]] || _f=$_d/.env
+      echo "bash_env: direnv failed to resolve env for $PWD ($_f blocked? run 'direnv allow')" >&2
       return 0
     fi
     while IFS= read -r -d '' _kv; do
