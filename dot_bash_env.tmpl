@@ -37,6 +37,13 @@ if command -v direnv &>/dev/null; then
       _n=$((_n + 1))
     done < <(env -u BASH_ENV direnv exec . env -0 2>/dev/null)
     if [[ $_n -eq 0 ]]; then
+      # Only warn when there's an env file this dir would load; with none,
+      # an empty result (e.g. direnv failing inside the sandbox) is harmless.
+      local _d=$PWD
+      while [[ ! -e $_d/.envrc && ! -e $_d/.env ]]; do
+        [[ -z $_d || $_d == / ]] && return 0
+        _d=${_d%/*}
+      done
       echo "bash_env: direnv failed to resolve env for $PWD (blocked .envrc? run 'direnv allow')" >&2
       return 0
     fi
