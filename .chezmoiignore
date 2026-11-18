@@ -31,6 +31,14 @@ Library/
 Library/Application Support/Code/User/mcp.json
 {{- end }}
 
+# machine-cfg files that only some upstreams have (personal has neither): don't leave a dangling link
+{{- if not (stat (joinPath .chezmoi.homeDir "Developer/machine-cfg/codex/config.toml")) }}
+.codex/config.toml
+{{- end }}
+{{- if not (stat (joinPath .chezmoi.homeDir "Developer/machine-cfg/claude/settings.local.json")) }}
+.claude/settings.local.json
+{{- end }}
+
 {{- if not (stat (joinPath .chezmoi.homeDir "Developer/machine-cfg/copilot")) }}
 .copilot
 {{- end }}
