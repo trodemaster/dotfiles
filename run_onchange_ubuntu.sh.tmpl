@@ -23,17 +23,11 @@ if compgen -G "/usr/share/xsessions/*.desktop" >/dev/null || compgen -G "/usr/sh
   HAS_DESKTOP_SESSION=true
 fi
 
-# add hashicorp gpg key
-if ! [[ -f /usr/share/keyrings/hashicorp-archive-keyring.gpg ]]; then
-  echo "Adding Hashicorp GPG key..."
-  wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
-  sudo chmod 644 /usr/share/keyrings/hashicorp-archive-keyring.gpg
-else
-  sudo chmod 644 /usr/share/keyrings/hashicorp-archive-keyring.gpg
-fi
+# hashicorp gpg key: installed and kept current by run_everytime_before_hashicorp-key.sh,
+# which runs before this script on every apply (HashiCorp rotates its signing key).
 
-# add hashicorp repo
-if ! [[ -f /etc/apt/sources.list.d/hashicorp.list ]]; then
+# add hashicorp repo (a release upgrade may have migrated it to deb822 .sources)
+if ! [[ -f /etc/apt/sources.list.d/hashicorp.list || -f /etc/apt/sources.list.d/hashicorp.sources ]]; then
   echo "Adding Hashicorp repo..."
   
   CURRENT_RELEASE=$(lsb_release -cs)

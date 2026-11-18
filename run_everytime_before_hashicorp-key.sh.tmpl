@@ -1,0 +1,23 @@
+{{ if and (eq .chezmoi.os "linux") (eq .chezmoi.osRelease.id "ubuntu") -}}
+#!/usr/bin/env bash
+# Keep the HashiCorp apt keyring current. HashiCorp rotates its signing key: the 2023 key was
+# replaced by FC9CA96ACA026560 in 2026-09. A keyring that is only fetched when missing goes stale,
+# and then `apt update` fails with NO_PUBKEY. This runs on every apply, before
+# run_onchange_ubuntu.sh (which does `apt update`). It downloads as the user and only uses sudo
+# when the key actually changed, so normal applies never prompt.
+set -uo pipefail
+
+KEYRING=/usr/share/keyrings/hashicorp-archive-keyring.gpg
+TMP=$(mktemp "${TMPDIR:-/var/tmp}/hashicorp-key.XXXXXX") || exit 0
+trap 'rm -f "$TMP"' EXIT
+
+if ! curl -fsSL --max-time 20 https://apt.releases.hashicorp.com/gpg | gpg --dearmor >"$TMP" 2>/dev/null || ! [[ -s $TMP ]]; then
+	echo "hashicorp-key: could not fetch key; keeping existing keyring" >&2
+	exit 0
+fi
+
+if ! cmp -s "$TMP" "$KEYRING"; then
+	echo "hashicorp-key: installing updated HashiCorp apt key"
+	sudo install -m 644 "$TMP" "$KEYRING"
+fi
+{{ end -}}
