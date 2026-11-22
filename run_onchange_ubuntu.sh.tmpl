@@ -46,6 +46,16 @@ if ! [[ -f /etc/apt/sources.list.d/hashicorp.list || -f /etc/apt/sources.list.d/
   sudo chmod 644 /etc/apt/sources.list.d/hashicorp.list
 fi
 
+# migrate off the codename-mismatch fallback once HashiCorp publishes the current release
+# (the old fallback suite is signed with the retired 2023 key, so apt update fails with NO_PUBKEY)
+if grep -qs "allow-codename-mismatch" /etc/apt/sources.list.d/hashicorp.list; then
+  CURRENT_RELEASE=$(lsb_release -cs)
+  if curl -s -o /dev/null -w "%{http_code}" "https://apt.releases.hashicorp.com/dists/${CURRENT_RELEASE}/Release" | grep -q "200"; then
+    echo "Hashicorp now publishes $CURRENT_RELEASE, dropping the fallback suite"
+    echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com ${CURRENT_RELEASE} main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+  fi
+fi
+
 echo "Updating apt cache..."
 sudo apt update >/dev/null
 
