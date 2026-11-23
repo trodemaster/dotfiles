@@ -1,6 +1,2 @@
 [global]
 load_dotenv=true
-
-[whitelist]
-prefix= ["~/code"]
-
