@@ -31,6 +31,16 @@ Library/
 Library/Application Support/Code/User/mcp.json
 {{- end }}
 
+# ssh keys merged into ~/.ssh/authorized_keys; skip if this checkout has neither the shared nor a host authorized_keys
+{{- $akDirs := list "Developer" "code" }}
+{{- $hasAK := false }}
+{{- range $akDirs }}
+{{-   if or (stat (joinPath $.chezmoi.homeDir . "machine-cfg/authorized_keys")) (stat (joinPath $.chezmoi.homeDir . "machine-cfg" $.chezmoi.hostname "authorized_keys")) }}{{ $hasAK = true }}{{ end }}
+{{- end }}
+{{- if not $hasAK }}
+.ssh/authorized_keys
+{{- end }}
+
 # machine-cfg files that only some upstreams have (personal has neither): don't leave a dangling link
 {{- if not (stat (joinPath .chezmoi.homeDir "Developer/machine-cfg/codex/config.toml")) }}
 .codex/config.toml

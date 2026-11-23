@@ -1,0 +1,44 @@
+{{- /* Merges machine-cfg/authorized_keys, then machine-cfg/<hostname>/authorized_keys if present, into ~/.ssh/authorized_keys as a marked block.
+       chezmoi feeds the current file on stdin and writes whatever this script prints.
+       Same ~/code vs ~/Developer detection as private_config.tmpl. */ -}}
+{{- $devDir := "Developer" -}}
+{{- if (stat (joinPath .chezmoi.homeDir "code" "machine-cfg")) -}}
+{{-   $devDir = "code" -}}
+{{- end -}}
+#!/usr/bin/env bash
+# chezmoi managed: ssh keys from machine-cfg/authorized_keys (all hosts) and
+# machine-cfg/<hostname>/authorized_keys (this host, optional), merged into a marked block.
+# Everything outside the block is passed through unchanged, except that a line carrying the same
+# key as a managed one is dropped (so a hand-installed copy isn't listed twice).
+set -euo pipefail
+
+read -r -d '' managed <<'MACHINE_CFG_KEYS' || true
+{{ $shared := joinPath .chezmoi.homeDir $devDir "machine-cfg/authorized_keys" -}}
+{{ $host := joinPath .chezmoi.homeDir $devDir "machine-cfg" .chezmoi.hostname "authorized_keys" -}}
+{{ if (stat $shared) }}{{ include $shared | trim }}
+{{ end -}}
+{{ if (stat $host) }}
+{{ include $host | trim }}
+{{ end -}}
+MACHINE_CFG_KEYS
+
+begin='# BEGIN chezmoi-managed keys (machine-cfg authorized_keys files): edit there, not here'
+end='# END chezmoi-managed keys'
+
+# The key blob is the field after the key type; options before it may contain spaces in quotes
+# but never a field that looks like a key type, so scanning for the type is safe.
+awk -v begin="$begin" -v end="$end" '
+function blob(line,   n, f, i) {
+  n = split(line, f, /[ \t]+/)
+  for (i = 1; i < n; i++)
+    if (f[i] ~ /^(ssh-|ecdsa-|sk-)/) return f[i+1]
+  return ""
+}
+NR == FNR { if ($0 !~ /^[ \t]*(#|$)/) { b = blob($0); if (b != "") managed_blob[b] = 1 } ; next }
+$0 == begin { skip = 1; next }
+$0 == end   { skip = 0; next }
+skip        { next }
+{ b = blob($0); if (b != "" && (b in managed_blob)) next; print }
+' <(printf '%s\n' "$managed") -
+
+printf '%s\n%s\n%s\n' "$begin" "$managed" "$end"
