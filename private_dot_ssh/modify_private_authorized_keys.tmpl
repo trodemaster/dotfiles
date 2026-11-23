@@ -1,10 +1,6 @@
 {{- /* Merges machine-cfg/authorized_keys, then machine-cfg/<hostname>/authorized_keys if present, into ~/.ssh/authorized_keys as a marked block.
-       chezmoi feeds the current file on stdin and writes whatever this script prints.
-       Same ~/code vs ~/Developer detection as private_config.tmpl. */ -}}
+       chezmoi feeds the current file on stdin and writes whatever this script prints. */ -}}
 {{- $devDir := "Developer" -}}
-{{- if (stat (joinPath .chezmoi.homeDir "code" "machine-cfg")) -}}
-{{-   $devDir = "code" -}}
-{{- end -}}
 #!/usr/bin/env bash
 # chezmoi managed: ssh keys from machine-cfg/authorized_keys (all hosts) and
 # machine-cfg/<hostname>/authorized_keys (this host, optional), merged into a marked block.

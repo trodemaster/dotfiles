@@ -32,11 +32,7 @@ Library/Application Support/Code/User/mcp.json
 {{- end }}
 
 # ssh keys merged into ~/.ssh/authorized_keys; skip if this checkout has neither the shared nor a host authorized_keys
-{{- $akDirs := list "Developer" "code" }}
-{{- $hasAK := false }}
-{{- range $akDirs }}
-{{-   if or (stat (joinPath $.chezmoi.homeDir . "machine-cfg/authorized_keys")) (stat (joinPath $.chezmoi.homeDir . "machine-cfg" $.chezmoi.hostname "authorized_keys")) }}{{ $hasAK = true }}{{ end }}
-{{- end }}
+{{- $hasAK := or (stat (joinPath .chezmoi.homeDir "Developer/machine-cfg/authorized_keys")) (stat (joinPath .chezmoi.homeDir "Developer/machine-cfg" .chezmoi.hostname "authorized_keys")) }}
 {{- if not $hasAK }}
 .ssh/authorized_keys
 {{- end }}
