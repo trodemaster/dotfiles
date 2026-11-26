@@ -8,12 +8,12 @@ Source: machine-cfg/<hostname>/claude/settings.json when it exists, else machine
 # chezmoi modify script: stdin = the current ~/.claude/settings.json, stdout = the new content.
 # Everything comes from the repo file except the runtime-owned keys below, which keep the live
 # file's value when it has one (the repo's value is only the default / first-run seed).
-#   model                                    plain value: live wins
+#   model, theme, tui                        plain values: live wins
 #   enabledPlugins, extraKnownMarketplaces   objects: merged per entry, live wins, repo adds missing
 # Edit the repo file for everything else; other changes made in the live file (e.g. permissions
 # added through the UI) are replaced on the next apply.
 SRC="{{ $src }}"
-RUNTIME_KEYS='["model","enabledPlugins","extraKnownMarketplaces"]'
+RUNTIME_KEYS='["model","theme","tui","enabledPlugins","extraKnownMarketplaces"]'
 
 cur="$(cat)"
 

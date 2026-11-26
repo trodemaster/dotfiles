@@ -51,7 +51,7 @@ This applies to all repos that use `.envrc` for credential switching.
 
 - `dot_bash_env.tmpl` → `~/.bash_env` — non-interactive shell env; used by Claude via `BASH_ENV` (must be set in `machine-cfg/claude/settings.json`'s `env.BASH_ENV`); resolves direnv via `direnv exec` (not `direnv export bash`, which is unreliable in cold non-interactive shells)
 - `dot_bash_profile.tmpl` → `~/.bash_profile` — interactive shell setup; runs `direnv hook bash`. Only on Linux with `/tmp` mounted `noexec`, wraps `chezmoi` to use a private executable directory under `~/.cache/chezmoi/`; an explicit executable `TMPDIR` is respected. Other systems leave the command unchanged. For the first update before this profile is installed, set `TMPDIR` to an executable directory for that invocation.
-- `dot_claude/modify_settings.json.tmpl` → `~/.claude/settings.json` — a real file (not a symlink) rebuilt on every apply from `machine-cfg/<hostname>/claude/settings.json` when that exists, else `machine-cfg/claude/settings.json`, keeping the live file's `model`, `enabledPlugins` and `extraKnownMarketplaces` (see Claude Settings Files)
+- `dot_claude/modify_settings.json.tmpl` → `~/.claude/settings.json` — a real file (not a symlink) rebuilt on every apply from `machine-cfg/<hostname>/claude/settings.json` when that exists, else `machine-cfg/claude/settings.json`, keeping the live file's `model`, `theme`, `tui`, `enabledPlugins` and `extraKnownMarketplaces` (see Claude Settings Files)
 - `dot_claude/symlink_settings.local.json.tmpl` → `~/.claude/settings.local.json` symlink into `machine-cfg/claude/`
 
 ## Claude Settings Files
@@ -62,7 +62,7 @@ This applies to all repos that use `.envrc` for credential switching.
 - `~/Developer/machine-cfg/claude/settings.json` — the shared fallback for hosts without one (e.g. work machines)
 - `~/Developer/machine-cfg/claude/settings.local.json` — local overrides (symlink target of `~/.claude/settings.local.json`)
 
-**Merge rules for `~/.claude/settings.json`:** the repo file wins for everything except three runtime-owned keys, which keep the live file's value when it has one (the repo value is only the default and the first-run seed): `model` (live replaces), and `enabledPlugins` / `extraKnownMarketplaces` (merged per entry, live wins, repo adds entries the live file lacks). Anything else changed in the live file, such as a permission added through the UI, is replaced at the next apply, so put it in the repo file. An empty, missing or invalid live file is re-seeded from the repo. If `jq` is missing the live file is left unchanged.
+**Merge rules for `~/.claude/settings.json`:** the repo file wins for everything except five runtime-owned keys, which keep the live file's value when it has one (the repo value is only the default and the first-run seed): `model`, `theme` and `tui` (live replaces; Claude writes them from `/model` and the UI settings), and `enabledPlugins` / `extraKnownMarketplaces` (merged per entry, live wins, repo adds entries the live file lacks). Anything else changed in the live file, such as a permission added through the UI, is replaced at the next apply, so put it in the repo file. An empty, missing or invalid live file is re-seeded from the repo. If `jq` is missing the live file is left unchanged.
 
 `chezmoi diff ~/.claude/settings.json` shows what the next apply would change. A newly added per-host file takes effect at the next `chezmoi apply`.
 
