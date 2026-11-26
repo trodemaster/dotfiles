@@ -27,6 +27,7 @@ if out=$("${TIMEOUT[@]}" "${GIT[@]}" pull --ff-only --quiet 2>&1); then
     [ -n "$out" ] && echo "$out"
     echo "machine-cfg: up to date ($(git rev-parse --short HEAD))"
 else
-    warn "$(printf '%s' "$out" | tr '\n' ' ')"
+    # drop git's multi-line "hint:" advice; keep the fatal:/error: lines, joined on one line
+    warn "$(printf '%s\n' "$out" | grep -v '^hint:' | grep -v '^[[:space:]]*$' | tr '\n' ' ' | sed 's/ *$//')"
 fi
 exit 0
