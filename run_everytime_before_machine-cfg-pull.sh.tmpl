@@ -1,0 +1,32 @@
+#!/bin/bash
+# Fast-forward ~/Developer/machine-cfg to its upstream on every apply, before chezmoi renders
+# templates and links files, so the new content is what gets applied. Never fails the apply:
+# a missing checkout is skipped; a failed pull (dirty/conflicting tree, diverged branch, no
+# network, auth) only prints a warning.
+DIR="{{ .chezmoi.homeDir }}/Developer/machine-cfg"
+
+[ -d "$DIR/.git" ] || exit 0
+
+warn() { echo "warning: machine-cfg not updated: $*" >&2; }
+
+cd "$DIR" || { warn "cannot cd to $DIR"; exit 0; }
+
+# HTTPS remote; git's configured credential helper supplies the login. Never prompt: a
+# prompt would hang the apply.
+export GIT_TERMINAL_PROMPT=0
+
+# direnv picks the right GitHub account (GH_CONFIG_DIR) from .envrc; it only fires in an
+# interactive shell, so wrap the pull the way ~/.bash_env does.
+GIT=(git)
+if command -v direnv >/dev/null 2>&1; then GIT=(direnv exec "$DIR" git); fi
+
+TIMEOUT=()
+if command -v timeout >/dev/null 2>&1; then TIMEOUT=(timeout 60); fi
+
+if out=$("${TIMEOUT[@]}" "${GIT[@]}" pull --ff-only --quiet 2>&1); then
+    [ -n "$out" ] && echo "$out"
+    echo "machine-cfg: up to date ($(git rev-parse --short HEAD))"
+else
+    warn "$(printf '%s' "$out" | tr '\n' ' ')"
+fi
+exit 0
