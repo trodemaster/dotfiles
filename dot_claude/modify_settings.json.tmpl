@@ -1,0 +1,47 @@
+#!/bin/bash
+{{- /* Replaces the old symlink into machine-cfg. ~/.claude/settings.json is now a real file so that
+Claude's runtime writes (/model, plugin installs) stay local instead of churning the tracked file.
+Source: machine-cfg/<hostname>/claude/settings.json when it exists, else machine-cfg/claude/settings.json. */ -}}
+{{- $hostSettings := joinPath .chezmoi.homeDir "Developer/machine-cfg" .chezmoi.hostname "claude/settings.json" -}}
+{{- $src := joinPath .chezmoi.homeDir "Developer/machine-cfg/claude/settings.json" -}}
+{{- if stat $hostSettings -}}{{- $src = $hostSettings -}}{{- end }}
+# chezmoi modify script: stdin = the current ~/.claude/settings.json, stdout = the new content.
+# Everything comes from the repo file except the runtime-owned keys below, which keep the live
+# file's value when it has one (the repo's value is only the default / first-run seed).
+#   model                                    plain value: live wins
+#   enabledPlugins, extraKnownMarketplaces   objects: merged per entry, live wins, repo adds missing
+# Edit the repo file for everything else; other changes made in the live file (e.g. permissions
+# added through the UI) are replaced on the next apply.
+SRC="{{ $src }}"
+RUNTIME_KEYS='["model","enabledPlugins","extraKnownMarketplaces"]'
+
+cur="$(cat)"
+
+if [ ! -f "$SRC" ]; then
+    echo "warning: $SRC not found; leaving settings.json unchanged" >&2
+    printf '%s\n' "$cur"
+    exit 0
+fi
+
+if ! command -v jq >/dev/null 2>&1; then
+    echo "warning: jq not found; settings.json not merged" >&2
+    if [ -n "$cur" ]; then printf '%s\n' "$cur"; else cat "$SRC"; fi
+    exit 0
+fi
+
+# Missing, empty or invalid live file (first apply, or migrating from the symlink): seed from the repo.
+if ! printf '%s' "$cur" | jq -e 'type == "object"' >/dev/null 2>&1; then
+    cat "$SRC"
+    exit 0
+fi
+
+jq --argjson live "$cur" --argjson keys "$RUNTIME_KEYS" '
+    . as $repo
+    | reduce $keys[] as $k ($repo;
+        if ($live | has($k)) then
+            if (($repo[$k] | type) == "object" and ($live[$k] | type) == "object")
+            then .[$k] = ($repo[$k] + $live[$k])
+            else .[$k] = $live[$k]
+            end
+        else . end)
+' "$SRC"
