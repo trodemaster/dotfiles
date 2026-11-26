@@ -196,7 +196,9 @@ if [[ "${CODESPACES}" == "true" ]]; then
   fi
 else
   # set path for ubuntu VM
-  export PATH=$PATH:/usr/local/go/bin:{{ .chezmoi.homeDir }}/go/bin:{{ .chezmoi.homeDir }}/.local/bin:{{ .chezmoi.homeDir }}/script:{{ .chezmoi.homeDir }}/Developer/machine-cfg/scripts:{{ .chezmoi.homeDir }}/Developer/machine-cfg/{{ .chezmoi.hostname }}/scripts
+  # same Go layout as macOS: GOPATH=~/Developer/go, so `go install` lands in ~/Developer/go/bin (~/go/bin kept as a fallback)
+  export GOPATH={{ .chezmoi.homeDir }}/Developer/go
+  export PATH=$PATH:/usr/local/go/bin:{{ .chezmoi.homeDir }}/Developer/go/bin:{{ .chezmoi.homeDir }}/go/bin:{{ .chezmoi.homeDir }}/.local/bin:{{ .chezmoi.homeDir }}/script:{{ .chezmoi.homeDir }}/Developer/machine-cfg/scripts:{{ .chezmoi.homeDir }}/Developer/machine-cfg/{{ .chezmoi.hostname }}/scripts
 fi
 
 {{ end -}}
