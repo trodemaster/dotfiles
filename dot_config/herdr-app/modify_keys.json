@@ -1,0 +1,23 @@
+#!/bin/bash
+# chezmoi modify script: stdin = the current ~/.config/herdr-app/keys.json, stdout = the new content.
+# Herdr writes keys.json itself and, once the file is edited, stops updating its default shortcuts,
+# so only the entries below are set; everything else in the live file is kept as is.
+#
+# terminal.shift-enter: send ESC+CR (same as Option+Enter) so Shift+Enter inserts a newline in
+# Claude Code's prompt instead of submitting it. Ghostty's equivalent is tmux extended-keys csi-u.
+cur="$(cat)"
+
+if ! command -v jq >/dev/null 2>&1; then
+    echo "warning: jq not found; herdr keys.json not modified" >&2
+    printf '%s' "$cur"
+    exit 0
+fi
+
+# Herdr hasn't created keys.json yet (fresh machine): leave it alone so it seeds its defaults;
+# the next apply after its first run adds the entry.
+if ! printf '%s' "$cur" | jq -e 'type == "object"' >/dev/null 2>&1; then
+    printf '%s' "$cur"
+    exit 0
+fi
+
+printf '%s' "$cur" | jq '.terminal["shift-enter"] = "send:\u001b\r"'
